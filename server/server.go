@@ -34,6 +34,41 @@ func ServerStart(url string, port string) {
 			SignUpHandler.HandleCreateUser(w, r)
 			return
 		}
+
+		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
+	})
+
+	http.HandleFunc("/api/v1/user/change/profile", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		AddCORS(w)
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			SignUpHandler.HandleUpdateProfile(w, r)
+			return
+		}
+
+		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
+	})
+
+	http.HandleFunc("/api/v1/user/change/password", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		AddCORS(w)
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			SignUpHandler.HandleUpdatePassword(w, r)
+			return
+		}
+
 		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
 	})
 

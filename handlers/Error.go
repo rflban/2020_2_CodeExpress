@@ -9,6 +9,8 @@ const (
 	NoUsername         = "no username field"
 	NoPassword         = "no password field"
 	NoRepeatedPassword = "no repeated password field"
+	PasswordsMismatch  = "passwords do not match"
+	PasswordIsOld      = "password was not changed"
 )
 
 type Error struct {
