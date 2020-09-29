@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -28,20 +29,20 @@ func (s *SignUpHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request)
 	err := json.NewDecoder(r.Body).Decode(newUser)
 	if err != nil {
 		log.Printf("Error parsing SignUp JSON %s", err)
-		w.Write([]byte("{}"))
+		w.Write([]byte(`{"error": "parsing_json"}`))
 		return
 	}
 
 	user, err := s.createUser(newUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
 		log.Printf("Error marshalling SignUp JSON %s", err)
-		w.Write([]byte("{}"))
+		w.Write([]byte(`{"error": "marshalling_json"}`))
 		return
 	}
 
@@ -49,6 +50,7 @@ func (s *SignUpHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request)
 	err = s.SessionRep.AddSession(userSession)
 	if err != nil {
 		log.Printf("Error creating session %s", err)
+		w.Write([]byte(`{"error": "creating_session"}`))
 		return
 	}
 

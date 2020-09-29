@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"log"
 	"sync"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
@@ -49,7 +48,6 @@ func (s *SignUpRepImpl) CreateUser(u *models.NewUser) (*models.User, error) {
 		Password: u.Password,
 	}
 	s.Users = append(s.Users, user)
-	log.Println("New user: ", user)
 	return user, nil // возвращает nil так как реализация без БД
 }
 
