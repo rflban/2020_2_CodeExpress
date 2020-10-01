@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"testing"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
@@ -9,14 +10,23 @@ import (
 func TestCheckSessionExistsSuccess(t *testing.T) {
 	sImpl := repositories.NewSessionRepImpl()
 
-	session := repositories.NewSession()
+	user := &models.User{
+		ID: 0,
+	}
+	session := repositories.NewSession(user)
 
 	err := sImpl.AddSession(session)
 	if err != nil {
 		t.Fatalf("TestCheckSessionExists failed, error: %s", err)
 	}
 
-	if !sImpl.CheckSessionExists(session) {
+	err = sImpl.GetUserBySession(session)
+
+	if err != nil {
+		t.Fatalf("TestCheckSessionExists failed, error: %s", err)
+	}
+
+	if session.UserID != user.ID {
 		t.Fatalf("TestCheckSessionExists failed, session doesn't exist")
 	}
 }
@@ -24,7 +34,10 @@ func TestCheckSessionExistsSuccess(t *testing.T) {
 func TestCheckSessionOutdatesSuccess(t *testing.T) {
 	sImpl := repositories.NewSessionRepImpl()
 
-	session := repositories.NewSession()
+	user := &models.User{
+		ID: 0,
+	}
+	session := repositories.NewSession(user)
 
 	err := sImpl.AddSession(session)
 	if err != nil {
@@ -44,7 +57,10 @@ func TestCheckSessionOutdatesSuccess(t *testing.T) {
 func TestCheckSessionOutdatesFail(t *testing.T) {
 	sImpl := repositories.NewSessionRepImpl()
 
-	session := repositories.NewSession()
+	user := &models.User{
+		ID: 0,
+	}
+	session := repositories.NewSession(user)
 
 	err := sImpl.AddSession(session)
 	if err != nil {
@@ -59,7 +75,10 @@ func TestCheckSessionOutdatesFail(t *testing.T) {
 func TestProlongSessionSuccess(t *testing.T) {
 	sImpl := repositories.NewSessionRepImpl()
 
-	session := repositories.NewSession()
+	user := &models.User{
+		ID: 0,
+	}
+	session := repositories.NewSession(user)
 
 	err := sImpl.OutdateSession(session)
 	if err != nil {

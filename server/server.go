@@ -8,11 +8,11 @@ import (
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
 )
 
-func ServerStart() {
-	SignUpRep := repositories.NewSignUpRepImpl()
+func ServerStart(url string, port string) {
+	UserRep := repositories.NewUserRepImpl()
 	SessionRep := repositories.NewSessionRepImpl()
 
-	SignUpHandler := handlers.NewSignUpHandler(SignUpRep, SessionRep)
+	SignUpHandler := handlers.NewSignUpHandler(UserRep, SessionRep)
 
 	go http.HandleFunc("/api/v1/user/register", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -23,7 +23,6 @@ func ServerStart() {
 		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
 	})
 
-	port := ":8080"
-	log.Println("Server listening on ", port)
-	http.ListenAndServe(port, nil)
+	log.Println("Server listening on ", url + port)
+	http.ListenAndServe(url + port, nil)
 }

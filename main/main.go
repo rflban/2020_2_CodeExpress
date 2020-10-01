@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-	server.ServerStart()
+	url := "127.0.0.1"
+	port := ":8080"
+	server.ServerStart(url, port)
 }

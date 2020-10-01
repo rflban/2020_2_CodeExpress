@@ -3,24 +3,26 @@ package repositories
 import (
 	"sync"
 	"time"
+	"errors"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	uuid "github.com/satori/go.uuid"
 )
 
 type SessionRep interface {
-	CheckSessionExists(session *models.Session) bool
+	GetUserBySession(session *models.Session) error
 	CheckSessionOutdated(session *models.Session) bool
 	ProlongSession(session *models.Session) error
 	OutdateSession(session *models.Session) error
 	AddSession(session *models.Session) error
 }
 
-func NewSession() *models.Session {
+func NewSession(u *models.User) *models.Session {
 	return &models.Session{
-		Name:   "session_id",
+		Name:   "code_express_session_id",
 		ID:     uuid.NewV4().String(),
-		Expire: time.Now().AddDate(0, 0, 5),
+		UserID: u.ID,
+		Expire: time.Now().AddDate(0, 0, 1),
 	}
 }
 
@@ -29,23 +31,27 @@ type SessionRepImpl struct {
 	MU       *sync.RWMutex
 }
 
-func NewSessionRepImpl() *SessionRepImpl {
+func NewSessionRepImpl() SessionRep {
 	return &SessionRepImpl{
 		Sessions: make([]*models.Session, 0),
 		MU:       &sync.RWMutex{},
 	}
 }
 
-func (s *SessionRepImpl) CheckSessionExists(session *models.Session) bool {
+//GetUserBySession - в функцию GetUserBySession на вход приходит сессия,
+//полученная из запроса, которая не содержит в себе UserID, по указателю
+//возвращается сессия с UserID или ошибка, если данной сессии не существует
+func (s *SessionRepImpl) GetUserBySession(session *models.Session) error {
 	s.MU.RLock()
 	defer s.MU.RUnlock()
 
 	for _, elemSession := range s.Sessions {
 		if elemSession.ID == session.ID {
-			return true
+			session.UserID = elemSession.UserID
+			return nil
 		}
 	}
-	return false
+	return errors.New("No user with sessionID")
 }
 
 func (s *SessionRepImpl) CheckSessionOutdated(session *models.Session) bool {
