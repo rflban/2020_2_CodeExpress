@@ -1,30 +1,30 @@
 package handlers
 
 import (
-	"strings"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"errors"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
 )
 
-type SignUpHandler struct {
-	UserRep  repositories.UserRep
+type UserHandler struct {
+	UserRep    repositories.UserRep
 	SessionRep repositories.SessionRep
 }
 
-func NewSignUpHandler(UserRep repositories.UserRep, SessionRep repositories.SessionRep) *SignUpHandler {
-	return &SignUpHandler{
-		UserRep:  UserRep,
+func NewUserHandler(UserRep repositories.UserRep, SessionRep repositories.SessionRep) *UserHandler {
+	return &UserHandler{
+		UserRep:    UserRep,
 		SessionRep: SessionRep,
 	}
 }
 
-func (s *SignUpHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	newUser := new(models.NewUser)
@@ -35,7 +35,7 @@ func (s *SignUpHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, err := s.createUser(newUser)
+	user, err := business.CreateUser(s.UserRep, newUser)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "%s"}`, err.Error()), http.StatusForbidden)
 		return
@@ -64,23 +64,4 @@ func (s *SignUpHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request)
 	}
 	http.SetCookie(w, userCookie)
 	w.WriteHeader(http.StatusOK)
-}
-
-func (s *SignUpHandler) createUser(newUser *models.NewUser) (*models.User, error) {
-	if strings.Compare(newUser.Password, newUser.RepeatedPassword) != 0{
-		return nil, errors.New("Passwords do not match")
-	}
-
-	user := &models.User{
-		Name: newUser.Name,
-		Email: newUser.Email,
-		Password: newUser.Password,
-	}
-
-	err := s.UserRep.CheckUserExists(user)
-	if err != nil {
-		return nil, err
-	}
-	err = s.UserRep.CreateUser(user)
-	return user, err
 }

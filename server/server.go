@@ -12,7 +12,7 @@ func ServerStart(url string, port string) {
 	UserRep := repositories.NewUserRepImpl()
 	SessionRep := repositories.NewSessionRepImpl()
 
-	SignUpHandler := handlers.NewSignUpHandler(UserRep, SessionRep)
+	SignUpHandler := handlers.NewUserHandler(UserRep, SessionRep)
 
 	go http.HandleFunc("/api/v1/user/register", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -23,6 +23,6 @@ func ServerStart(url string, port string) {
 		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
 	})
 
-	log.Println("Server listening on ", url + port)
-	http.ListenAndServe(url + port, nil)
+	log.Println("Server listening on ", url+port)
+	http.ListenAndServe(url+port, nil)
 }

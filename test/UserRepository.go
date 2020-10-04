@@ -40,7 +40,7 @@ func TestCheckUserExistsSuccess(t *testing.T) {
 
 	createUser := func(s repositories.UserRep) error {
 		newUser := &models.User{
-			ID: 0,
+			ID:       0,
 			Name:     "Daniil",
 			Email:    "daniil@mail.ru",
 			Password: "123456dD",
@@ -59,14 +59,14 @@ func TestCheckUserExistsEmailFailed(t *testing.T) {
 
 	createUser := func(s repositories.UserRep) error {
 		newUser1 := &models.User{
-			ID: 0,
+			ID:       0,
 			Name:     "Daniil21",
 			Email:    "daniil@mail.ru",
 			Password: "123456dD",
 		}
 
 		newUser2 := &models.User{
-			ID: 1,
+			ID:       1,
 			Name:     "Daniil",
 			Email:    "daniil@mail.ru",
 			Password: "123456dD",
@@ -86,14 +86,14 @@ func TestCheckUserExistsUsernameFailed(t *testing.T) {
 
 	createUser := func(s repositories.UserRep) error {
 		newUser1 := &models.User{
-			ID: 0,
+			ID:       0,
 			Name:     "Daniil",
 			Email:    "daniil2@mail.ru",
 			Password: "123456dD",
 		}
 
 		newUser2 := &models.User{
-			ID: 1,
+			ID:       1,
 			Name:     "Daniil",
 			Email:    "daniil@mail.ru",
 			Password: "123456dD",

@@ -1,8 +1,9 @@
 package test
 
 import (
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"testing"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
 )
