@@ -1,16 +1,16 @@
 package repositories
 
 import (
+	"errors"
 	"sync"
 	"time"
-	"errors"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	uuid "github.com/satori/go.uuid"
 )
 
 type SessionRep interface {
-	GetUserBySession(session *models.Session) error
+	GetSessionByValue(sessionID string) (*models.Session, error)
 	CheckSessionOutdated(session *models.Session) bool
 	ProlongSession(session *models.Session) error
 	OutdateSession(session *models.Session) error
@@ -41,17 +41,16 @@ func NewSessionRepImpl() SessionRep {
 //GetUserBySession - в функцию GetUserBySession на вход приходит сессия,
 //полученная из запроса, которая не содержит в себе UserID, по указателю
 //возвращается сессия с UserID или ошибка, если данной сессии не существует
-func (s *SessionRepImpl) GetUserBySession(session *models.Session) error {
+func (s *SessionRepImpl) GetSessionByValue(sessionID string) (*models.Session, error) {
 	s.MU.RLock()
 	defer s.MU.RUnlock()
 
 	for _, elemSession := range s.Sessions {
-		if elemSession.ID == session.ID {
-			session.UserID = elemSession.UserID
-			return nil
+		if elemSession.ID == sessionID {
+			return elemSession, nil
 		}
 	}
-	return errors.New("No user with sessionID")
+	return nil, errors.New("No session with sessionID")
 }
 
 func (s *SessionRepImpl) CheckSessionOutdated(session *models.Session) bool {

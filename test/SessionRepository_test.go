@@ -21,13 +21,13 @@ func TestCheckSessionExistsSuccess(t *testing.T) {
 		t.Fatalf("TestCheckSessionExists failed, error: %s", err)
 	}
 
-	err = sImpl.GetUserBySession(session)
+	newSession, err := sImpl.GetSessionByValue(session.ID)
 
 	if err != nil {
 		t.Fatalf("TestCheckSessionExists failed, error: %s", err)
 	}
 
-	if session.UserID != user.ID {
+	if session.UserID != newSession.UserID {
 		t.Fatalf("TestCheckSessionExists failed, session doesn't exist")
 	}
 }
