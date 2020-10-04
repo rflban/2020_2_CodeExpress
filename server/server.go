@@ -14,7 +14,7 @@ func ServerStart(url string, port string) {
 
 	SignUpHandler := handlers.NewUserHandler(UserRep, SessionRep)
 
-	go http.HandleFunc("/api/v1/user/register", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/v1/user/register", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if r.Method == http.MethodPost {
 			SignUpHandler.HandleCreateUser(w, r)

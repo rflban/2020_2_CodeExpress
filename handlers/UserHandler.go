@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
 
@@ -24,27 +24,59 @@ func NewUserHandler(UserRep repositories.UserRep, SessionRep repositories.Sessio
 	}
 }
 
-func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
+func (s *UserHandler) decodeNewUser(w http.ResponseWriter, r *http.Request) (*models.NewUser, error) {
 	newUser := new(models.NewUser)
+
 	err := json.NewDecoder(r.Body).Decode(newUser)
 	if err != nil {
 		log.Printf("Error parsing SignUp JSON %s", err)
-		http.Error(w, `{"error": "internal server error"}`, http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		return nil, errors.New(InternalError)
+	}
+	if newUser.Email == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return nil, errors.New(NoEmail)
+	}
+
+	if newUser.Name == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return nil, errors.New(NoUsername)
+	}
+
+	if newUser.Password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return nil, errors.New(NoPassword)
+	}
+
+	if newUser.RepeatedPassword == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return nil, errors.New(NoRepeatedPassword)
+	}
+
+	if len(newUser.Password) < 8 || len(newUser.RepeatedPassword) < 8 {
+		w.WriteHeader(http.StatusBadRequest)
+		return nil, errors.New(PasswordTooShort)
+	}
+	return newUser, nil
+}
+
+func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	newUser, err := s.decodeNewUser(w, r)
+	if err != nil {
+		json.NewEncoder(w).Encode(&Error{
+			Message: err.Error(),
+		})
 		return
 	}
 
 	user, err := business.CreateUser(s.UserRep, newUser)
 	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "%s"}`, err.Error()), http.StatusForbidden)
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		log.Printf("Error marshalling SignUp JSON %s", err)
-		http.Error(w, `{"error": "internal server error"}`, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(&Error{
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -52,7 +84,10 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	err = s.SessionRep.AddSession(userSession)
 	if err != nil {
 		log.Printf("Error while creating session %s", err)
-		http.Error(w, `{"error": "internal server error"}`, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&Error{
+			Message: InternalError,
+		})
 		return
 	}
 
@@ -63,5 +98,8 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, userCookie)
-	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(&Error{
+		Message: NoError,
+	})
 }
