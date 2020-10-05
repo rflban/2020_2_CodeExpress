@@ -1,6 +1,7 @@
 package test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -105,5 +106,67 @@ func TestCheckUserExistsUsernameFailed(t *testing.T) {
 	err := createUser(sImpl)
 	if err == nil {
 		t.Fatalf("TestCheckUserExists not failed")
+	}
+}
+
+func TestLoginUserSuccess(t *testing.T) {
+	sImpl := repositories.NewUserRepImpl()
+
+	createUser := func(s repositories.UserRep) error {
+		newUser1 := &models.User{
+			ID:       0,
+			Name:     "Daniil",
+			Email:    "daniil2@mail.ru",
+			Password: "123456dD",
+		}
+		s.CreateUser(newUser1)
+
+		logInForm := new(models.LogInForm)
+		logInForm.Login = newUser1.Name
+		logInForm.Password = newUser1.Password
+		user, err := s.LoginUser(logInForm)
+		if err != nil {
+			return err
+		}
+		if user != newUser1 {
+			return errors.New("Users doesn't match")
+		}
+		return nil
+	}
+
+	err := createUser(sImpl)
+	if err != nil {
+		t.Fatalf("TestLoginUser failed, error %s", err)
+	}
+}
+
+func TestLoginUserFail(t *testing.T) {
+	sImpl := repositories.NewUserRepImpl()
+
+	createUser := func(s repositories.UserRep) error {
+		newUser1 := &models.User{
+			ID:       0,
+			Name:     "Daniil",
+			Email:    "daniil2@mail.ru",
+			Password: "123456dD",
+		}
+		s.CreateUser(newUser1)
+
+		logInForm := new(models.LogInForm)
+		logInForm.Login = newUser1.Name
+		logInForm.Password = newUser1.Password + "random"
+		user, err := s.LoginUser(logInForm)
+		if err != nil {
+			return err
+		}
+		if user != newUser1 {
+			return errors.New("Users match")
+		}
+		return nil
+	}
+
+	err := createUser(sImpl)
+	if err == nil {
+		t.Fatal("TestLoginUser not failed")
 	}
 }

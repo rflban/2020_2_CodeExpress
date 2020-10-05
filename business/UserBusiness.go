@@ -17,6 +17,7 @@ func CreateUser(uRep repositories.UserRep, newUser *models.NewUser) (*models.Use
 		Name:     newUser.Name,
 		Email:    newUser.Email,
 		Password: newUser.Password,
+		Avatar:   "",
 	}
 
 	err := uRep.CheckUserExists(user)
