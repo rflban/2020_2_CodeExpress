@@ -38,9 +38,6 @@ func NewSessionRepImpl() SessionRep {
 	}
 }
 
-//GetUserBySession - в функцию GetUserBySession на вход приходит сессия,
-//полученная из запроса, которая не содержит в себе UserID, по указателю
-//возвращается сессия с UserID или ошибка, если данной сессии не существует
 func (s *SessionRepImpl) GetSessionByValue(sessionID string) (*models.Session, error) {
 	s.MU.RLock()
 	defer s.MU.RUnlock()
