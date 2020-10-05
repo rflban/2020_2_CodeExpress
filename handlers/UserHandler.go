@@ -118,6 +118,7 @@ func (s *UserHandler) HandleLogInUser(w http.ResponseWriter, r *http.Request) {
 		Value:    userSession.ID,
 		Expires:  userSession.Expire,
 		HttpOnly: true,
+		Path:     "/",
 	}
 	http.SetCookie(w, &userCookie)
 
@@ -168,6 +169,7 @@ func (s *UserHandler) HandleLogOutUser(w http.ResponseWriter, r *http.Request) {
 		Value:    session.ID,
 		Expires:  session.Expire,
 		HttpOnly: true,
+		Path:     "/",
 	}
 	http.SetCookie(w, &userCookie)
 
@@ -212,6 +214,7 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		Value:    userSession.ID,
 		Expires:  userSession.Expire,
 		HttpOnly: true,
+		Path:     "/",
 	}
 	http.SetCookie(w, userCookie)
 
