@@ -19,7 +19,7 @@ func ServerStart(url string, port string) {
 	UserRep := repositories.NewUserRepImpl()
 	SessionRep := repositories.NewSessionRepImpl()
 
-	SignUpHandler := handlers.NewUserHandler(UserRep, SessionRep)
+	UserHandler := handlers.NewUserHandler(UserRep, SessionRep)
 
 	http.HandleFunc("/api/v1/user/register", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -31,7 +31,39 @@ func ServerStart(url string, port string) {
 		}
 
 		if r.Method == http.MethodPost {
-			SignUpHandler.HandleCreateUser(w, r)
+			UserHandler.HandleCreateUser(w, r)
+			return
+		}
+		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
+	})
+
+	http.HandleFunc("/api/v1/user/login", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		AddCORS(w)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			UserHandler.HandleLogInUser(w, r)
+			return
+		}
+		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
+	})
+
+	http.HandleFunc("/api/v1/user/logout", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		AddCORS(w)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			UserHandler.HandleLogOutUser(w, r)
 			return
 		}
 		http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)

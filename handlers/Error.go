@@ -9,6 +9,7 @@ const (
 	NoUsername         = "no username field"
 	NoPassword         = "no password field"
 	NoRepeatedPassword = "no repeated password field"
+	NotAuthorized      = "not authorized"
 )
 
 type Error struct {
