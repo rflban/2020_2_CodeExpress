@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
 
@@ -223,14 +225,22 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+<<<<<<< HEAD
 func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
+=======
+func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 	defer r.Body.Close()
 
 	cookie, err := r.Cookie("code_express_session_id")
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
+<<<<<<< HEAD
 			Message: "not authorized",
+=======
+			Message: NotAuthorized,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
@@ -239,20 +249,42 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
+<<<<<<< HEAD
 			Message: "not authorized",
+=======
+			Message: NotAuthorized,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
 
+<<<<<<< HEAD
 	user, err := s.UserRep.GetUserByID(session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
 			Message: "not authorized",
+=======
+	MaxMemorySize := int64(10 << 20)
+	r.Body = http.MaxBytesReader(w, r.Body, MaxMemorySize+1024)
+	err = r.ParseMultipartForm(MaxMemorySize)
+	if err != nil {
+		if err.Error() == "http: request body too large" {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(&Error{
+				Message: FileSizeToLarge,
+			})
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: FormError,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
 
+<<<<<<< HEAD
 	profileForm := new(models.ProfileForm)
 	err = json.NewDecoder(r.Body).Decode(profileForm)
 	if err != nil {
@@ -298,10 +330,28 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
 			Message: "not authorized",
+=======
+	imageFile, _, err := r.FormFile("avatar")
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: NoAvatar,
+		})
+		return
+	}
+	defer imageFile.Close()
+
+	fileHeader := make([]byte, 512)
+	if _, err := imageFile.Read(fileHeader); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: FileError,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
 
+<<<<<<< HEAD
 	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -324,10 +374,38 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	err = json.NewDecoder(r.Body).Decode(passwordForm)
 	if err != nil {
 		log.Printf("Error parsing SignUp JSON %s", err)
+=======
+	extension, isAllowed := business.IsAllowedImageType(fileHeader)
+	if !isAllowed {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: FileError,
+		})
+		return
+	}
+	imageFile.Seek(0, 0)
+
+	user, _ := s.UserRep.GetUserBySession(session)
+
+	fileName := business.GetFileName(user, extension)
+	pathToNewFile := "./avatars/" + fileName
+
+	storageFile, err := os.OpenFile(pathToNewFile, os.O_WRONLY|os.O_CREATE, os.FileMode(int(0777)))
+	if err != nil {
+		log.Println("error in creating image file: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer storageFile.Close()
+
+	if _, err := io.Copy(storageFile, imageFile); err != nil {
+		log.Println("error in copying image file: ", err)
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+<<<<<<< HEAD
 	if passwordForm.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
@@ -348,29 +426,73 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
 			Message: PasswordTooShort,
+=======
+	prevPathToAvatar := user.Avatar
+	if prevPathToAvatar != "" {
+		_ = os.Remove(prevPathToAvatar)
+	}
+	user.Avatar = pathToNewFile
+
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		log.Println("error marshaling to change avatar")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+
+func (s *UserHandler) HandleCurrentUser(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	cookie, err := r.Cookie("code_express_session_id")
+	if err == http.ErrNoCookie {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: NotAuthorized,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
 
+<<<<<<< HEAD
 	if passwordForm.Password != passwordForm.RepeatedPassword {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
 			Message: PasswordsMismatch,
+=======
+	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: NotAuthorized,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
 
+<<<<<<< HEAD
 	if passwordForm.Password == user.Password {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
 			Message: PasswordIsOld,
+=======
+	user, err := s.UserRep.GetUserBySession(session)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&Error{
+			Message: NotAuthorized,
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 		})
 		return
 	}
 
+<<<<<<< HEAD
 	user.Password = passwordForm.Password
 
 	json.NewEncoder(w).Encode(&Error{
 		Message: NoError,
 	})
+=======
+	json.NewEncoder(w).Encode(user)
+>>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 }
