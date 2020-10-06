@@ -9,7 +9,7 @@ import (
 )
 
 func AddCORS(w http.ResponseWriter) {
-	w.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000/")
+	w.Header().Add("Access-Control-Allow-Origin", "http://musicexpress.sarafa2n.ru")
 	w.Header().Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
 	w.Header().Add("Access-Control-Allow-Credentials", "true")
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
