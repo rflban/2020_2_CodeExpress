@@ -21,13 +21,10 @@ const (
 	SignUpHandler = HandlerType(iota)
 	LogInHandler
 	LogOutHandler
-<<<<<<< HEAD
 	EditProfileHandler
 	EditPasswordHandler
-=======
 	SetAvatarHandler
 	CurrentProfile
->>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 )
 
 func SetHandler(ht HandlerType, UserHandler *handlers.UserHandler, w http.ResponseWriter, r *http.Request) {
@@ -40,17 +37,14 @@ func SetHandler(ht HandlerType, UserHandler *handlers.UserHandler, w http.Respon
 		handler = UserHandler.HandleLogInUser
 	case LogOutHandler:
 		handler = UserHandler.HandleLogOutUser
-<<<<<<< HEAD
 	case EditProfileHandler:
 		handler = UserHandler.HandleUpdateProfile
 	case EditPasswordHandler:
 		handler = UserHandler.HandleUpdatePassword
-=======
 	case SetAvatarHandler:
 		handler = UserHandler.HandleSetAvatar
 	case CurrentProfile:
 		handler = UserHandler.HandleCurrentUser
->>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -97,7 +91,6 @@ func ServerStart(url string, port string) {
 		SetHandler(LogOutHandler, UserHandler, w, r)
 	})
 
-<<<<<<< HEAD
 	http.HandleFunc("/api/v1/user/change/profile", func(w http.ResponseWriter, r *http.Request) {
 		SetHandler(EditProfileHandler, UserHandler, w, r)
 	})
@@ -106,7 +99,6 @@ func ServerStart(url string, port string) {
 		SetHandler(EditPasswordHandler, UserHandler, w, r)
 	})
 
-=======
 	http.HandleFunc("/api/v1/user/change/avatar", func(w http.ResponseWriter, r *http.Request) {
 		SetHandler(SetAvatarHandler, UserHandler, w, r)
 	})
@@ -117,7 +109,6 @@ func ServerStart(url string, port string) {
 
 	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars"))))
 
->>>>>>> CP-21: Реализовать механизм загрузки изображений профиля и просмотра профиля
 	log.Println("Server listening on ", url+port)
 	http.ListenAndServe(url+port, nil)
 }
