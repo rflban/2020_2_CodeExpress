@@ -12,6 +12,7 @@ type UserRep interface {
 	CreateUser(u *models.User) error
 	GetUserByID(userID uint64) (*models.User, error)
 	LoginUser(loginForm *models.LogInForm) (*models.User, error)
+	GetUserBySession(session *models.Session) (*models.User, error)
 }
 
 type UserRepImpl struct {
@@ -77,4 +78,17 @@ func (s *UserRepImpl) LoginUser(loginForm *models.LogInForm) (*models.User, erro
 		}
 	}
 	return nil, errors.New("Incorrect login or password")
+}
+
+func (s *UserRepImpl) GetUserBySession(session *models.Session) (*models.User, error) {
+	s.MU.RLock()
+	defer s.MU.RUnlock()
+
+	for _, user := range s.Users {
+		if session.UserID == user.ID {
+			return user, nil
+		}
+	}
+
+	return nil, errors.New("user not exists")
 }
