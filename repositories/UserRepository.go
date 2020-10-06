@@ -11,6 +11,7 @@ type UserRep interface {
 	CheckUserExists(u *models.User) error
 	CreateUser(u *models.User) error
 	GetUserByID(userID uint64) (*models.User, error)
+	LoginUser(loginForm *models.LogInForm) (*models.User, error)
 }
 
 type UserRepImpl struct {
@@ -64,4 +65,16 @@ func (s *UserRepImpl) GetUserByID(userID uint64) (*models.User, error) {
 		}
 	}
 	return nil, errors.New("No such user")
+}
+
+func (s *UserRepImpl) LoginUser(loginForm *models.LogInForm) (*models.User, error) {
+	s.MU.Lock()
+	defer s.MU.Unlock()
+
+	for _, user := range s.Users {
+		if (user.Name == loginForm.Login || user.Email == loginForm.Login) && user.Password == loginForm.Password {
+			return user, nil
+		}
+	}
+	return nil, errors.New("Incorrect login or password")
 }
