@@ -10,6 +10,7 @@ import (
 type UserRep interface {
 	CheckUserExists(u *models.User) error
 	CreateUser(u *models.User) error
+	GetUserByID(userID uint64) (*models.User, error)
 	LoginUser(loginForm *models.LogInForm) (*models.User, error)
 }
 
@@ -52,6 +53,18 @@ func (s *UserRepImpl) getNewUserID() uint64 {
 		return s.Users[len(s.Users)-1].ID + 1
 	}
 	return 0
+}
+
+func (s *UserRepImpl) GetUserByID(userID uint64) (*models.User, error) {
+	s.MU.RLock()
+	defer s.MU.RUnlock()
+
+	for _, user := range s.Users {
+		if user.ID == userID {
+			return user, nil
+		}
+	}
+	return nil, errors.New("No such user")
 }
 
 func (s *UserRepImpl) LoginUser(loginForm *models.LogInForm) (*models.User, error) {

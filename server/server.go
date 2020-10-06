@@ -21,6 +21,8 @@ const (
 	SignUpHandler = HandlerType(iota)
 	LogInHandler
 	LogOutHandler
+	EditProfileHandler
+	EditPasswordHandler
 )
 
 func SetHandler(ht HandlerType, UserHandler *handlers.UserHandler, w http.ResponseWriter, r *http.Request) {
@@ -33,6 +35,10 @@ func SetHandler(ht HandlerType, UserHandler *handlers.UserHandler, w http.Respon
 		handler = UserHandler.HandleLogInUser
 	case LogOutHandler:
 		handler = UserHandler.HandleLogOutUser
+	case EditProfileHandler:
+		handler = UserHandler.HandleUpdateProfile
+	case EditPasswordHandler:
+		handler = UserHandler.HandleUpdatePassword
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -72,6 +78,14 @@ func ServerStart(url string, port string) {
 
 	http.HandleFunc("/api/v1/user/logout", func(w http.ResponseWriter, r *http.Request) {
 		SetHandler(LogOutHandler, UserHandler, w, r)
+	})
+
+	http.HandleFunc("/api/v1/user/change/profile", func(w http.ResponseWriter, r *http.Request) {
+		SetHandler(EditProfileHandler, UserHandler, w, r)
+	})
+
+	http.HandleFunc("/api/v1/user/change/password", func(w http.ResponseWriter, r *http.Request) {
+		SetHandler(EditPasswordHandler, UserHandler, w, r)
 	})
 
 	log.Println("Server listening on ", url+port)
