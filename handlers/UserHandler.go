@@ -447,10 +447,6 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prevPathToAvatar := user.Avatar
-	if prevPathToAvatar != "" {
-		_ = os.Remove(prevPathToAvatar)
-	}
 	user.Avatar = pathToNewFile
 
 	err = json.NewEncoder(w).Encode(user)
