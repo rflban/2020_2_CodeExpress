@@ -7,9 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
 )
@@ -226,6 +224,7 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
+
 	defer r.Body.Close()
 
 	cookie, err := r.Cookie("code_express_session_id")
@@ -261,6 +260,34 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 		log.Printf("Error parsing SignUp JSON %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	if profileForm.Email == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&Error{
+			Message: NoEmail,
+		})
+		return
+	}
+
+	if profileForm.Username == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&Error{
+			Message: NoUsername,
+		})
+		return
+	}
+
+	if profileForm.Email != user.Email {
+		newUser := new(models.User)
+		newUser.Email = profileForm.Email
+		err = s.UserRep.CheckUserExists(newUser)
+	}
+
+	if err == nil && profileForm.Username != user.Name {
+		newUser := new(models.User)
+		newUser.Name = profileForm.Username
+		err = s.UserRep.CheckUserExists(newUser)
 	}
 
 	user, err = business.UpdateProfile(s.UserRep, profileForm, user)
