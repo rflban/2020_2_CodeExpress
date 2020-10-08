@@ -27,3 +27,26 @@ func CreateUser(uRep repositories.UserRep, newUser *models.NewUser) (*models.Use
 	err = uRep.CreateUser(user)
 	return user, err
 }
+
+func UpdateProfile(uRep repositories.UserRep, profileForm *models.ProfileForm, user *models.User) (*models.User, error) {
+	var err error
+	if profileForm.Email != user.Email {
+		newUser := new(models.User)
+		newUser.Email = profileForm.Email
+		err = uRep.CheckUserExists(newUser)
+
+	}
+	if err == nil && profileForm.Username != user.Name {
+		newUser := new(models.User)
+		newUser.Name = profileForm.Username
+		err = uRep.CheckUserExists(newUser)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	user.Email = profileForm.Email
+	user.Name = profileForm.Username
+	return user, nil
+}

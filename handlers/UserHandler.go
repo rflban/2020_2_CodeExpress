@@ -3,11 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"io"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
@@ -231,7 +232,7 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: "not authorized",
+			Message: NotAuthorized,
 		})
 		return
 	}
@@ -240,7 +241,7 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: "not authorized",
+			Message: NotAuthorized,
 		})
 		return
 	}
@@ -249,7 +250,7 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: "not authorized",
+			Message: NotAuthorized,
 		})
 		return
 	}
@@ -262,33 +263,16 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if profileForm.Email != user.Email {
-		newUser := new(models.User)
-		newUser.Email = profileForm.Email
-		err = s.UserRep.CheckUserExists(newUser)
+	user, err = business.UpdateProfile(s.UserRep, profileForm, user)
 
-	}
-	if err != nil && profileForm.Username != user.Name {
-		newUser := new(models.User)
-		newUser.Name = profileForm.Username
-		err = s.UserRep.CheckUserExists(newUser)
-	}
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(&Error{
 			Message: err.Error(),
 		})
-		return
 	}
 
-	user.Email = profileForm.Email
-	user.Name = profileForm.Username
-
-	json.NewEncoder(w).Encode(&User{
-		Username: user.Name,
-		Email:    user.Email,
-		ID:       user.ID,
-	})
+	json.NewEncoder(w).Encode(user)
 }
 
 func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Request) {
@@ -298,7 +282,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: "not authorized",
+			Message: NotAuthorized,
 		})
 		return
 	}
@@ -307,7 +291,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: "not authorized",
+			Message: NotAuthorized,
 		})
 		return
 	}
@@ -316,7 +300,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: "not authorized",
+			Message: NotAuthorized,
 		})
 		return
 	}
@@ -475,7 +459,6 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
-
 
 func (s *UserHandler) HandleCurrentUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
