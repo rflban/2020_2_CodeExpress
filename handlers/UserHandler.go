@@ -3,11 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
 )
@@ -31,31 +34,31 @@ func (s *UserHandler) decodeNewUser(w http.ResponseWriter, r *http.Request) (*mo
 	if err != nil {
 		log.Printf("Error parsing SignUp JSON %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return nil, errors.New(InternalError)
+		return nil, errors.New(consts.InternalError)
 	}
 	if newUser.Email == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New(NoEmail)
+		return nil, errors.New(consts.NoEmail)
 	}
 
 	if newUser.Name == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New(NoUsername)
+		return nil, errors.New(consts.NoUsername)
 	}
 
 	if newUser.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New(NoPassword)
+		return nil, errors.New(consts.NoPassword)
 	}
 
 	if newUser.RepeatedPassword == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New(NoRepeatedPassword)
+		return nil, errors.New(consts.NoRepeatedPassword)
 	}
 
 	if len(newUser.Password) < 8 || len(newUser.RepeatedPassword) < 8 {
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New(PasswordTooShort)
+		return nil, errors.New(consts.PasswordTooShort)
 	}
 	return newUser, nil
 }
@@ -66,7 +69,7 @@ func (s *UserHandler) decodeLogIn(w http.ResponseWriter, r *http.Request) (*mode
 	if err != nil {
 		log.Printf("Error parsing SignUp JSON %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return nil, errors.New(InternalError)
+		return nil, errors.New(consts.InternalError)
 	}
 
 	if logInForm.Login == "" {
@@ -104,11 +107,12 @@ func (s *UserHandler) HandleLogInUser(w http.ResponseWriter, r *http.Request) {
 
 	userSession := repositories.NewSession(user)
 	err = s.SessionRep.AddSession(userSession)
+
 	if err != nil {
 		log.Printf("Error while creating session %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&Error{
-			Message: InternalError,
+			Message: consts.InternalError,
 		})
 		return
 	}
@@ -127,7 +131,7 @@ func (s *UserHandler) HandleLogInUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error marshalling LogIn JSON %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&Error{
-			Message: InternalError,
+			Message: consts.InternalError,
 		})
 		return
 	}
@@ -136,20 +140,20 @@ func (s *UserHandler) HandleLogInUser(w http.ResponseWriter, r *http.Request) {
 func (s *UserHandler) HandleLogOutUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	cookie, err := r.Cookie("code_express_session_id")
+	cookie, err := r.Cookie(consts.ConstSessionName)
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
 
-	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
+	session, err := s.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -159,7 +163,7 @@ func (s *UserHandler) HandleLogOutUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error outdating session %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&Error{
-			Message: InternalError,
+			Message: consts.InternalError,
 		})
 		return
 	}
@@ -174,7 +178,7 @@ func (s *UserHandler) HandleLogOutUser(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &userCookie)
 
 	json.NewEncoder(w).Encode(&Error{
-		Message: NoError,
+		Message: consts.NoError,
 	})
 }
 
@@ -204,7 +208,7 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error while creating session %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&Error{
-			Message: InternalError,
+			Message: consts.InternalError,
 		})
 		return
 	}
@@ -219,7 +223,7 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, userCookie)
 
 	json.NewEncoder(w).Encode(&Error{
-		Message: NoError,
+		Message: consts.NoError,
 	})
 }
 
@@ -227,20 +231,20 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 
 	defer r.Body.Close()
 
-	cookie, err := r.Cookie("code_express_session_id")
+	cookie, err := r.Cookie(consts.ConstSessionName)
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
 
-	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
+	session, err := s.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -249,7 +253,7 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -265,7 +269,7 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if profileForm.Email == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NoEmail,
+			Message: consts.NoEmail,
 		})
 		return
 	}
@@ -273,21 +277,9 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 	if profileForm.Username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NoUsername,
+			Message: consts.NoUsername,
 		})
 		return
-	}
-
-	if profileForm.Email != user.Email {
-		newUser := new(models.User)
-		newUser.Email = profileForm.Email
-		err = s.UserRep.CheckUserExists(newUser)
-	}
-
-	if err == nil && profileForm.Username != user.Name {
-		newUser := new(models.User)
-		newUser.Name = profileForm.Username
-		err = s.UserRep.CheckUserExists(newUser)
 	}
 
 	user, err = business.UpdateProfile(s.UserRep, profileForm, user)
@@ -305,20 +297,20 @@ func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request
 func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	cookie, err := r.Cookie("code_express_session_id")
+	cookie, err := r.Cookie(consts.ConstSessionName)
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
 
-	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
+	session, err := s.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -327,7 +319,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -343,7 +335,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if passwordForm.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NoPassword,
+			Message: consts.NoPassword,
 		})
 		return
 	}
@@ -351,7 +343,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if passwordForm.RepeatedPassword == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NoRepeatedPassword,
+			Message: consts.NoRepeatedPassword,
 		})
 		return
 	}
@@ -359,7 +351,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if len(passwordForm.Password) < 8 {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: PasswordTooShort,
+			Message: consts.PasswordTooShort,
 		})
 		return
 	}
@@ -367,7 +359,7 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if passwordForm.Password != passwordForm.RepeatedPassword {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: PasswordsMismatch,
+			Message: consts.PasswordsMismatch,
 		})
 		return
 	}
@@ -375,35 +367,41 @@ func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Reques
 	if passwordForm.Password == user.Password {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(&Error{
-			Message: PasswordIsOld,
+			Message: consts.PasswordIsOld,
 		})
 		return
 	}
 
 	user.Password = passwordForm.Password
+	if err := s.UserRep.ChangeUser(user); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&Error{
+			Message: consts.InternalError,
+		})
+	}
 
 	json.NewEncoder(w).Encode(&Error{
-		Message: NoError,
+		Message: consts.NoError,
 	})
 }
 
 func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	cookie, err := r.Cookie("code_express_session_id")
+	cookie, err := r.Cookie(consts.ConstSessionName)
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
 
-	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
+	session, err := s.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -415,13 +413,14 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == "http: request body too large" {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(&Error{
-				Message: FileSizeToLarge,
+				Message: consts.FileSizeToLarge,
 			})
 			return
 		}
+		fmt.Println(err)
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: FormError,
+			Message: consts.FormError,
 		})
 		return
 	}
@@ -430,7 +429,7 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NoAvatar,
+			Message: consts.NoAvatar,
 		})
 		return
 	}
@@ -440,7 +439,7 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 	if _, err := imageFile.Read(fileHeader); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: FileError,
+			Message: consts.FileError,
 		})
 		return
 	}
@@ -449,7 +448,7 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 	if !isAllowed {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: FileError,
+			Message: consts.FileError,
 		})
 		return
 	}
@@ -475,6 +474,7 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.Avatar = pathToNewFile
+	s.UserRep.ChangeUser(user)
 
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
@@ -486,20 +486,20 @@ func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
 func (s *UserHandler) HandleCurrentUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	cookie, err := r.Cookie("code_express_session_id")
+	cookie, err := r.Cookie(consts.ConstSessionName)
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
 
-	session, err := s.SessionRep.GetSessionByValue(cookie.Value)
+	session, err := s.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}
@@ -508,7 +508,7 @@ func (s *UserHandler) HandleCurrentUser(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(&Error{
-			Message: NotAuthorized,
+			Message: consts.NotAuthorized,
 		})
 		return
 	}

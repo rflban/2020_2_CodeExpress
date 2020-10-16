@@ -1,94 +1,138 @@
 package repositories
 
 import (
+	"database/sql"
 	"errors"
-	"sync"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 )
 
 type UserRep interface {
-	CheckUserExists(u *models.User) error
+	CheckUserExists(u *models.User) (*models.User, error)
 	CreateUser(u *models.User) error
 	GetUserByID(userID uint64) (*models.User, error)
 	LoginUser(loginForm *models.LogInForm) (*models.User, error)
 	GetUserBySession(session *models.Session) (*models.User, error)
+	ChangeUser(user *models.User) error
 }
 
-type UserRepImpl struct {
-	Users []*models.User
-	MU    *sync.RWMutex
-}
-
-func NewUserRepImpl() UserRep {
-	return &UserRepImpl{
-		Users: make([]*models.User, 0),
-		MU:    &sync.RWMutex{},
+func NewUserRepPGImpl(conn *sql.DB) UserRep {
+	return &UserPGImpl{
+		dbConn: conn,
 	}
 }
 
-func (s *UserRepImpl) CheckUserExists(u *models.User) error {
-	s.MU.RLock()
-	defer s.MU.RUnlock()
-	for _, user := range s.Users {
-		if user.Email == u.Email {
-			return errors.New("Email already exists")
-		}
-		if user.Name == u.Name {
-			return errors.New("Username already exists")
-		}
+type UserPGImpl struct {
+	dbConn *sql.DB
+}
+
+func (ur *UserPGImpl) CreateUser(u *models.User) error {
+	query := "insert into users values(default, $1, $2, $3) returning id"
+
+	err := ur.dbConn.QueryRow(query, u.Name, u.Email, u.Password).Scan(&u.ID)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *UserRepImpl) CreateUser(u *models.User) error {
-	s.MU.Lock()
-	defer s.MU.Unlock()
-	u.ID = s.getNewUserID()
-	s.Users = append(s.Users, u)
-	return nil // возвращает nil так как реализация без БД
+func (ur *UserPGImpl) CheckUserExists(u *models.User) (*models.User, error) {
+	query := "select id, name, email, avatar from users where name = $1 or email = $2"
+	newUser := &models.User{}
+
+	err := ur.dbConn.QueryRow(query, u.Name, u.Email).
+		Scan(&newUser.ID, &newUser.Name, &newUser.Email, &newUser.Avatar)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return newUser, nil
 }
 
-func (s *UserRepImpl) getNewUserID() uint64 {
-	if len(s.Users) > 0 {
-		return s.Users[len(s.Users)-1].ID + 1
+func (ur *UserPGImpl) GetUserByID(userID uint64) (*models.User, error) {
+	query := "select id, name, email, password, avatar from users where id = $1"
+	user := &models.User{}
+
+	err := ur.dbConn.QueryRow(query, userID).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar)
+
+	switch err {
+	case sql.ErrNoRows:
+		return nil, errors.New("No such user") //TODO: вынести в константы
+	case nil:
+		return user, nil
+	default:
+		return nil, err
 	}
-	return 0
 }
 
-func (s *UserRepImpl) GetUserByID(userID uint64) (*models.User, error) {
-	s.MU.RLock()
-	defer s.MU.RUnlock()
+func (ur *UserPGImpl) LoginUser(loginForm *models.LogInForm) (*models.User, error) {
+	query := "select id, name, email, password, avatar from users where (name = $1 or email = $1) and password = $2"
+	user := &models.User{}
 
-	for _, user := range s.Users {
-		if user.ID == userID {
-			return user, nil
-		}
+	err := ur.dbConn.QueryRow(query, loginForm.Login, loginForm.Password).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar)
+
+	switch err {
+	case sql.ErrNoRows:
+		return nil, errors.New("Incorrect login or password") //TODO: вынести в константы
+	case nil:
+		return user, nil
+	default:
+		return nil, err
 	}
-	return nil, errors.New("No such user")
 }
 
-func (s *UserRepImpl) LoginUser(loginForm *models.LogInForm) (*models.User, error) {
-	s.MU.Lock()
-	defer s.MU.Unlock()
+func (ur *UserPGImpl) GetUserBySession(session *models.Session) (*models.User, error) {
+	query := "select id, name, email, password, avatar from users where id = $1"
+	user := &models.User{}
 
-	for _, user := range s.Users {
-		if (user.Name == loginForm.Login || user.Email == loginForm.Login) && user.Password == loginForm.Password {
-			return user, nil
-		}
+	err := ur.dbConn.QueryRow(query, session.UserID).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar)
+
+	switch err {
+	case sql.ErrNoRows:
+		return nil, errors.New("User not exists") //TODO: вынести в константы
+	case nil:
+		return user, nil
+	default:
+		return nil, err
 	}
-	return nil, errors.New("Incorrect login or password")
 }
 
-func (s *UserRepImpl) GetUserBySession(session *models.Session) (*models.User, error) {
-	s.MU.RLock()
-	defer s.MU.RUnlock()
+func (ur *UserPGImpl) ChangeUser(user *models.User) error {
+	query := "update users set name = $1, email = $2, password = $3, avatar = $4 where id = $5" +
+		"returning id"
 
-	for _, user := range s.Users {
-		if session.UserID == user.ID {
-			return user, nil
-		}
+	err := ur.dbConn.QueryRow(query,
+		user.Name,
+		user.Email,
+		user.Password,
+		user.Avatar,
+		user.ID).Scan(
+		&user.ID)
+
+	switch err {
+	case sql.ErrNoRows:
+		return errors.New("User not exists")
+	case nil:
+		return nil
+	default:
+		return err
 	}
-
-	return nil, errors.New("user not exists")
 }
