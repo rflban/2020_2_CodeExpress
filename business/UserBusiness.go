@@ -42,32 +42,11 @@ func CreateUser(uRep repositories.UserRep, newUser *models.NewUser) (*models.Use
 }
 
 func UpdateProfile(uRep repositories.UserRep, profileForm *models.ProfileForm, user *models.User) (*models.User, error) {
-	var err error
-	newUser := &models.User{
-		Name:  profileForm.Username,
-		Email: profileForm.Email,
-	}
 	if profileForm.Email != user.Email {
-		existedUser := &models.User{}
-		existedUser, err = uRep.CheckUserExists(newUser)
-
-		if err != nil {
-			return nil, err
+		newUser := &models.User{
+			Email: profileForm.Email,
 		}
-
-		if existedUser != nil {
-			if existedUser.Name == newUser.Name {
-				return nil, errors.New(consts.UserNameExists)
-			}
-			if existedUser.Email == newUser.Email {
-				return nil, errors.New(consts.EMailExists)
-			}
-		}
-
-	}
-	if err == nil && profileForm.Username != user.Name {
-		existedUser := &models.User{}
-		existedUser, err = uRep.CheckUserExists(newUser)
+		existedUser, err := uRep.CheckUserExists(newUser)
 
 		if err != nil {
 			return nil, err
@@ -82,6 +61,27 @@ func UpdateProfile(uRep repositories.UserRep, profileForm *models.ProfileForm, u
 			}
 		}
 	}
+
+	if profileForm.Username != user.Name {
+		newUser := &models.User{
+			Name: profileForm.Username,
+		}
+		existedUser, err := uRep.CheckUserExists(newUser)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if existedUser != nil {
+			if existedUser.Name == newUser.Name {
+				return nil, errors.New(consts.UserNameExists)
+			}
+			if existedUser.Email == newUser.Email {
+				return nil, errors.New(consts.EMailExists)
+			}
+		}
+	}
+
 	user.Email = profileForm.Email
 	user.Name = profileForm.Username
 
@@ -89,5 +89,6 @@ func UpdateProfile(uRep repositories.UserRep, profileForm *models.ProfileForm, u
 		fmt.Println("HERE")
 		return nil, err
 	}
+
 	return user, nil
 }

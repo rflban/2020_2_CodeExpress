@@ -2,114 +2,45 @@ package server
 
 import (
 	"database/sql"
-	"log"
-	"net/http"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/handlers"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"log"
+	"net/http"
 )
 
-func AddCORS(w http.ResponseWriter) {
-	w.Header().Add("Access-Control-Allow-Origin", "http://musicexpress.sarafa2n.ru")
-	w.Header().Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-}
-
-type HandlerType int
-
-const (
-	SignUpHandler = HandlerType(iota)
-	LogInHandler
-	LogOutHandler
-	EditProfileHandler
-	EditPasswordHandler
-	SetAvatarHandler
-	CurrentProfile
-)
-
-func SetHandler(ht HandlerType, UserHandler *handlers.UserHandler, w http.ResponseWriter, r *http.Request) {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
-
-	switch ht {
-	case SignUpHandler:
-		handler = UserHandler.HandleCreateUser
-	case LogInHandler:
-		handler = UserHandler.HandleLogInUser
-	case LogOutHandler:
-		handler = UserHandler.HandleLogOutUser
-	case EditProfileHandler:
-		handler = UserHandler.HandleUpdateProfile
-	case EditPasswordHandler:
-		handler = UserHandler.HandleUpdatePassword
-	case SetAvatarHandler:
-		handler = UserHandler.HandleSetAvatar
-	case CurrentProfile:
-		handler = UserHandler.HandleCurrentUser
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	AddCORS(w)
-
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-
-	if r.Method == http.MethodGet && ht == CurrentProfile {
-		handler(w, r)
-		return
-	}
-
-	if r.Method == http.MethodDelete && ht == LogOutHandler {
-		handler(w, r)
-		return
-	}
-
-	if r.Method == http.MethodPost && ht != LogOutHandler {
-		handler(w, r)
-		return
-	}
-
-	http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
-}
-
-func ServerStart(host string, dbConn *sql.DB) {
+func ServerStart(addr string, dbConn *sql.DB) {
 	UserRep := repositories.NewUserRepPGImpl(dbConn)
 	SessionRep := repositories.NewSessionRepPGImpl(dbConn)
 
 	UserHandler := handlers.NewUserHandler(UserRep, SessionRep)
 
-	http.HandleFunc("/api/v1/user/register", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(SignUpHandler, UserHandler, w, r)
-	})
+	e := echo.New()
 
-	http.HandleFunc("/api/v1/user/login", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(LogInHandler, UserHandler, w, r)
-	})
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowCredentials: true,
+		AllowHeaders:     []string{"Content-Type", "Access-Control-Allow-Headers", "Authorization", "X-Requested-With"},
+		AllowMethods:     []string{http.MethodDelete, http.MethodGet, http.MethodOptions, http.MethodPost},
+		AllowOrigins:     []string{"http://musicexpress.sarafa2n.ru"},
+	}))
 
-	http.HandleFunc("/api/v1/user/logout", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(LogOutHandler, UserHandler, w, r)
-	})
+	e.POST("/api/v1/user/register", UserHandler.HandleCreateUser)
 
-	http.HandleFunc("/api/v1/user/change/profile", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(EditProfileHandler, UserHandler, w, r)
-	})
+	e.POST("/api/v1/user/login", UserHandler.HandleLogInUser)
 
-	http.HandleFunc("/api/v1/user/change/password", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(EditPasswordHandler, UserHandler, w, r)
-	})
+	e.DELETE("/api/v1/user/logout", UserHandler.HandleLogOutUser)
 
-	http.HandleFunc("/api/v1/user/change/avatar", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(SetAvatarHandler, UserHandler, w, r)
-	})
+	e.POST("/api/v1/user/change/profile", UserHandler.HandleUpdateProfile)
 
-	http.HandleFunc("/api/v1/user/current", func(w http.ResponseWriter, r *http.Request) {
-		SetHandler(CurrentProfile, UserHandler, w, r)
-	})
+	e.POST("/api/v1/user/change/password", UserHandler.HandleUpdatePassword)
 
-	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars"))))
+	e.POST("/api/v1/user/change/avatar", UserHandler.HandleUpdateAvatar)
 
-	log.Println("Server listening on ", host)
-	http.ListenAndServe(host, nil)
+	e.GET("/api/v1/user/current", UserHandler.HandleCurrentUser)
+
+	e.Static("/avatars", "avatars")
+
+	log.Println("Server listening on ", addr)
+	e.Logger.Fatal(e.Start(addr))
 }

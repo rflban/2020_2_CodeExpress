@@ -1,18 +1,16 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"os"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
+	"github.com/labstack/echo/v4"
+	"io"
+	"log"
+	"net/http"
+	"os"
 )
 
 type UserHandler struct {
@@ -27,190 +25,76 @@ func NewUserHandler(UserRep repositories.UserRep, SessionRep repositories.Sessio
 	}
 }
 
-func (s *UserHandler) decodeNewUser(w http.ResponseWriter, r *http.Request) (*models.NewUser, error) {
+func (uh *UserHandler) decodeNewUser(c echo.Context) (*models.NewUser, error) {
 	newUser := new(models.NewUser)
-
-	err := json.NewDecoder(r.Body).Decode(newUser)
-	if err != nil {
-		log.Printf("Error parsing SignUp JSON %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := c.Bind(newUser); err != nil {
+		log.Printf("Error parsing JSON %s", err)
 		return nil, errors.New(consts.InternalError)
 	}
+
 	if newUser.Email == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		return nil, errors.New(consts.NoEmail)
 	}
 
 	if newUser.Name == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		return nil, errors.New(consts.NoUsername)
 	}
 
 	if newUser.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		return nil, errors.New(consts.NoPassword)
 	}
 
 	if newUser.RepeatedPassword == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		return nil, errors.New(consts.NoRepeatedPassword)
 	}
 
 	if len(newUser.Password) < 8 || len(newUser.RepeatedPassword) < 8 {
-		w.WriteHeader(http.StatusBadRequest)
 		return nil, errors.New(consts.PasswordTooShort)
 	}
+
 	return newUser, nil
 }
 
-func (s *UserHandler) decodeLogIn(w http.ResponseWriter, r *http.Request) (*models.LogInForm, error) {
+func (uh *UserHandler) decodeLogIn(c echo.Context) (*models.LogInForm, error) {
 	logInForm := new(models.LogInForm)
-	err := json.NewDecoder(r.Body).Decode(logInForm)
-	if err != nil {
-		log.Printf("Error parsing SignUp JSON %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := c.Bind(logInForm); err != nil {
+		log.Printf("Error parsing JSON %s", err)
 		return nil, errors.New(consts.InternalError)
 	}
 
 	if logInForm.Login == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New("no login field")
+		return nil, errors.New(consts.NoUsername)
 	}
 
 	if logInForm.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return nil, errors.New("no password field")
+		return nil, errors.New(consts.NoPassword)
 	}
+
 	return logInForm, nil
 }
 
-func (s *UserHandler) HandleLogInUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	logInForm, err := s.decodeLogIn(w, r)
-
+func (uh *UserHandler) HandleCreateUser(c echo.Context) error {
+	newUser, err := uh.decodeNewUser(c)
 	if err != nil {
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusBadRequest, &Error{
 			Message: err.Error(),
 		})
-		return
 	}
 
-	user, err := s.UserRep.LoginUser(logInForm)
+	user, err := business.CreateUser(uh.UserRep, newUser)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusForbidden, &Error{
 			Message: err.Error(),
 		})
-		return
 	}
 
 	userSession := repositories.NewSession(user)
-	err = s.SessionRep.AddSession(userSession)
-
+	err = uh.SessionRep.AddSession(userSession)
 	if err != nil {
 		log.Printf("Error while creating session %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusForbidden, &Error{
 			Message: consts.InternalError,
 		})
-		return
-	}
-
-	userCookie := http.Cookie{
-		Name:     userSession.Name,
-		Value:    userSession.ID,
-		Expires:  userSession.Expire,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	http.SetCookie(w, &userCookie)
-
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		log.Printf("Error marshalling LogIn JSON %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.InternalError,
-		})
-		return
-	}
-}
-
-func (s *UserHandler) HandleLogOutUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	cookie, err := r.Cookie(consts.ConstSessionName)
-	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	session, err := s.SessionRep.GetSessionByID(cookie.Value)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	err = s.SessionRep.OutdateSession(session)
-	if err != nil {
-		log.Printf("Error outdating session %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.InternalError,
-		})
-		return
-	}
-
-	userCookie := http.Cookie{
-		Name:     session.Name,
-		Value:    session.ID,
-		Expires:  session.Expire,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	http.SetCookie(w, &userCookie)
-
-	json.NewEncoder(w).Encode(&Error{
-		Message: consts.NoError,
-	})
-}
-
-func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	newUser, err := s.decodeNewUser(w, r)
-	if err != nil {
-		json.NewEncoder(w).Encode(&Error{
-			Message: err.Error(),
-		})
-		return
-	}
-
-	user, err := business.CreateUser(s.UserRep, newUser)
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(&Error{
-			Message: err.Error(),
-		})
-		return
-	}
-
-	userSession := repositories.NewSession(user)
-	err = s.SessionRep.AddSession(userSession)
-	if err != nil {
-		log.Printf("Error while creating session %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.InternalError,
-		})
-		return
 	}
 
 	userCookie := &http.Cookie{
@@ -220,298 +104,328 @@ func (s *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 	}
-	http.SetCookie(w, userCookie)
+	c.SetCookie(userCookie)
 
-	json.NewEncoder(w).Encode(&Error{
+	return c.JSON(http.StatusOK, &Error{
 		Message: consts.NoError,
 	})
 }
 
-func (s *UserHandler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
-
-	defer r.Body.Close()
-
-	cookie, err := r.Cookie(consts.ConstSessionName)
-	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	session, err := s.SessionRep.GetSessionByID(cookie.Value)
+func (uh *UserHandler) HandleLogInUser(c echo.Context) error {
+	logInForm, err := uh.decodeLogIn(c)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	user, err := s.UserRep.GetUserByID(session.UserID)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	profileForm := new(models.ProfileForm)
-	err = json.NewDecoder(r.Body).Decode(profileForm)
-	if err != nil {
-		log.Printf("Error parsing SignUp JSON %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if profileForm.Email == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NoEmail,
-		})
-		return
-	}
-
-	if profileForm.Username == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NoUsername,
-		})
-		return
-	}
-
-	user, err = business.UpdateProfile(s.UserRep, profileForm, user)
-
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusBadRequest, &Error{
 			Message: err.Error(),
 		})
 	}
 
-	json.NewEncoder(w).Encode(user)
-}
-
-func (s *UserHandler) HandleUpdatePassword(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	cookie, err := r.Cookie(consts.ConstSessionName)
-	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
+	user, err := uh.UserRep.LoginUser(logInForm)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
 			Message: consts.NotAuthorized,
 		})
-		return
 	}
 
-	session, err := s.SessionRep.GetSessionByID(cookie.Value)
+	userSession := repositories.NewSession(user)
+	err = uh.SessionRep.AddSession(userSession)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	user, err := s.UserRep.GetUserByID(session.UserID)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	passwordForm := new(models.PasswordForm)
-	err = json.NewDecoder(r.Body).Decode(passwordForm)
-	if err != nil {
-		log.Printf("Error parsing SignUp JSON %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if passwordForm.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NoPassword,
-		})
-		return
-	}
-
-	if passwordForm.RepeatedPassword == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NoRepeatedPassword,
-		})
-		return
-	}
-
-	if len(passwordForm.Password) < 8 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.PasswordTooShort,
-		})
-		return
-	}
-
-	if passwordForm.Password != passwordForm.RepeatedPassword {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.PasswordsMismatch,
-		})
-		return
-	}
-
-	if passwordForm.Password == user.Password {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.PasswordIsOld,
-		})
-		return
-	}
-
-	user.Password = passwordForm.Password
-	if err := s.UserRep.ChangeUser(user); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&Error{
+		log.Printf("Error while creating session %s", err)
+		return c.JSON(http.StatusInternalServerError, &Error{
 			Message: consts.InternalError,
 		})
 	}
 
-	json.NewEncoder(w).Encode(&Error{
+	userCookie := http.Cookie{
+		Name:     userSession.Name,
+		Value:    userSession.ID,
+		Expires:  userSession.Expire,
+		HttpOnly: true,
+		Path:     "/",
+	}
+	c.SetCookie(&userCookie)
+
+	return c.JSON(http.StatusOK, user)
+}
+
+func (uh *UserHandler) HandleLogOutUser(c echo.Context) error {
+	cookie, err := c.Cookie("code_express_session_id") //TODO: доставать пользователя в middleware. не только здесь...
+	if err == http.ErrNoCookie {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+
+	err = uh.SessionRep.OutdateSession(session)
+	if err != nil {
+		log.Printf("Error outdating session %s", err)
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	userCookie := http.Cookie{
+		Name:     session.Name,
+		Value:    session.ID,
+		Expires:  session.Expire,
+		HttpOnly: true,
+		Path:     "/",
+	}
+	c.SetCookie(&userCookie)
+
+	return c.JSON(http.StatusOK, &Error{
 		Message: consts.NoError,
 	})
 }
 
-func (s *UserHandler) HandleSetAvatar(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	cookie, err := r.Cookie(consts.ConstSessionName)
+func (uh *UserHandler) HandleUpdateProfile(c echo.Context) error {
+	cookie, err := c.Cookie("code_express_session_id") //TODO: доставать пользователя в middleware
 	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusNotFound, &Error{
 			Message: consts.NotAuthorized,
 		})
-		return
+	}
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
 	}
 
-	session, err := s.SessionRep.GetSessionByID(cookie.Value)
+	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusNotFound, &Error{
 			Message: consts.NotAuthorized,
 		})
-		return
 	}
 
-	MaxMemorySize := int64(10 << 20)
-	r.Body = http.MaxBytesReader(w, r.Body, MaxMemorySize+1024)
-	err = r.ParseMultipartForm(MaxMemorySize)
+	user, err := uh.UserRep.GetUserByID(session.UserID)
 	if err != nil {
-		if err.Error() == "http: request body too large" {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(&Error{
-				Message: consts.FileSizeToLarge,
-			})
-			return
-		}
-		fmt.Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.FormError,
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
 		})
-		return
 	}
 
-	imageFile, _, err := r.FormFile("avatar")
+	profileForm := new(models.ProfileForm)
+	if err = c.Bind(profileForm); err != nil {
+		log.Printf("Error parsing JSON %s", err)
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	if profileForm.Email == "" {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.NoEmail,
+		})
+	}
+
+	if profileForm.Username == "" {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.NoUsername,
+		})
+	}
+
+	user, err = business.UpdateProfile(uh.UserRep, profileForm, user)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NoAvatar,
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: err.Error(),
 		})
-		return
-	}
-	defer imageFile.Close()
-
-	fileHeader := make([]byte, 512)
-	if _, err := imageFile.Read(fileHeader); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.FileError,
-		})
-		return
 	}
 
-	extension, isAllowed := business.IsAllowedImageType(fileHeader)
-	if !isAllowed {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.FileError,
-		})
-		return
-	}
-	imageFile.Seek(0, 0)
-
-	user, _ := s.UserRep.GetUserBySession(session)
-
-	fileName := business.GetFileName(user, extension)
-	pathToNewFile := "./avatars/" + fileName
-
-	storageFile, err := os.OpenFile(pathToNewFile, os.O_WRONLY|os.O_CREATE, os.FileMode(int(0777)))
-	if err != nil {
-		log.Println("error in creating image file: ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer storageFile.Close()
-
-	if _, err := io.Copy(storageFile, imageFile); err != nil {
-		log.Println("error in copying image file: ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	user.Avatar = pathToNewFile
-	s.UserRep.ChangeUser(user)
-
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		log.Println("error marshaling to change avatar")
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	return c.JSON(http.StatusOK, user)
 }
 
-func (s *UserHandler) HandleCurrentUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	cookie, err := r.Cookie(consts.ConstSessionName)
-	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
-		})
-		return
-	}
-
-	session, err := s.SessionRep.GetSessionByID(cookie.Value)
+func (uh *UserHandler) HandleUpdatePassword(c echo.Context) error {
+	cookie, err := c.Cookie("code_express_session_id")
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
-			Message: consts.NotAuthorized,
+		if err == http.ErrNoCookie {
+			return c.JSON(http.StatusNotFound, &Error{
+				Message: consts.NotAuthorized,
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
 		})
-		return
 	}
 
-	user, err := s.UserRep.GetUserBySession(session)
+	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(&Error{
+		return c.JSON(http.StatusNotFound, &Error{
 			Message: consts.NotAuthorized,
 		})
-		return
 	}
 
-	json.NewEncoder(w).Encode(user)
+	user, err := uh.UserRep.GetUserByID(session.UserID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+
+	passwordForm := new(models.PasswordForm)
+	if err = c.Bind(passwordForm); err != nil {
+		log.Printf("Error parsing JSON %signUpHandler", err)
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	if passwordForm.Password == "" { //TODO: Подобные проверки будут частью валидации внутренней...
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.NoPassword,
+		})
+	}
+
+	if passwordForm.RepeatedPassword == "" {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.NoRepeatedPassword,
+		})
+	}
+
+	if len(passwordForm.Password) < 8 {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.PasswordTooShort,
+		})
+	}
+
+	if passwordForm.Password != passwordForm.RepeatedPassword {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.PasswordsMismatch,
+		})
+	}
+
+	if passwordForm.Password == user.Password {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.PasswordIsOld,
+		})
+	}
+
+	user.Password = passwordForm.Password //TODO: реализовать метод business.UpdatePassword
+
+	return c.JSON(http.StatusOK, &Error{
+		Message: consts.NoError,
+	})
+}
+
+func (uh *UserHandler) HandleUpdateAvatar(c echo.Context) error {
+	cookie, err := c.Cookie("code_express_session_id") //TODO: доставать пользователя в middleware
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return c.JSON(http.StatusNotFound, &Error{
+				Message: consts.NotAuthorized,
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+
+	user, err := uh.UserRep.GetUserByID(session.UserID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+
+	formFile, err := c.FormFile("avatar")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.NoAvatar,
+		})
+	}
+
+	if formFile.Size > int64(10<<20) { //TODO: magic number
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.FileSizeToLarge,
+		})
+	}
+
+	log.Println(formFile.Header)
+
+	source, err := formFile.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.NoAvatar,
+		})
+	}
+	defer func() {
+		_ = source.Close()
+	}()
+
+	fileName := business.GetFileName(user, "png") //TODO: extension
+	pathToNewFile := "./avatars/" + fileName
+	destination, err := os.OpenFile(pathToNewFile, os.O_WRONLY|os.O_CREATE, os.FileMode(int(0777)))
+	if err != nil {
+		log.Println("error in creating image file: ", err)
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+	defer func() {
+		_ = destination.Close()
+	}()
+
+	if _, err := io.Copy(destination, source); err != nil {
+		log.Println("error in copying image file: ", err)
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	user.Avatar = pathToNewFile //TODO: реализовать метод business.UpdateAvatar
+	if err = uh.UserRep.ChangeUser(user); err != nil {
+		return c.JSON(http.StatusBadRequest, &Error{
+			Message: consts.FileError,
+		})
+	}
+
+	return c.JSON(http.StatusOK, user)
+}
+
+func (uh *UserHandler) HandleCurrentUser(c echo.Context) error {
+	cookie, err := c.Cookie("code_express_session_id") //TODO: доставать пользователя в middleware
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return c.JSON(http.StatusNotFound, &Error{
+				Message: consts.NotAuthorized,
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, &Error{
+			Message: consts.InternalError,
+		})
+	}
+
+	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+
+	user, err := uh.UserRep.GetUserByID(session.UserID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, &Error{
+			Message: consts.NotAuthorized,
+		})
+	}
+
+	return c.JSON(http.StatusOK, user)
 }

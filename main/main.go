@@ -26,22 +26,24 @@ func main() {
 
 	configFileName := os.Args[1]
 
-	config, err := config.LoadConfig(configFileName)
+	conf, err := config.LoadConfig(configFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dbConn, err := sql.Open(dbName, config.GetDbConnString())
+	dbConn, err := sql.Open(dbName, conf.GetDbConnString())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer dbConn.Close()
+	defer func() {
+		_ = dbConn.Close()
+	}()
 
 	if err := dbConn.Ping(); err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("DB connected on %s", config.GetDbConnString())
+	log.Printf("DB connected on %s", conf.GetDbConnString())
 
-	server.ServerStart(config.GetServerConnString(), dbConn)
+	server.ServerStart(conf.GetServerConnString(), dbConn)
 }

@@ -1,20 +1,18 @@
 package test
 
-import (
+/*import (
 	"bytes"
 	"encoding/json"
-
-	//"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"testing"
-
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/handlers"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 type TestCase struct {
@@ -22,33 +20,42 @@ type TestCase struct {
 	output map[string]interface{}
 }
 
-func HandlerTest(testCase TestCase, t *testing.T, ts *httptest.Server, testName string) {
+func serverStart() *echo.Echo {
+	e := echo.New()
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowCredentials: true,
+		AllowHeaders:     []string{"Content-Type", "Access-Control-Allow-Headers", "Authorization", "X-Requested-With"},
+		AllowMethods:     []string{http.MethodDelete, http.MethodGet, http.MethodOptions, http.MethodPost},
+	}))
+
+	return e
+}
+
+func HandlerTest(t *testing.T, e *echo.Echo, url string, handler func(e echo.Context) error, testCase TestCase, testName string) {
 	requestBody, err := json.Marshal(testCase.input)
 	if err != nil {
 		t.Fatalf("%s not failed on error %s", testName, err)
 	}
 
-	resp, err := http.Post(ts.URL, "application/json", bytes.NewBuffer(requestBody))
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
+	request := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(requestBody))
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	jsonBody := make(map[string]interface{})
+	if assert.NoError(t, handler(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
 
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+		assert.Equal(t, testCase.output, jsonBody)
 	}
-
-	if !reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	resp.Body.Close()
 }
 
 func TestSignUpSuccess(t *testing.T) {
@@ -60,7 +67,7 @@ func TestSignUpSuccess(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal",
 				"email":             "dai@yandaex.ru",
@@ -68,10 +75,10 @@ func TestSignUpSuccess(t *testing.T) {
 				"repeated_password": "1234pass",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoError,
+				"message": consts.NoError,
 			},
 		},
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal2",
 				"email":             "dai2@yandaex.ru",
@@ -79,18 +86,16 @@ func TestSignUpSuccess(t *testing.T) {
 				"repeated_password": "12342pass",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoError,
+				"message": consts.NoError,
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpEmailFail(t *testing.T) {
@@ -102,7 +107,7 @@ func TestSignUpEmailFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal",
 				"email":             "dai@yandaex.ru",
@@ -110,10 +115,10 @@ func TestSignUpEmailFail(t *testing.T) {
 				"repeated_password": "1234pass",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoError,
+				"message": consts.NoError,
 			},
 		},
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal2",
 				"email":             "dai@yandaex.ru",
@@ -126,13 +131,11 @@ func TestSignUpEmailFail(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpUsernameFail(t *testing.T) {
@@ -144,7 +147,7 @@ func TestSignUpUsernameFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal",
 				"email":             "dai@yandaex.ru",
@@ -152,10 +155,10 @@ func TestSignUpUsernameFail(t *testing.T) {
 				"repeated_password": "1234pass",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoError,
+				"message": consts.NoError,
 			},
 		},
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal",
 				"email":             "dai2@yandaex.ru",
@@ -168,13 +171,11 @@ func TestSignUpUsernameFail(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpPasswordFail(t *testing.T) {
@@ -186,7 +187,7 @@ func TestSignUpPasswordFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal",
 				"email":             "dai@yandaex.ru",
@@ -199,13 +200,11 @@ func TestSignUpPasswordFail(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpNoEmailFail(t *testing.T) {
@@ -217,26 +216,24 @@ func TestSignUpNoEmailFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Danaal",
 				"email":             "",
 				"password":          "1234pass",
-				"repeated_password": "1234passa",
+				"repeated_password": "1234pass",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoEmail,
+				"message": consts.NoEmail,
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpNoUsernameFail(t *testing.T) {
@@ -248,7 +245,7 @@ func TestSignUpNoUsernameFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "",
 				"email":             "random@mail.ru",
@@ -256,18 +253,16 @@ func TestSignUpNoUsernameFail(t *testing.T) {
 				"repeated_password": "1234passa",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoUsername,
+				"message": consts.NoUsername,
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpShortPasswordFail(t *testing.T) {
@@ -279,7 +274,7 @@ func TestSignUpShortPasswordFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Daniil",
 				"email":             "random@mail.ru",
@@ -287,18 +282,16 @@ func TestSignUpShortPasswordFail(t *testing.T) {
 				"repeated_password": "12",
 			},
 			output: map[string]interface{}{
-				"message": handlers.PasswordTooShort,
+				"message": consts.PasswordTooShort,
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpNoPasswordFail(t *testing.T) {
@@ -310,7 +303,7 @@ func TestSignUpNoPasswordFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Daniil",
 				"email":             "random@mail.ru",
@@ -318,18 +311,16 @@ func TestSignUpNoPasswordFail(t *testing.T) {
 				"repeated_password": "1212414",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoPassword,
+				"message": consts.NoPassword,
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestSignUpNoRepeatedPasswordFail(t *testing.T) {
@@ -341,7 +332,7 @@ func TestSignUpNoRepeatedPasswordFail(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"username":          "Daniil",
 				"email":             "random@mail.ru",
@@ -349,18 +340,16 @@ func TestSignUpNoRepeatedPasswordFail(t *testing.T) {
 				"repeated_password": "",
 			},
 			output: map[string]interface{}{
-				"message": handlers.NoRepeatedPassword,
+				"message": consts.NoRepeatedPassword,
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCreateUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/register", UserHandler.HandleCreateUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestLogInSuccess(t *testing.T) {
@@ -375,12 +364,12 @@ func TestLogInSuccess(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"login":    "Daniil",
 				"password": "123456qQ",
@@ -394,13 +383,11 @@ func TestLogInSuccess(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleLogInUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/login", UserHandler.HandleLogInUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestLogInNoUsernameFail(t *testing.T) {
@@ -415,12 +402,12 @@ func TestLogInNoUsernameFail(t *testing.T) {
 		Email:    "daai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"login":    "Daniil",
 				"password": "123456qQ",
@@ -431,13 +418,11 @@ func TestLogInNoUsernameFail(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleLogInUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/login", UserHandler.HandleLogInUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestLogInPasswordFail(t *testing.T) {
@@ -452,12 +437,12 @@ func TestLogInPasswordFail(t *testing.T) {
 		Email:    "daai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"login":    "Danaal",
 				"password": "123456qQQQQ",
@@ -468,13 +453,11 @@ func TestLogInPasswordFail(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleLogInUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/login", UserHandler.HandleLogInUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestLogInNoFieldUsernameFail(t *testing.T) {
@@ -489,28 +472,26 @@ func TestLogInNoFieldUsernameFail(t *testing.T) {
 		Email:    "daai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"password": "123456qQ",
 			},
 			output: map[string]interface{}{
-				"message": "no login field",
+				"message": "no username field", //TODO: везде возможно нужно использовать константы из Error...
 			},
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleLogInUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/login", UserHandler.HandleLogInUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestLogInNoFieldPasswordFail(t *testing.T) {
@@ -525,12 +506,12 @@ func TestLogInNoFieldPasswordFail(t *testing.T) {
 		Email:    "daai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			input: map[string]string{
 				"login": "Danaal",
 			},
@@ -540,13 +521,11 @@ func TestLogInNoFieldPasswordFail(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleLogInUser))
-
+	e := serverStart()
 	for _, testCase := range testCases {
-		HandlerTest(testCase, t, ts, testName)
+		HandlerTest(t, e, "/api/v1/user/login", UserHandler.HandleLogInUser, testCase, testName)
 	}
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestGetUserSuccess(t *testing.T) {
@@ -561,7 +540,7 @@ func TestGetUserSuccess(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -587,36 +566,34 @@ func TestGetUserSuccess(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCurrentUser))
+	e := serverStart()
 
-	request, err := http.NewRequest("GET", ts.URL, bytes.NewBuffer(nil))
+	requestBody, err := json.Marshal(testCase.input)
+	if err != nil {
+		t.Fatalf("%s not failed on error %s", testName, err)
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/user/current", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleCurrentUser(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if !reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestLogoutSuccess(t *testing.T) {
@@ -631,7 +608,7 @@ func TestLogoutSuccess(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -650,40 +627,38 @@ func TestLogoutSuccess(t *testing.T) {
 			"code_express_session_id": userCookie.String(),
 		},
 		output: map[string]interface{}{
-			"message": handlers.NoError,
+			"message": consts.NoError,
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleLogOutUser))
+	e := serverStart()
 
-	request, err := http.NewRequest("POST", ts.URL, bytes.NewBuffer(nil))
+	requestBody, err := json.Marshal(testCase.input)
+	if err != nil {
+		t.Fatalf("%s not failed on error %s", testName, err)
+	}
+
+	request := httptest.NewRequest(http.MethodDelete, "/api/v1/user/logout", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleLogOutUser(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if !reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestUpdateProfile(t *testing.T) {
@@ -698,7 +673,7 @@ func TestUpdateProfile(t *testing.T) {
 		Email:    "danya@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -725,41 +700,34 @@ func TestUpdateProfile(t *testing.T) {
 		},
 	}
 
+	e := serverStart()
+
 	requestBody, err := json.Marshal(testCase.input)
 	if err != nil {
 		t.Fatalf("%s not failed on error %s", testName, err)
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleUpdateProfile))
-
-	request, err := http.NewRequest("GET", ts.URL, bytes.NewBuffer(requestBody))
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/user/change/profile", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleUpdateProfile(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if !reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestUpdatePasswordSuccess(t *testing.T) {
@@ -774,7 +742,7 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -794,40 +762,38 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 			"repeated_password": "123456789qQ",
 		},
 		output: map[string]interface{}{
-			"message": handlers.NoError,
+			"message": consts.NoError,
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleUpdatePassword))
-	body, err := json.Marshal(testCase.input)
-	request, err := http.NewRequest("POST", ts.URL, bytes.NewBuffer(body))
+	e := serverStart()
+
+	requestBody, err := json.Marshal(testCase.input)
+	if err != nil {
+		t.Fatalf("%s not failed on error %s", testName, err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/user/change/password", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleUpdatePassword(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if !reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestUpdateShortPassword(t *testing.T) {
@@ -842,7 +808,7 @@ func TestUpdateShortPassword(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -862,40 +828,38 @@ func TestUpdateShortPassword(t *testing.T) {
 			"repeated_password": "123",
 		},
 		output: map[string]interface{}{
-			"message": handlers.NoError,
+			"message": consts.PasswordTooShort,
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleUpdatePassword))
-	body, err := json.Marshal(testCase.input)
-	request, err := http.NewRequest("POST", ts.URL, bytes.NewBuffer(body))
+	e := serverStart()
+
+	requestBody, err := json.Marshal(testCase.input)
+	if err != nil {
+		t.Fatalf("%s not failed on error %s", testName, err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/user/change/password", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleUpdatePassword(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestUpdateNoPassword(t *testing.T) {
@@ -910,7 +874,7 @@ func TestUpdateNoPassword(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -930,40 +894,38 @@ func TestUpdateNoPassword(t *testing.T) {
 			"repeated_password": "",
 		},
 		output: map[string]interface{}{
-			"message": handlers.NoError,
+			"message": consts.NoPassword,
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleUpdatePassword))
-	body, err := json.Marshal(testCase.input)
-	request, err := http.NewRequest("POST", ts.URL, bytes.NewBuffer(body))
+	e := serverStart()
+
+	requestBody, err := json.Marshal(testCase.input)
+	if err != nil {
+		t.Fatalf("%s not failed on error %s", testName, err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/user/change/password", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleUpdatePassword(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
+	_ = e.Close()
 }
 
 func TestUpdateNoSesondPassword(t *testing.T) {
@@ -978,7 +940,7 @@ func TestUpdateNoSesondPassword(t *testing.T) {
 		Email:    "dai@yandaex.ru",
 		Password: "123456qQ",
 	}
-	suRepImpl.CreateUser(user)
+	_ = suRepImpl.CreateUser(user)
 	userSession := repositories.NewSession(user)
 	_ = sesRepImpl.AddSession(userSession)
 
@@ -998,38 +960,35 @@ func TestUpdateNoSesondPassword(t *testing.T) {
 			"repeated_password": "",
 		},
 		output: map[string]interface{}{
-			"message": handlers.NoError,
+			"message": consts.NoRepeatedPassword,
 		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleUpdatePassword))
-	body, err := json.Marshal(testCase.input)
-	request, err := http.NewRequest("POST", ts.URL, bytes.NewBuffer(body))
+	e := serverStart()
+
+	requestBody, err := json.Marshal(testCase.input)
+	if err != nil {
+		t.Fatalf("%s not failed on error %s", testName, err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/user/change/password", bytes.NewReader(requestBody))
 	request.AddCookie(&userCookie)
+	request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	context := e.NewContext(request, recorder)
 
-	client := &http.Client{}
+	result := recorder.Result()
+	defer func() {
+		_ = result.Body.Close()
+	}()
 
-	res, err := client.Do(request)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
+	if assert.NoError(t, UserHandler.HandleUpdatePassword(context)) {
+		jsonBody := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(recorder.Body.String()), &jsonBody); err != nil {
+			t.Fatalf("%s not failed on error %s", testName, err)
+		}
+		assert.Equal(t, testCase.output, jsonBody)
 	}
 
-	body, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	jsonBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		t.Fatalf("%s not failed on error %s", testName, err)
-	}
-
-	if reflect.DeepEqual(jsonBody, testCase.output) {
-		t.Fatalf("%s failed, expected: %s, result: %s", testName, testCase.output, jsonBody)
-	}
-	res.Body.Close()
-
-	ts.Close()
-}
+	_ = e.Close()
+}*/

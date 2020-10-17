@@ -1,12 +1,12 @@
-drop table users
-drop table session
+drop table users;
+drop table session;
 
 create table if not exists users (
     id serial primary key,
     name varchar(64) not null unique,
     email varchar(64) not null unique,
     password varchar(64) not null,
-    avatar varchar(255) default '',
+    avatar varchar(255) default ''
 );
 
 create table if not exists session (
