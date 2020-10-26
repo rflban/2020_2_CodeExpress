@@ -1,6 +1,6 @@
 package test
 
-import (
+/*import (
 	"errors"
 	"reflect"
 	"testing"
@@ -169,4 +169,4 @@ func TestLoginUserFail(t *testing.T) {
 	if err == nil {
 		t.Fatal("TestLoginUser not failed")
 	}
-}
+}*/
