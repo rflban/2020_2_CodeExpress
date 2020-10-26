@@ -2,7 +2,10 @@ package business
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/consts"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
@@ -20,33 +23,71 @@ func CreateUser(uRep repositories.UserRep, newUser *models.NewUser) (*models.Use
 		Avatar:   "",
 	}
 
-	err := uRep.CheckUserExists(user)
+	existedUser, err := uRep.CheckUserExists(user)
+
 	if err != nil {
 		return nil, err
 	}
+	if existedUser != nil {
+		if existedUser.Name == user.Name {
+			return nil, errors.New(consts.UserNameExists)
+		}
+		if existedUser.Email == user.Email {
+			return nil, errors.New(consts.EMailExists)
+		}
+	}
+
 	err = uRep.CreateUser(user)
 	return user, err
 }
 
 func UpdateProfile(uRep repositories.UserRep, profileForm *models.ProfileForm, user *models.User) (*models.User, error) {
 	var err error
+	newUser := &models.User{
+		Name:  profileForm.Username,
+		Email: profileForm.Email,
+	}
 	if profileForm.Email != user.Email {
-		newUser := new(models.User)
-		newUser.Email = profileForm.Email
-		err = uRep.CheckUserExists(newUser)
+		existedUser := &models.User{}
+		existedUser, err = uRep.CheckUserExists(newUser)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if existedUser != nil {
+			if existedUser.Name == newUser.Name {
+				return nil, errors.New(consts.UserNameExists)
+			}
+			if existedUser.Email == newUser.Email {
+				return nil, errors.New(consts.EMailExists)
+			}
+		}
 
 	}
 	if err == nil && profileForm.Username != user.Name {
-		newUser := new(models.User)
-		newUser.Name = profileForm.Username
-		err = uRep.CheckUserExists(newUser)
-	}
+		existedUser := &models.User{}
+		existedUser, err = uRep.CheckUserExists(newUser)
 
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
 
+		if existedUser != nil {
+			if existedUser.Name == newUser.Name {
+				return nil, errors.New(consts.UserNameExists)
+			}
+			if existedUser.Email == newUser.Email {
+				return nil, errors.New(consts.EMailExists)
+			}
+		}
+	}
 	user.Email = profileForm.Email
 	user.Name = profileForm.Username
+
+	if err := uRep.ChangeUser(user); err != nil {
+		fmt.Println("HERE")
+		return nil, err
+	}
 	return user, nil
 }

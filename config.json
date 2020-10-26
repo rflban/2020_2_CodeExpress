@@ -1,0 +1,13 @@
+{
+    "database": {
+      "user": "meuser",
+      "name": "musicexpress",
+      "password": "9680nM", 
+      "host": "localhost",
+      "port": 5432
+    },
+    "server": {
+      "host": "127.0.0.1",
+      "port": 8080
+    }
+}

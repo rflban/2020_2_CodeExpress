@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+
 	//"io"
 	"io/ioutil"
 	"net/http"
@@ -575,17 +576,16 @@ func TestGetUserSuccess(t *testing.T) {
 	UserHandler := handlers.NewUserHandler(suRepImpl, sesRepImpl)
 
 	testCase := TestCase{
-			input: map[string]string{
-				"code_express_session_id" : userCookie.String(),
-			},
-			output: map[string]interface{}{
-				"id":       0.0,
-				"username": "Daniil",
-				"email":    "dai@yandaex.ru",
-				"avatar":   "",
-			},
-		}
-
+		input: map[string]string{
+			"code_express_session_id": userCookie.String(),
+		},
+		output: map[string]interface{}{
+			"id":       0.0,
+			"username": "Daniil",
+			"email":    "dai@yandaex.ru",
+			"avatar":   "",
+		},
+	}
 
 	ts := httptest.NewServer(http.HandlerFunc(UserHandler.HandleCurrentUser))
 

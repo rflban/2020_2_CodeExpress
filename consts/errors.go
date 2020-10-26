@@ -1,4 +1,4 @@
-package handlers
+package consts
 
 const (
 	InternalError      = "internal server error"
@@ -15,8 +15,6 @@ const (
 	NoAvatar           = "avatar is expected"
 	FileError          = "error reading file"
 	FileSizeToLarge    = "file size is to large"
+	UserNameExists     = "Username already exists"
+	EMailExists        = "Email already exists"
 )
-
-type Error struct {
-	Message string `json:"message"`
-}

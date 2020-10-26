@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -73,9 +74,9 @@ func SetHandler(ht HandlerType, UserHandler *handlers.UserHandler, w http.Respon
 	http.Error(w, `"error": "Method not allowed"`, http.StatusMethodNotAllowed)
 }
 
-func ServerStart(url string, port string) {
-	UserRep := repositories.NewUserRepImpl()
-	SessionRep := repositories.NewSessionRepImpl()
+func ServerStart(host string, dbConn *sql.DB) {
+	UserRep := repositories.NewUserRepPGImpl(dbConn)
+	SessionRep := repositories.NewSessionRepPGImpl(dbConn)
 
 	UserHandler := handlers.NewUserHandler(UserRep, SessionRep)
 
@@ -109,6 +110,6 @@ func ServerStart(url string, port string) {
 
 	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars"))))
 
-	log.Println("Server listening on ", url+port)
-	http.ListenAndServe(url+port, nil)
+	log.Println("Server listening on ", host)
+	http.ListenAndServe(host, nil)
 }

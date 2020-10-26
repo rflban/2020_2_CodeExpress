@@ -1,16 +1,19 @@
 package repositories
 
 import (
+	"database/sql"
 	"errors"
-	"sync"
 	"time"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/consts"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	uuid "github.com/satori/go.uuid"
 )
 
 type SessionRep interface {
-	GetSessionByValue(sessionID string) (*models.Session, error)
+	GetSessionByID(sessionID string) (*models.Session, error)
+	GetSessionByUserID(userID uint64) (*models.Session, error)
 	CheckSessionOutdated(session *models.Session) bool
 	ProlongSession(session *models.Session) error
 	OutdateSession(session *models.Session) error
@@ -19,69 +22,104 @@ type SessionRep interface {
 
 func NewSession(u *models.User) *models.Session {
 	return &models.Session{
-		Name:   "code_express_session_id",
+		Name:   consts.ConstSessionName,
 		ID:     uuid.NewV4().String(),
 		UserID: u.ID,
-		Expire: time.Now().AddDate(0, 0, 1),
+		Expire: time.Now().AddDate(0, 0, consts.ConstDaysSession),
 	}
 }
 
-type SessionRepImpl struct {
-	Sessions []*models.Session
-	MU       *sync.RWMutex
-}
-
-func NewSessionRepImpl() SessionRep {
-	return &SessionRepImpl{
-		Sessions: make([]*models.Session, 0),
-		MU:       &sync.RWMutex{},
+func NewSessionRepPGImpl(conn *sql.DB) SessionRep {
+	return &SessionPGRep{
+		dbConn: conn,
 	}
 }
 
-func (s *SessionRepImpl) GetSessionByValue(sessionID string) (*models.Session, error) {
-	s.MU.RLock()
-	defer s.MU.RUnlock()
-
-	for _, elemSession := range s.Sessions {
-		if elemSession.ID == sessionID {
-			return elemSession, nil
-		}
-	}
-	return nil, errors.New("No session with sessionID")
+type SessionPGRep struct {
+	dbConn *sql.DB
 }
 
-func (s *SessionRepImpl) CheckSessionOutdated(session *models.Session) bool {
+func (sr *SessionPGRep) GetSessionByID(sessionID string) (*models.Session, error) {
+	query := "select id, userID, expire from session where id = $1"
+	session := &models.Session{
+		Name: consts.ConstSessionName,
+	}
+	err := sr.dbConn.QueryRow(query, sessionID).Scan(&session.ID, &session.UserID, &session.Expire)
+
+	switch err {
+	case sql.ErrNoRows:
+		return nil, errors.New("No session with sessionID") //TODO: вынести в константы
+	case nil:
+		return session, nil
+	default:
+		return nil, err
+	}
+}
+
+func (sr *SessionPGRep) CheckSessionOutdated(session *models.Session) bool {
 	return time.Until(session.Expire) < 0
 }
 
-func (s *SessionRepImpl) ProlongSession(session *models.Session) error {
-	s.MU.Lock()
-	defer s.MU.Unlock()
+func (sr *SessionPGRep) ProlongSession(session *models.Session) error {
+	query := "update session set expire = $1 where id = $2 returning expire"
 
-	for idx, elemSession := range s.Sessions {
-		if elemSession.ID == session.ID {
-			s.Sessions[idx].Expire = time.Now().AddDate(0, 0, 5)
-		}
+	err := sr.dbConn.QueryRow(
+		query,
+		time.Now().AddDate(0, 0, consts.ConstDaysSession),
+		session.ID).
+		Scan(&session.Expire)
+
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *SessionRepImpl) OutdateSession(session *models.Session) error {
-	s.MU.Lock()
-	defer s.MU.Unlock()
+func (sr *SessionPGRep) OutdateSession(session *models.Session) error {
+	query := "update session set expire = $1 where id = $2 returning expire"
 
-	for idx, elemSession := range s.Sessions {
-		if elemSession.ID == session.ID {
-			s.Sessions[idx].Expire = time.Now().AddDate(0, 0, -1)
-		}
+	err := sr.dbConn.QueryRow(
+		query,
+		time.Now().AddDate(0, 0, -consts.ConstDaysSession),
+		session.ID).
+		Scan(&session.Expire)
+
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *SessionRepImpl) AddSession(session *models.Session) error {
-	s.MU.RLock()
-	defer s.MU.RUnlock()
+func (sr *SessionPGRep) AddSession(session *models.Session) error {
+	query := "insert into session values($1, $2, $3) returning id"
 
-	s.Sessions = append(s.Sessions, session)
+	err := sr.dbConn.QueryRow(
+		query,
+		session.ID,
+		session.UserID,
+		session.Expire).
+		Scan(&session.ID)
+
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func (sr *SessionPGRep) GetSessionByUserID(userID uint64) (*models.Session, error) {
+	query := "select id, userID, expire from session where userID = $1"
+	session := &models.Session{
+		Name: consts.ConstSessionName,
+	}
+
+	err := sr.dbConn.QueryRow(query, userID).Scan(&session.ID, &session.UserID, &session.Expire)
+
+	switch err {
+	case sql.ErrNoRows:
+		return nil, errors.New("No session with userID") //TODO: вынести в константы
+	case nil:
+		return session, nil
+	default:
+		return nil, err
+	}
 }
