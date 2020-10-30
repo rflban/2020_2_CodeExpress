@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"errors"
+	"io"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/business"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/repositories"
 	"github.com/labstack/echo/v4"
-	"io"
-	"log"
-	"net/http"
-	"os"
 )
 
 type UserHandler struct {
@@ -23,170 +23,6 @@ func NewUserHandler(UserRep repositories.UserRep, SessionRep repositories.Sessio
 		UserRep:    UserRep,
 		SessionRep: SessionRep,
 	}
-}
-
-func (uh *UserHandler) decodeNewUser(c echo.Context) (*models.NewUser, error) {
-	newUser := new(models.NewUser)
-	if err := c.Bind(newUser); err != nil {
-		log.Printf("Error parsing JSON %s", err)
-		return nil, errors.New(consts.InternalError)
-	}
-
-	if newUser.Email == "" {
-		return nil, errors.New(consts.NoEmail)
-	}
-
-	if newUser.Name == "" {
-		return nil, errors.New(consts.NoUsername)
-	}
-
-	if newUser.Password == "" {
-		return nil, errors.New(consts.NoPassword)
-	}
-
-	if newUser.RepeatedPassword == "" {
-		return nil, errors.New(consts.NoRepeatedPassword)
-	}
-
-	if len(newUser.Password) < 8 || len(newUser.RepeatedPassword) < 8 {
-		return nil, errors.New(consts.PasswordTooShort)
-	}
-
-	return newUser, nil
-}
-
-func (uh *UserHandler) decodeLogIn(c echo.Context) (*models.LogInForm, error) {
-	logInForm := new(models.LogInForm)
-	if err := c.Bind(logInForm); err != nil {
-		log.Printf("Error parsing JSON %s", err)
-		return nil, errors.New(consts.InternalError)
-	}
-
-	if logInForm.Login == "" {
-		return nil, errors.New(consts.NoUsername)
-	}
-
-	if logInForm.Password == "" {
-		return nil, errors.New(consts.NoPassword)
-	}
-
-	return logInForm, nil
-}
-
-func (uh *UserHandler) HandleCreateUser(c echo.Context) error {
-	newUser, err := uh.decodeNewUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, &Error{
-			Message: err.Error(),
-		})
-	}
-
-	user, err := business.CreateUser(uh.UserRep, newUser)
-	if err != nil {
-		return c.JSON(http.StatusForbidden, &Error{
-			Message: err.Error(),
-		})
-	}
-
-	userSession := repositories.NewSession(user)
-	err = uh.SessionRep.AddSession(userSession)
-	if err != nil {
-		log.Printf("Error while creating session %s", err)
-		return c.JSON(http.StatusForbidden, &Error{
-			Message: consts.InternalError,
-		})
-	}
-
-	userCookie := &http.Cookie{
-		Name:     userSession.Name,
-		Value:    userSession.ID,
-		Expires:  userSession.Expire,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	c.SetCookie(userCookie)
-
-	return c.JSON(http.StatusOK, &Error{
-		Message: consts.NoError,
-	})
-}
-
-func (uh *UserHandler) HandleLogInUser(c echo.Context) error {
-	logInForm, err := uh.decodeLogIn(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, &Error{
-			Message: err.Error(),
-		})
-	}
-
-	user, err := uh.UserRep.LoginUser(logInForm)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, &Error{
-			Message: consts.NotAuthorized,
-		})
-	}
-
-	userSession := repositories.NewSession(user)
-	err = uh.SessionRep.AddSession(userSession)
-	if err != nil {
-		log.Printf("Error while creating session %s", err)
-		return c.JSON(http.StatusInternalServerError, &Error{
-			Message: consts.InternalError,
-		})
-	}
-
-	userCookie := http.Cookie{
-		Name:     userSession.Name,
-		Value:    userSession.ID,
-		Expires:  userSession.Expire,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	c.SetCookie(&userCookie)
-
-	return c.JSON(http.StatusOK, user)
-}
-
-func (uh *UserHandler) HandleLogOutUser(c echo.Context) error {
-	cookie, err := c.Cookie("code_express_session_id") //TODO: доставать пользователя в middleware. не только здесь...
-	if err == http.ErrNoCookie {
-		return c.JSON(http.StatusNotFound, &Error{
-			Message: consts.NotAuthorized,
-		})
-	}
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &Error{
-			Message: consts.InternalError,
-		})
-	}
-
-	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, &Error{
-			Message: consts.NotAuthorized,
-		})
-	}
-
-	err = uh.SessionRep.OutdateSession(session)
-	if err != nil {
-		log.Printf("Error outdating session %s", err)
-		return c.JSON(http.StatusInternalServerError, &Error{
-			Message: consts.InternalError,
-		})
-	}
-
-	userCookie := http.Cookie{
-		Name:     session.Name,
-		Value:    session.ID,
-		Expires:  session.Expire,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	c.SetCookie(&userCookie)
-
-	return c.JSON(http.StatusOK, &Error{
-		Message: consts.NoError,
-	})
 }
 
 func (uh *UserHandler) HandleUpdateProfile(c echo.Context) error {
@@ -394,36 +230,6 @@ func (uh *UserHandler) HandleUpdateAvatar(c echo.Context) error {
 	if err = uh.UserRep.ChangeUser(user); err != nil {
 		return c.JSON(http.StatusBadRequest, &Error{
 			Message: consts.FileError,
-		})
-	}
-
-	return c.JSON(http.StatusOK, user)
-}
-
-func (uh *UserHandler) HandleCurrentUser(c echo.Context) error {
-	cookie, err := c.Cookie("code_express_session_id") //TODO: доставать пользователя в middleware
-	if err != nil {
-		if err == http.ErrNoCookie {
-			return c.JSON(http.StatusNotFound, &Error{
-				Message: consts.NotAuthorized,
-			})
-		}
-		return c.JSON(http.StatusInternalServerError, &Error{
-			Message: consts.InternalError,
-		})
-	}
-
-	session, err := uh.SessionRep.GetSessionByID(cookie.Value)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, &Error{
-			Message: consts.NotAuthorized,
-		})
-	}
-
-	user, err := uh.UserRep.GetUserByID(session.UserID)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, &Error{
-			Message: consts.NotAuthorized,
 		})
 	}
 
