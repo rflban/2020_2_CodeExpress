@@ -130,6 +130,19 @@ func (uUc *UserUsecase) UpdateProfile(id uint64) *ErrorResponse {
 	return nil
 }
 
+func (uUc *UserUsecase) UpdatePassword(id uint64) *ErrorResponse {
+	user, errResp := uUc.GetByID(id)
+	if errResp != nil {
+		return errResp
+	}
+
+	if err := uUc.userRep.Update(user); err != nil {
+		return NewErrorResponse(ErrInternal, err)
+	}
+
+	return nil
+}
+
 func (uUc *UserUsecase) checkEmailExists(email string) (bool, error) {
 	_, err := uUc.userRep.SelectByEmail(email)
 	if err == sql.ErrNoRows {

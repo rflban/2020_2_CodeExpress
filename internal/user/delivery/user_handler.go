@@ -161,6 +161,15 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 	}
 
 	return func(ctx echo.Context) error {
+		req := &Request{}
+		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
+			if err.Error != nil { //TODO: Обрабатывать ошибки валидатора
+				logrus.Info(err.Error)
+				validator.GetValidationError(err)
+			}
+			return ctx.JSON(err.StatusCode, err.UserError)
+		}
+
 		cookie, err := ctx.Cookie(ConstSessionName)
 		if err != nil {
 			errResp := NewErrorResponse(ErrNotAuthorized, err)
@@ -177,6 +186,49 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
+		user.Name = req.Name
+		user.Email = req.Email
+		if errResp = uh.userUsecase.UpdateProfile(user.ID); errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, user)
+	}
+}
+
+func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
+	type Request struct {
+		Password         string `json:"password" validate:"required,gte=8"`
+		RepeatedPassword string `json:"repeated_password" validate:"required,eqfield=Password"`
+	}
+
+	return func(ctx echo.Context) error {
+		req := &Request{}
+		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
+			if err.Error != nil { //TODO: Обрабатывать ошибки валидатора
+				logrus.Info(err.Error)
+				validator.GetValidationError(err)
+			}
+			return ctx.JSON(err.StatusCode, err.UserError)
+		}
+
+		cookie, err := ctx.Cookie(ConstSessionName)
+		if err != nil {
+			errResp := NewErrorResponse(ErrNotAuthorized, err)
+			return RespondWithError(errResp, ctx)
+		}
+
+		session, errResp := uh.sessionUsecase.GetByID(cookie.Value)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		user, errResp := uh.userUsecase.GetByID(session.UserID)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		user.Password = req.Password
 		if errResp = uh.userUsecase.UpdateProfile(user.ID); errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
