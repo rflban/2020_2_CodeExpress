@@ -11,4 +11,5 @@ type UserUsecase interface {
 	GetByName(name string) (*models.User, *ErrorResponse)
 	GetByID(id uint64) (*models.User, *ErrorResponse)
 	LoginUser(login string, password string) (*models.User, *ErrorResponse)
+	UpdateProfile(id uint64) *ErrorResponse
 }

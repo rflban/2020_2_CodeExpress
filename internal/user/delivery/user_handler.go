@@ -32,7 +32,7 @@ func (uh *UserHandler) Configure(e *echo.Echo) {
 	e.POST("/api/v1/user/login", uh.handlerLoginUser())
 	e.GET("/api/v1/user/current", uh.handlerCurrentUserInfo())
 	e.DELETE("/api/v1/user/logout", uh.handlerUserLogout())
-	//e.POST("/api/v1/user/change/profile", uh.handlerUpdateProfile())
+	e.POST("/api/v1/user/change/profile", uh.handlerUpdateProfile())
 	//e.POST("/api/v1/user/change/password", uh.handlerUpdatePassword())
 	//e.POST("/api/v1/user/change/avatar", uh.handlerUpdateAvatar())
 }
@@ -154,10 +154,10 @@ func (uh *UserHandler) handlerUserLogout() echo.HandlerFunc {
 	}
 }
 
-/*func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
+func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 	type Request struct {
-		Name             string `json:"username" validate:"required"`
-		Email            string `json:"email" validate:"required,email"`
+		Name  string `json:"username" validate:"required"`
+		Email string `json:"email" validate:"required,email"`
 	}
 
 	return func(ctx echo.Context) error {
@@ -177,8 +177,10 @@ func (uh *UserHandler) handlerUserLogout() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-
+		if errResp = uh.userUsecase.UpdateProfile(user.ID); errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
 
 		return ctx.JSON(http.StatusOK, user)
 	}
-}*/
+}
