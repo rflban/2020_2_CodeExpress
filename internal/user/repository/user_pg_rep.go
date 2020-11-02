@@ -18,7 +18,7 @@ func NewUserRep(conn *sql.DB) user.UserRep {
 }
 
 func (ur *UserRep) Insert(u *models.User) error {
-	query := "insert into users values(default, $1, $2, $3) returning id"
+	query := "INSERT INTO users (id, name, email, password) VALUES (default, $1, $2, $3) RETURNING id;"
 
 	err := ur.dbConn.QueryRow(query, u.Name, u.Email, u.Password).Scan(&u.ID)
 
@@ -34,11 +34,10 @@ func (ur *UserRep) Update(user *models.User) error {
 }
 
 func (ur *UserRep) SelectByEmail(email string) (*models.User, error) {
-	query := "select id, name, email, avatar from users where email = $1"
+	query := "SELECT id, name, email, avatar FROM users WHERE email = $1;"
 	user := &models.User{}
 
-	err := ur.dbConn.QueryRow(query, email).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
+	err := ur.dbConn.QueryRow(query, email).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
 
 	if err != nil {
 		return nil, err
@@ -48,11 +47,10 @@ func (ur *UserRep) SelectByEmail(email string) (*models.User, error) {
 }
 
 func (ur *UserRep) SelectByName(name string) (*models.User, error) {
-	query := "select id, name, email, avatar from users where name = $1"
+	query := "SELECT id, name, email, avatar FROM users WHERE name = $1;"
 	user := &models.User{}
 
-	err := ur.dbConn.QueryRow(query, name).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
+	err := ur.dbConn.QueryRow(query, name).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
 
 	if err != nil {
 		return nil, err
@@ -62,11 +60,10 @@ func (ur *UserRep) SelectByName(name string) (*models.User, error) {
 }
 
 func (ur *UserRep) SelectByID(userID uint64) (*models.User, error) {
-	query := "select id, name, email, avatar from users where id = $1"
+	query := "SELECT id, name, email, avatar FROM users WHERE id = $1;"
 	user := &models.User{}
 
-	err := ur.dbConn.QueryRow(query, userID).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
+	err := ur.dbConn.QueryRow(query, userID).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
 
 	if err != nil {
 		return nil, err
@@ -76,11 +73,10 @@ func (ur *UserRep) SelectByID(userID uint64) (*models.User, error) {
 }
 
 func (ur *UserRep) SelectByLoginAndPassword(login string, password string) (*models.User, error) {
-	query := "select id, name, email, avatar from users where (name = $1 or email = $1) and password = $2"
+	query := "SELECT id, name, email, avatar FROM users WHERE (name = $1 OR email = $1) AND password = $2;"
 	user := &models.User{}
 
-	err := ur.dbConn.QueryRow(query, login, password).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
+	err := ur.dbConn.QueryRow(query, login, password).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
 
 	if err != nil {
 		return nil, err

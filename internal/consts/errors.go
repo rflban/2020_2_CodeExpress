@@ -29,6 +29,8 @@ const (
 	ErrNameAlreadyExist
 	ErrIncorrectLoginOrPassword
 	ErrNotAuthorized
+	ErrNoEmail
+	ErrNoUsername
 )
 
 var Errors = map[int]error{
@@ -38,6 +40,8 @@ var Errors = map[int]error{
 	ErrNameAlreadyExist:         errors.New("Name already exists"),
 	ErrIncorrectLoginOrPassword: errors.New("Incorrect login or password"),
 	ErrNotAuthorized:            errors.New("Not authorized"),
+	ErrNoEmail:                  errors.New("No email field"),
+	ErrNoUsername:               errors.New("No username field"),
 }
 
 var StatusCodes = map[int]int{
@@ -47,4 +51,6 @@ var StatusCodes = map[int]int{
 	ErrNameAlreadyExist:         http.StatusForbidden,
 	ErrIncorrectLoginOrPassword: http.StatusNotFound,
 	ErrNotAuthorized:            http.StatusNotFound,
+	ErrNoEmail:                  http.StatusBadRequest,
+	ErrNoUsername:               http.StatusBadRequest,
 }
