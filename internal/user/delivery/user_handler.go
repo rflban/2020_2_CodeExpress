@@ -1,7 +1,11 @@
 package delivery
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"io"
 	"net/http"
+	"os"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
@@ -33,8 +37,9 @@ func (uh *UserHandler) Configure(e *echo.Echo) {
 	e.GET("/api/v1/user/current", uh.handlerCurrentUserInfo())
 	e.DELETE("/api/v1/user/logout", uh.handlerUserLogout())
 	e.POST("/api/v1/user/change/profile", uh.handlerUpdateProfile())
-	//e.POST("/api/v1/user/change/password", uh.handlerUpdatePassword())
-	//e.POST("/api/v1/user/change/avatar", uh.handlerUpdateAvatar())
+	e.POST("/api/v1/user/change/password", uh.handlerUpdatePassword())
+	e.POST("/api/v1/user/change/avatar", uh.handlerUpdateAvatar())
+	e.Static("/avatars", "avatars")
 }
 
 func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
@@ -188,7 +193,7 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 
 		user.Name = req.Name
 		user.Email = req.Email
-		if errResp = uh.userUsecase.UpdateProfile(user.ID); errResp != nil {
+		if errResp = uh.userUsecase.UpdateProfile(user); errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 
@@ -229,7 +234,71 @@ func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
 		}
 
 		user.Password = req.Password
-		if errResp = uh.userUsecase.UpdateProfile(user.ID); errResp != nil {
+		if errResp = uh.userUsecase.UpdatePassword(user); errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, user)
+	}
+}
+
+func (uh *UserHandler) handlerUpdateAvatar() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie(ConstSessionName)
+		if err != nil {
+			errResp := NewErrorResponse(ErrNotAuthorized, err)
+			return RespondWithError(errResp, ctx)
+		}
+
+		session, errResp := uh.sessionUsecase.GetByID(cookie.Value)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		user, errResp := uh.userUsecase.GetByID(session.UserID)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		formFile, err := ctx.FormFile("avatar")
+		if err != nil {
+			errResp := NewErrorResponse(ErrNoAvatar, err)
+			return RespondWithError(errResp, ctx)
+		}
+
+		if formFile.Size > int64(10<<20) { //TODO: magic number
+			errResp := NewErrorResponse(ErrNoAvatar, err) //TODO: другая ошибка будет
+			return RespondWithError(errResp, ctx)
+		}
+
+		source, err := formFile.Open()
+		if err != nil {
+			errResp := NewErrorResponse(ErrNoAvatar, err)
+			return RespondWithError(errResp, ctx)
+		}
+		defer func() {
+			_ = source.Close()
+		}()
+
+		fileExtension := "png" //TODO: убрать в другое место; захордкоженное расширение
+		randBytes := md5.Sum([]byte(fileExtension + user.Name))
+		randString := hex.EncodeToString(randBytes[:])
+		fileName := randString + "." + fileExtension
+		pathToNewFile := "./avatars/" + fileName
+		destination, err := os.OpenFile(pathToNewFile, os.O_WRONLY|os.O_CREATE, os.FileMode(int(0777)))
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
+		}
+		defer func() {
+			_ = destination.Close()
+		}()
+
+		if _, err := io.Copy(destination, source); err != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
+		}
+
+		user.Avatar = pathToNewFile
+		if errResp = uh.userUsecase.UpdateProfile(user); errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 

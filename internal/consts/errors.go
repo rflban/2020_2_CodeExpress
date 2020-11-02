@@ -31,6 +31,7 @@ const (
 	ErrNotAuthorized
 	ErrNoEmail
 	ErrNoUsername
+	ErrNoAvatar
 )
 
 var Errors = map[int]error{
@@ -42,6 +43,7 @@ var Errors = map[int]error{
 	ErrNotAuthorized:            errors.New("Not authorized"),
 	ErrNoEmail:                  errors.New("No email field"),
 	ErrNoUsername:               errors.New("No username field"),
+	ErrNoAvatar:                 errors.New("No avatar field"),
 }
 
 var StatusCodes = map[int]int{
@@ -53,4 +55,5 @@ var StatusCodes = map[int]int{
 	ErrNotAuthorized:            http.StatusNotFound,
 	ErrNoEmail:                  http.StatusBadRequest,
 	ErrNoUsername:               http.StatusBadRequest,
+	ErrNoAvatar:                 http.StatusBadRequest,
 }

@@ -77,17 +77,14 @@ func (uUc *UserUsecase) GetByName(name string) (*models.User, *ErrorResponse) {
 	return user, nil
 }
 
-func (uUc *UserUsecase) LoginUser(login string, password string) (*models.User, *ErrorResponse) { //TODO: переименовать в просто Login
-	user, err := uUc.userRep.SelectByLoginAndPassword(login, password)
-
-	if err == sql.ErrNoRows {
+func (uUc *UserUsecase) LoginUser(name string, password string) (*models.User, *ErrorResponse) { //TODO: переименовать в просто Login
+	user, err := uUc.userRep.SelectByNameWithPassword(name)
+	if err == sql.ErrNoRows || user.Password != password {
 		return nil, NewErrorResponse(ErrIncorrectLoginOrPassword, err)
 	}
-
 	if err != nil {
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
-
 	return user, nil
 }
 
@@ -105,12 +102,7 @@ func (uUc *UserUsecase) GetByID(id uint64) (*models.User, *ErrorResponse) {
 	return user, nil
 }
 
-func (uUc *UserUsecase) UpdateProfile(id uint64) *ErrorResponse {
-	user, errResp := uUc.GetByID(id)
-	if errResp != nil {
-		return errResp
-	}
-
+func (uUc *UserUsecase) UpdateProfile(user *models.User) *ErrorResponse {
 	existingUser, err := uUc.checkNameOrEmailExists(user.Name, user.Email, user.ID)
 	if err != nil {
 		return NewErrorResponse(ErrInternal, err)
@@ -130,16 +122,10 @@ func (uUc *UserUsecase) UpdateProfile(id uint64) *ErrorResponse {
 	return nil
 }
 
-func (uUc *UserUsecase) UpdatePassword(id uint64) *ErrorResponse {
-	user, errResp := uUc.GetByID(id)
-	if errResp != nil {
-		return errResp
-	}
-
-	if err := uUc.userRep.Update(user); err != nil {
+func (uUc *UserUsecase) UpdatePassword(user *models.User) *ErrorResponse {
+	if err := uUc.userRep.UpdatePassword(user); err != nil {
 		return NewErrorResponse(ErrInternal, err)
 	}
-
 	return nil
 }
 
@@ -151,7 +137,6 @@ func (uUc *UserUsecase) checkEmailExists(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
 	return true, nil
 }
 
