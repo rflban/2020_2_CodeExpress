@@ -2,6 +2,8 @@ package artist
 
 import "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 
+//go:generate mockgen -destination mock_artist/mock_artist.go github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist ArtistRep,ArtistUsecase
+
 type ArtistRep interface {
 	Insert(artist *models.Artist) error
 	UpdateName(artist *models.Artist) error

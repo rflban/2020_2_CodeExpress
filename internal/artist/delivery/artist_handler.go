@@ -27,15 +27,15 @@ func NewArtistHandler(artistUsecase artist.ArtistUsecase) *ArtistHandler {
 }
 
 func (ah *ArtistHandler) Configure(e *echo.Echo) {
-	e.GET("/api/v1/artists/:id", ah.handlerArtistByID())
-	e.GET("/api/v1/artists", ah.handlerArtistsByParams())
-	e.POST("api/v1/artists", ah.handlerCreateArtist())
-	e.PUT("/api/v1/artists/:id", ah.handlerUpdateArtist())
-	e.DELETE("/api/v1/artists/:id", ah.handlerDeleteArtist())
-	e.POST("/api/v1/artists/:id/photo", ah.handlerUploadArtistPhoto(), middleware.BodyLimit("10M"))
+	e.GET("/api/v1/artists/:id", ah.HandlerArtistByID())
+	e.GET("/api/v1/artists", ah.HandlerArtistsByParams())
+	e.POST("api/v1/artists", ah.HandlerCreateArtist())
+	e.PUT("/api/v1/artists/:id", ah.HandlerUpdateArtist())
+	e.DELETE("/api/v1/artists/:id", ah.HandlerDeleteArtist())
+	e.POST("/api/v1/artists/:id/photo", ah.HandlerUploadArtistPhoto(), middleware.BodyLimit("10M"))
 }
 
-func (ah *ArtistHandler) handlerArtistByID() echo.HandlerFunc {
+func (ah *ArtistHandler) HandlerArtistByID() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		id, err := strconv.Atoi(ctx.Param("id"))
 
@@ -53,7 +53,7 @@ func (ah *ArtistHandler) handlerArtistByID() echo.HandlerFunc {
 	}
 }
 
-func (ah *ArtistHandler) handlerArtistsByParams() echo.HandlerFunc {
+func (ah *ArtistHandler) HandlerArtistsByParams() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		params := ctx.QueryParams()
 		count, err := strconv.Atoi(params.Get("count"))
@@ -76,7 +76,7 @@ func (ah *ArtistHandler) handlerArtistsByParams() echo.HandlerFunc {
 	}
 }
 
-func (ah *ArtistHandler) handlerCreateArtist() echo.HandlerFunc {
+func (ah *ArtistHandler) HandlerCreateArtist() echo.HandlerFunc {
 	type Request struct {
 		Name string `json:"name" validate:"required"`
 	}
@@ -104,7 +104,7 @@ func (ah *ArtistHandler) handlerCreateArtist() echo.HandlerFunc {
 	}
 }
 
-func (ah *ArtistHandler) handlerUpdateArtist() echo.HandlerFunc {
+func (ah *ArtistHandler) HandlerUpdateArtist() echo.HandlerFunc {
 	type Request struct {
 		Name string `json:"name" validate:"required"`
 	}
@@ -139,7 +139,7 @@ func (ah *ArtistHandler) handlerUpdateArtist() echo.HandlerFunc {
 	}
 }
 
-func (ah *ArtistHandler) handlerDeleteArtist() echo.HandlerFunc {
+func (ah *ArtistHandler) HandlerDeleteArtist() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		id, err := strconv.Atoi(ctx.Param("id"))
 
@@ -153,11 +153,11 @@ func (ah *ArtistHandler) handlerDeleteArtist() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, OKRespose)
+		return ctx.JSON(http.StatusOK, OKResponse)
 	}
 }
 
-func (ah *ArtistHandler) handlerUploadArtistPhoto() echo.HandlerFunc {
+func (ah *ArtistHandler) HandlerUploadArtistPhoto() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		id, err := strconv.Atoi(ctx.Param("id"))
 
