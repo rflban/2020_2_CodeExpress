@@ -32,6 +32,8 @@ const (
 	ErrNoEmail
 	ErrNoUsername
 	ErrNoAvatar
+	ErrWrongOldPassword
+	ErrNewPasswordIsOld
 )
 
 var Errors = map[int]error{
@@ -44,6 +46,8 @@ var Errors = map[int]error{
 	ErrNoEmail:                  errors.New("No email field"),
 	ErrNoUsername:               errors.New("No username field"),
 	ErrNoAvatar:                 errors.New("No avatar field"),
+	ErrWrongOldPassword:         errors.New("Wrong old password"),
+	ErrNewPasswordIsOld:         errors.New("New password matches old"),
 }
 
 var StatusCodes = map[int]int{
@@ -56,4 +60,6 @@ var StatusCodes = map[int]int{
 	ErrNoEmail:                  http.StatusBadRequest,
 	ErrNoUsername:               http.StatusBadRequest,
 	ErrNoAvatar:                 http.StatusBadRequest,
+	ErrWrongOldPassword:         http.StatusBadRequest,
+	ErrNewPasswordIsOld:         http.StatusBadRequest,
 }

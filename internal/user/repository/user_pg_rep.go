@@ -31,7 +31,7 @@ func (ur *UserRep) Insert(user *models.User) error {
 	return nil
 }
 
-func (ur *UserRep) Update(user *models.User) error {
+func (ur *UserRep) Update(user *models.User) error { //TODO: возможно, нужно добавить RETURNING и возвращать обновлённого user помимо error
 	if _, err := ur.dbConn.Exec(
 		"UPDATE users SET name = $1, email = $2, avatar = $3 WHERE id = $4;",
 		user.Name,
@@ -87,11 +87,45 @@ func (ur *UserRep) SelectByName(name string) (*models.User, error) {
 	return user, nil
 }
 
-func (ur *UserRep) SelectByNameWithPassword(name string) (*models.User, error) {
+func (ur *UserRep) SelectByNameOrEmail(name string, email string, id uint64) (*models.User, error) {
 	user := &models.User{}
 	if err := ur.dbConn.QueryRow(
-		"SELECT id, name, email, password, avatar FROM users WHERE name = $1;",
+		"SELECT id, name, email, avatar FROM users WHERE (name = $1 OR email = $2) AND id != $3;",
 		name,
+		email,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Avatar,
+	); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (ur *UserRep) SelectById(userId uint64) (*models.User, error) {
+	user := &models.User{}
+	if err := ur.dbConn.QueryRow(
+		"SELECT id, name, email, avatar FROM users WHERE id = $1;", //TODO: точно ли есть смысл извлекать id, если он известен? везде так
+		userId,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Avatar,
+	); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (ur *UserRep) SelectWithPasswordById(id uint64) (*models.User, error) {
+	user := &models.User{}
+	if err := ur.dbConn.QueryRow(
+		"SELECT id, name, email, password, avatar FROM users WHERE id = $1;",
+		id,
 	).Scan(
 		&user.ID,
 		&user.Name,
@@ -104,25 +138,18 @@ func (ur *UserRep) SelectByNameWithPassword(name string) (*models.User, error) {
 	return user, nil
 }
 
-func (ur *UserRep) SelectByNameOrEmail(name string, email string, id uint64) (*models.User, error) {
+func (ur *UserRep) SelectWithPasswordByLogin(login string) (*models.User, error) {
 	user := &models.User{}
 	if err := ur.dbConn.QueryRow(
-		"SELECT id, name, email, avatar FROM users WHERE (name = $1 OR email = $2) AND id != $3;",
-		name,
-		email,
-		id,
-	).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar); err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
-func (ur *UserRep) SelectByID(userID uint64) (*models.User, error) {
-	user := &models.User{}
-	if err := ur.dbConn.QueryRow(
-		"SELECT id, name, email, avatar FROM users WHERE id = $1;",
-		userID,
-	).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar); err != nil {
+		"SELECT id, name, email, password, avatar FROM users WHERE name = $1 OR email = $1;",
+		login,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar,
+	); err != nil {
 		return nil, err
 	}
 	return user, nil
