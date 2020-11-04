@@ -29,6 +29,7 @@ const (
 	ErrNameAlreadyExist
 	ErrIncorrectLoginOrPassword
 	ErrNotAuthorized
+	ErrArtistNotExist
 )
 
 var Errors = map[int]error{
@@ -38,6 +39,7 @@ var Errors = map[int]error{
 	ErrNameAlreadyExist:         errors.New("Name already exists"),
 	ErrIncorrectLoginOrPassword: errors.New("Incorrect login or password"),
 	ErrNotAuthorized:            errors.New("Not authorized"),
+	ErrArtistNotExist:           errors.New("Artist not found"),
 }
 
 var StatusCodes = map[int]int{
@@ -47,4 +49,5 @@ var StatusCodes = map[int]int{
 	ErrNameAlreadyExist:         http.StatusForbidden,
 	ErrIncorrectLoginOrPassword: http.StatusNotFound,
 	ErrNotAuthorized:            http.StatusNotFound,
+	ErrArtistNotExist:           http.StatusNotFound,
 }
