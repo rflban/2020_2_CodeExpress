@@ -6,23 +6,6 @@ import (
 )
 
 const (
-	InternalError      = "internal server error"
-	FormError          = "incorrect form"
-	PasswordTooShort   = "password too short, at least 8 letters"
-	NoError            = "ok"
-	NoEmail            = "no email field"
-	NoUsername         = "no username field"
-	NoPassword         = "no password field"
-	NoRepeatedPassword = "no repeated password field"
-	PasswordsMismatch  = "passwords do not match"
-	PasswordIsOld      = "password was not changed"
-	NotAuthorized      = "not authorized"
-	NoAvatar           = "avatar is expected"
-	FileError          = "error reading file"
-	FileSizeToLarge    = "file size is to large"
-)
-
-const (
 	ErrInternal = iota
 	ErrBadRequest
 	ErrEmailAlreadyExist
@@ -35,6 +18,9 @@ const (
 	ErrWrongOldPassword
 	ErrNewPasswordIsOld
 	ErrArtistNotExist
+	ErrTrackNotExist
+	ErrAlbumNotExist
+	ErrTitleAlreadyExist
 )
 
 var Errors = map[int]error{
@@ -50,6 +36,9 @@ var Errors = map[int]error{
 	ErrWrongOldPassword:         errors.New("Wrong old password"),
 	ErrNewPasswordIsOld:         errors.New("New password matches old"),
 	ErrArtistNotExist:           errors.New("Artist not found"),
+	ErrTrackNotExist:            errors.New("Track not found"),
+	ErrAlbumNotExist:            errors.New("Album not found"),
+	ErrTitleAlreadyExist:        errors.New("Title already exists"),
 }
 
 var StatusCodes = map[int]int{
@@ -65,4 +54,7 @@ var StatusCodes = map[int]int{
 	ErrWrongOldPassword:         http.StatusBadRequest,
 	ErrNewPasswordIsOld:         http.StatusBadRequest,
 	ErrArtistNotExist:           http.StatusNotFound,
+	ErrTrackNotExist:            http.StatusNotFound,
+	ErrAlbumNotExist:            http.StatusNotFound,
+	ErrTitleAlreadyExist:        http.StatusForbidden,
 }

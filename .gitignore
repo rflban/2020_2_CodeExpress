@@ -1,7 +1,9 @@
 avatars/
 artist_posters/
-album_posters/
 track_audio/
+album_posters/
+internal/models/Album.go
+internal/album/
 
 # Created by https://www.toptal.com/developers/gitignore/api/jetbrains+all,linux,macos,executable
 # Edit at https://www.toptal.com/developers/gitignore?templates=jetbrains+all,linux,macos,executable
