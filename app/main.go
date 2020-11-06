@@ -24,6 +24,10 @@ import (
 	trackRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/repository"
 	trackUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/usecase"
 
+	albumDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/delivery"
+	albumRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/repository"
+	albumUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/usecase"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/config"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/labstack/echo/v4"
@@ -71,26 +75,31 @@ func main() {
 	e.Static("/avatars", "avatars")
 	e.Static("/artist_posters", "artist_posters")
 	e.Static("/track_audio", "track_audio")
+	e.Static("/album_posters", "album_posters")
 
 	userRep := userRepository.NewUserRep(dbConn)
 	sessionRep := sessionRepository.NewSessionRep(dbConn)
 	artistRep := artistRepository.NewArtistRep(dbConn)
 	trackRep := trackRepository.NewTrackRep(dbConn)
+	albumRep := albumRepository.NewAlbumRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
 	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
 	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
+	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase)
+	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
 
 	userHandler.Configure(e)
 	sessionHandler.Configure(e)
 	artistHandler.Configure(e)
 	trackHandler.Configure(e)
+	albumHandler.Configure(e)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

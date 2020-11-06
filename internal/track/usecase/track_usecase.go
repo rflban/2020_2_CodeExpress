@@ -135,3 +135,17 @@ func (aUc *TrackUsecase) UpdateTrackAudio(track *models.Track) *ErrorResponse {
 
 	return nil
 }
+
+func (aUc *TrackUsecase) GetByAlbumID(albumID uint64) ([]*models.Track, *ErrorResponse) {
+	tracks, err := aUc.trackRep.SelectByAlbumID(albumID)
+
+	if err == sql.ErrNoRows {
+		return nil, NewErrorResponse(ErrArtistNotExist, err)
+	}
+
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	return tracks, nil
+}
