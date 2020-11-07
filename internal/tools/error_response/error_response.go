@@ -4,7 +4,7 @@ import (
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 )
 
-var OKRespose = ErrorJson{
+var OKResponse = ErrorJson{
 	Message: "OK",
 }
 

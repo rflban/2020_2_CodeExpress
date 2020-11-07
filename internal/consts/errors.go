@@ -34,6 +34,7 @@ const (
 	ErrNoAvatar
 	ErrWrongOldPassword
 	ErrNewPasswordIsOld
+	ErrArtistNotExist
 )
 
 var Errors = map[int]error{
@@ -48,6 +49,7 @@ var Errors = map[int]error{
 	ErrNoAvatar:                 errors.New("No avatar field"),
 	ErrWrongOldPassword:         errors.New("Wrong old password"),
 	ErrNewPasswordIsOld:         errors.New("New password matches old"),
+	ErrArtistNotExist:           errors.New("Artist not found"),
 }
 
 var StatusCodes = map[int]int{
@@ -62,4 +64,5 @@ var StatusCodes = map[int]int{
 	ErrNoAvatar:                 http.StatusBadRequest,
 	ErrWrongOldPassword:         http.StatusBadRequest,
 	ErrNewPasswordIsOld:         http.StatusBadRequest,
+	ErrArtistNotExist:           http.StatusNotFound,
 }

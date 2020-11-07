@@ -16,6 +16,10 @@ import (
 	sessionRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/repository"
 	sessionUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/usecase"
 
+	artistDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/delivery"
+	artistRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/repository"
+	artistUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/usecase"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/config"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/labstack/echo/v4"
@@ -61,18 +65,23 @@ func main() {
 
 	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS()) //TODO: Сделать нормальный CORS
 	e.Static("/avatars", "avatars")
+	e.Static("/artist_posters", "artist_posters")
 
 	userRep := userRepository.NewUserRep(dbConn)
 	sessionRep := sessionRepository.NewSessionRep(dbConn)
+	artistRep := artistRepository.NewArtistRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
+	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
+	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
 
 	userHandler.Configure(e)
 	sessionHandler.Configure(e)
+	artistHandler.Configure(e)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }
