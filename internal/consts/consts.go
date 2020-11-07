@@ -17,6 +17,7 @@ var ConstAllowedMethods = []string{
 	http.MethodGet,
 	http.MethodOptions,
 	http.MethodPost,
+	http.MethodPut,
 }
 
 var ConstAllowedHeaders = []string{
