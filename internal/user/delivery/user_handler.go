@@ -3,11 +3,12 @@ package delivery
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/builder"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/builder"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
@@ -32,12 +33,11 @@ func NewUserHandler(userUsecase user.UserUsecase, sessionUsecase session.Session
 }
 
 func (uh *UserHandler) Configure(e *echo.Echo) {
-	e.POST("/api/v1/user/register", uh.handlerRegisterUser())
-	e.GET("/api/v1/user/current", uh.handlerCurrentUserInfo())
-	e.POST("/api/v1/user/change/profile", uh.handlerUpdateProfile()) //TODO: change заменить на update
-	e.POST("/api/v1/user/change/password", uh.handlerUpdatePassword())
-	e.POST("/api/v1/user/change/avatar", uh.handlerUpdateAvatar())
-	e.Static("/avatars", "avatars")
+	e.POST("/api/v1/user", uh.handlerRegisterUser())
+	e.GET("/api/v1/user", uh.handlerCurrentUserInfo())
+	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile()) //TODO: change заменить на update
+	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword())
+	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar())
 }
 
 func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
@@ -161,12 +161,12 @@ func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		user, errResp := uh.userUsecase.UpdatePassword(session.UserID, req.OldPassword, req.Password)
+		errResp = uh.userUsecase.UpdatePassword(session.UserID, req.OldPassword, req.Password)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, user)
+		return ctx.JSON(http.StatusOK, OKResponse)
 	}
 }
 

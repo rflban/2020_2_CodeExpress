@@ -28,8 +28,8 @@ func NewSessionHandler(sessionUsecase session.SessionUsecase, userUsecase user.U
 }
 
 func (sh *SessionHandler) Configure(e *echo.Echo) {
-	e.POST("/api/v1/user/login", sh.handlerLogin())
-	e.DELETE("/api/v1/user/logout", sh.handlerLogout())
+	e.POST("/api/v1/session", sh.handlerLogin())
+	e.DELETE("/api/v1/session", sh.handlerLogout())
 }
 
 func (sh *SessionHandler) handlerLogin() echo.HandlerFunc {
@@ -49,7 +49,7 @@ func (sh *SessionHandler) handlerLogin() echo.HandlerFunc {
 			return ctx.JSON(err.StatusCode, err.UserError)
 		}
 
-		user, err := sh.userUsecase.Login(req.Login, req.Password)
+		user, err := sh.userUsecase.GetUserByLogin(req.Login, req.Password)
 
 		if err != nil {
 			return RespondWithError(err, ctx)
@@ -92,6 +92,6 @@ func (sh *SessionHandler) handlerLogout() echo.HandlerFunc {
 		cookie = builder.BuildCookie(session)
 		ctx.SetCookie(cookie)
 
-		return ctx.JSON(http.StatusOK, OKRespose)
+		return ctx.JSON(http.StatusOK, OKResponse)
 	}
 }

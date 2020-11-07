@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"database/sql"
+
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
@@ -37,7 +38,7 @@ func (uUc *UserUsecase) Create(name string, email string, password string) (*mod
 	return user, nil
 }
 
-func (uUc *UserUsecase) Login(login string, password string) (*models.User, *ErrorResponse) {
+func (uUc *UserUsecase) GetUserByLogin(login string, password string) (*models.User, *ErrorResponse) {
 	user, err := uUc.userRep.SelectByLogin(login)
 	if err == sql.ErrNoRows {
 		return nil, NewErrorResponse(ErrIncorrectLoginOrPassword, nil)
@@ -90,24 +91,24 @@ func (uUc *UserUsecase) UpdateProfile(id uint64, name string, email string) (*mo
 	return user, nil
 }
 
-func (uUc *UserUsecase) UpdatePassword(id uint64, oldPassword string, newPassword string) (*models.User, *ErrorResponse) {
+func (uUc *UserUsecase) UpdatePassword(id uint64, oldPassword string, newPassword string) *ErrorResponse {
 	user, err := uUc.userRep.SelectById(id)
 	if err != nil {
-		return nil, NewErrorResponse(ErrInternal, err)
+		return NewErrorResponse(ErrInternal, err)
 	}
 
 	if user.Password != oldPassword {
-		return nil, NewErrorResponse(ErrWrongOldPassword, nil)
+		return NewErrorResponse(ErrWrongOldPassword, nil)
 	}
 	if oldPassword == newPassword {
-		return nil, NewErrorResponse(ErrNewPasswordIsOld, nil)
+		return NewErrorResponse(ErrNewPasswordIsOld, nil)
 	}
 
 	user.Password = newPassword
 	if err := uUc.userRep.Update(user); err != nil {
-		return nil, NewErrorResponse(ErrInternal, err)
+		return NewErrorResponse(ErrInternal, err)
 	}
-	return user, nil
+	return nil
 }
 
 func (uUc *UserUsecase) UpdateAvatar(id uint64, avatar string) (*models.User, *ErrorResponse) {
