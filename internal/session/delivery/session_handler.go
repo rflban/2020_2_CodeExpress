@@ -49,7 +49,7 @@ func (sh *SessionHandler) handlerLogin() echo.HandlerFunc {
 			return ctx.JSON(err.StatusCode, err.UserError)
 		}
 
-		user, err := sh.userUsecase.LoginUser(req.Login, req.Password)
+		user, err := sh.userUsecase.Login(req.Login, req.Password)
 
 		if err != nil {
 			return RespondWithError(err, ctx)

@@ -29,6 +29,11 @@ const (
 	ErrNameAlreadyExist
 	ErrIncorrectLoginOrPassword
 	ErrNotAuthorized
+	ErrNoEmail
+	ErrNoUsername
+	ErrNoAvatar
+	ErrWrongOldPassword
+	ErrNewPasswordIsOld
 	ErrArtistNotExist
 )
 
@@ -39,6 +44,11 @@ var Errors = map[int]error{
 	ErrNameAlreadyExist:         errors.New("Name already exists"),
 	ErrIncorrectLoginOrPassword: errors.New("Incorrect login or password"),
 	ErrNotAuthorized:            errors.New("Not authorized"),
+	ErrNoEmail:                  errors.New("No email field"),
+	ErrNoUsername:               errors.New("No username field"),
+	ErrNoAvatar:                 errors.New("No avatar field"),
+	ErrWrongOldPassword:         errors.New("Wrong old password"),
+	ErrNewPasswordIsOld:         errors.New("New password matches old"),
 	ErrArtistNotExist:           errors.New("Artist not found"),
 }
 
@@ -49,5 +59,10 @@ var StatusCodes = map[int]int{
 	ErrNameAlreadyExist:         http.StatusForbidden,
 	ErrIncorrectLoginOrPassword: http.StatusNotFound,
 	ErrNotAuthorized:            http.StatusNotFound,
+	ErrNoEmail:                  http.StatusBadRequest,
+	ErrNoUsername:               http.StatusBadRequest,
+	ErrNoAvatar:                 http.StatusBadRequest,
+	ErrWrongOldPassword:         http.StatusBadRequest,
+	ErrNewPasswordIsOld:         http.StatusBadRequest,
 	ErrArtistNotExist:           http.StatusNotFound,
 }

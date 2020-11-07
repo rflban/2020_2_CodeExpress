@@ -6,9 +6,10 @@ import (
 )
 
 type UserUsecase interface {
-	CreateUser(user *models.User) *ErrorResponse
-	GetByEmail(email string) (*models.User, *ErrorResponse)
-	GetByName(name string) (*models.User, *ErrorResponse)
-	GetByID(id uint64) (*models.User, *ErrorResponse)
-	LoginUser(login string, password string) (*models.User, *ErrorResponse)
+	Create(string, string, string) (*models.User, *ErrorResponse)
+	Login(string, string) (*models.User, *ErrorResponse)
+	GetById(uint64) (*models.User, *ErrorResponse)
+	UpdateProfile(uint64, string, string) (*models.User, *ErrorResponse)
+	UpdatePassword(uint64, string, string) (*models.User, *ErrorResponse)
+	UpdateAvatar(uint64, string) (*models.User, *ErrorResponse)
 }

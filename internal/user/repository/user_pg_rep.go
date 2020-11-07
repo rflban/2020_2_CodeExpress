@@ -17,74 +17,104 @@ func NewUserRep(conn *sql.DB) user.UserRep {
 	}
 }
 
-func (ur *UserRep) Insert(u *models.User) error {
-	query := "insert into users values(default, $1, $2, $3) returning id"
-
-	err := ur.dbConn.QueryRow(query, u.Name, u.Email, u.Password).Scan(&u.ID)
-
-	if err != nil {
-		return err
+func (ur *UserRep) Insert(name string, email string, password string) (*models.User, error) {
+	user := &models.User{}
+	if err := ur.dbConn.QueryRow(
+		"INSERT INTO users (id, name, email, password) VALUES (default, $1, $2, $3) RETURNING id, name, email, password, avatar;",
+		name,
+		email,
+		password,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar,
+	); err != nil {
+		return nil, err
 	}
-
-	return nil
+	return user, nil
 }
 
 func (ur *UserRep) Update(user *models.User) error {
+	if err := ur.dbConn.QueryRow(
+		"UPDATE users SET name = $1, email = $2, password = $3, avatar = $4 WHERE id = $5 RETURNING id, name, email, password, avatar;",
+		user.Name,
+		user.Email,
+		user.Password,
+		user.Avatar,
+		user.ID,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar,
+	); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (ur *UserRep) SelectByEmail(email string) (*models.User, error) {
-	query := "select id, name, email, avatar from users where email = $1"
+func (ur *UserRep) SelectById(id uint64) (*models.User, error) {
 	user := &models.User{}
-
-	err := ur.dbConn.QueryRow(query, email).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
-
-	if err != nil {
+	if err := ur.dbConn.QueryRow(
+		"SELECT id, name, email, password, avatar FROM users WHERE id = $1;", //TODO: точно ли есть смысл извлекать id, если он известен? везде так
+		id,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar,
+	); err != nil {
 		return nil, err
 	}
-
 	return user, nil
 }
 
-func (ur *UserRep) SelectByName(name string) (*models.User, error) {
-	query := "select id, name, email, avatar from users where name = $1"
+func (ur *UserRep) SelectByLogin(login string) (*models.User, error) {
 	user := &models.User{}
-
-	err := ur.dbConn.QueryRow(query, name).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
-
-	if err != nil {
+	if err := ur.dbConn.QueryRow(
+		"SELECT id, name, email, password, avatar FROM users WHERE name = $1 OR email = $1;",
+		login,
+	).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Avatar,
+	); err != nil {
 		return nil, err
 	}
-
 	return user, nil
 }
 
-func (ur *UserRep) SelectByID(userID uint64) (*models.User, error) {
-	query := "select id, name, email, avatar from users where id = $1"
-	user := &models.User{}
-
-	err := ur.dbConn.QueryRow(query, userID).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
-
+func (ur *UserRep) SelectByNameOrEmail(name string, email string) ([]*models.User, error) {
+	rows, err := ur.dbConn.Query(
+		"SELECT id, name, email, password, avatar FROM users WHERE name = $1 OR email = $2;",
+		name,
+		email,
+	)
+	defer func() {
+		_ = rows.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
-
-	return user, nil
-}
-
-func (ur *UserRep) SelectByLoginAndPassword(login string, password string) (*models.User, error) {
-	query := "select id, name, email, avatar from users where (name = $1 or email = $1) and password = $2"
-	user := &models.User{}
-
-	err := ur.dbConn.QueryRow(query, login, password).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Avatar)
-
-	if err != nil {
-		return nil, err
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		if err := rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Password,
+			&user.Avatar,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
 	}
-
-	return user, nil
+	return users, nil
 }
