@@ -34,7 +34,7 @@ func NewUserHandler(userUsecase user.UserUsecase, sessionUsecase session.Session
 func (uh *UserHandler) Configure(e *echo.Echo) {
 	e.POST("/api/v1/user/register", uh.handlerRegisterUser())
 	e.GET("/api/v1/user/current", uh.handlerCurrentUserInfo())
-	e.POST("/api/v1/user/change/profile", uh.handlerUpdateProfile())
+	e.POST("/api/v1/user/change/profile", uh.handlerUpdateProfile()) //TODO: change заменить на update
 	e.POST("/api/v1/user/change/password", uh.handlerUpdatePassword())
 	e.POST("/api/v1/user/change/avatar", uh.handlerUpdateAvatar())
 	e.Static("/avatars", "avatars")
@@ -51,20 +51,15 @@ func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		req := &Request{}
 		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
-			if err.Error != nil { //TODO: Обрабатывать ошибки валидатора
+			if err.Error != nil {
 				logrus.Info(err.Error)
 				validator.GetValidationError(err)
 			}
 			return ctx.JSON(err.StatusCode, err.UserError)
 		}
 
-		user := &models.User{
-			Name:     req.Name,
-			Email:    req.Email,
-			Password: req.Password,
-		}
-
-		if err := uh.userUsecase.CreateUser(user); err != nil {
+		user, err := uh.userUsecase.Create(req.Name, req.Email, req.Password)
+		if err != nil {
 			return RespondWithError(err, ctx)
 		}
 
@@ -111,7 +106,7 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		req := &Request{}
 		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
-			if err.Error != nil { //TODO: Обрабатывать ошибки валидатора
+			if err.Error != nil {
 				logrus.Info(err.Error)
 				validator.GetValidationError(err)
 			}
@@ -129,14 +124,8 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		user, errResp := uh.userUsecase.GetById(session.UserID)
+		user, errResp := uh.userUsecase.UpdateProfile(session.UserID, req.Name, req.Email)
 		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		user.Name = req.Name
-		user.Email = req.Email
-		if errResp = uh.userUsecase.UpdateProfile(user); errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 
@@ -154,7 +143,7 @@ func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		req := &Request{}
 		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
-			if err.Error != nil { //TODO: Обрабатывать ошибки валидатора
+			if err.Error != nil {
 				logrus.Info(err.Error)
 				validator.GetValidationError(err)
 			}
@@ -236,8 +225,8 @@ func (uh *UserHandler) handlerUpdateAvatar() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
 		}
 
-		user.Avatar = pathToNewFile
-		if errResp = uh.userUsecase.UpdateProfile(user); errResp != nil {
+		user, errResp = uh.userUsecase.UpdateAvatar(session.UserID, pathToNewFile)
+		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 
