@@ -20,6 +20,10 @@ import (
 	artistRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/repository"
 	artistUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/usecase"
 
+	trackDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/delivery"
+	trackRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/repository"
+	trackUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/usecase"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/config"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/labstack/echo/v4"
@@ -66,22 +70,27 @@ func main() {
 	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS()) //TODO: Сделать нормальный CORS
 	e.Static("/avatars", "avatars")
 	e.Static("/artist_posters", "artist_posters")
+	e.Static("/track_audio", "track_audio")
 
 	userRep := userRepository.NewUserRep(dbConn)
 	sessionRep := sessionRepository.NewSessionRep(dbConn)
 	artistRep := artistRepository.NewArtistRep(dbConn)
+	trackRep := trackRepository.NewTrackRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
 	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
+	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
+	trackHandler := trackDelivery.NewTrackHandler(trackUsecase)
 
 	userHandler.Configure(e)
 	sessionHandler.Configure(e)
 	artistHandler.Configure(e)
+	trackHandler.Configure(e)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

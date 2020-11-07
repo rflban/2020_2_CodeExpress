@@ -3,7 +3,7 @@
 DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_track, session CASCADE;
 
 CREATE TABLE artists (
-    id serial PRIMARY KEY,
+    id serial NOT NULL PRIMARY KEY,
     name varchar(100) NOT NULL UNIQUE,
     poster varchar(100) DEFAULT ''
 );
@@ -17,17 +17,20 @@ CREATE TABLE users (
 );
 
 CREATE TABLE albums (
-    id serial PRIMARY KEY,
+    id serial NOT NULL PRIMARY KEY,
     artist_id int NOT NULL,
-    name varchar(100) NOT NULL,
+    title varchar(100) NOT NULL,
     poster varchar(100) DEFAULT '',
     FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE
 );
 
 CREATE TABLE tracks (
-    id serial PRIMARY KEY,
-    album_id serial NOT NULL,
-    name varchar(100) NOT NULL,
+    id serial NOT NULL PRIMARY KEY,
+    album_id int NOT NULL,
+    title varchar(100) NOT NULL,
+    duration int NOT NULL default 0,
+    index int NOT NULL default 0,
+    audio varchar(100) not NULL default '',
     FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
@@ -58,3 +61,13 @@ CREATE TABLE session (
     expire date NOT NULL,
     FOREIGN KEY(userID) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE FUNCTION  count_index() RETURNS trigger AS $emp_stamp$
+    BEGIN
+        new.index := count(*) + 1 from tracks where tracks.album_id = new.album_id;
+        Return new;
+    END;
+$emp_stamp$ LANGUAGE plpgsql;
+
+CREATE TRIGGER emp_stamp BEFORE INSERT ON tracks
+    FOR EACH ROW EXECUTE PROCEDURE count_index();
