@@ -232,3 +232,72 @@ func (ar *TrackRep) SelectByParam(count uint64, from uint64) ([]*models.Track, e
 
 	return tracks, nil
 }
+
+func (ar *TrackRep) SelectFavoritesByUserID(userID uint64) ([]*models.Track, error) {
+	query := `
+	select 
+	t.id, 
+	t.album_id, 
+	t.title, 
+	t.duration,
+	t.index, 
+	t.audio, 
+	a.poster, 
+	ar.name, 
+	a.artist_id 
+	from user_track as u join tracks as t on u.track_id = t.id join albums a on t.album_id = a.id join artists ar on a.artist_id = ar.id where u.user_id = $1`
+
+	tracks := []*models.Track{}
+
+	rows, err := ar.dbConn.Query(query, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		track := &models.Track{}
+		err := rows.
+			Scan(&track.ID,
+				&track.AlbumID,
+				&track.Title,
+				&track.Duration,
+				&track.Index,
+				&track.Audio,
+				&track.AlbumPoster,
+				&track.Artist,
+				&track.ArtistID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		tracks = append(tracks, track)
+	}
+
+	return tracks, nil
+}
+
+func (ar *TrackRep) InsertTrackToUser(userID, trackID uint64) error {
+	query := "insert into user_track(user_id, track_id) values($1, $2) returning track_id"
+
+	err := ar.dbConn.QueryRow(query, userID, trackID).Scan(&trackID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ar *TrackRep) DeleteTrackFromUsersTracks(userID, trackID uint64) error {
+	query := "delete from user_track where user_id = $1 and track_id = $2 returning track_id"
+
+	err := ar.dbConn.QueryRow(query, userID, trackID).Scan(&trackID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

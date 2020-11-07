@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"database/sql"
-
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
@@ -148,4 +147,46 @@ func (aUc *TrackUsecase) GetByAlbumID(albumID uint64) ([]*models.Track, *ErrorRe
 	}
 
 	return tracks, nil
+}
+
+func (aUc *TrackUsecase) GetFavoritesByUserID(userID uint64) ([]*models.Track, *ErrorResponse) {
+	tracks, err := aUc.trackRep.SelectFavoritesByUserID(userID)
+
+	if err == sql.ErrNoRows {
+		return nil, NewErrorResponse(ErrNoFavoritesTracks, err)
+	}
+
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	return tracks, nil
+}
+
+func (aUc *TrackUsecase) AddToFavourites(userID uint64, trackID uint64) *ErrorResponse {
+	_, err := aUc.trackRep.SelectByID(trackID)
+
+	if err == sql.ErrNoRows {
+		return NewErrorResponse(ErrTrackNotExist, err)
+	}
+
+	if err := aUc.trackRep.InsertTrackToUser(userID, trackID); err != nil {
+		return NewErrorResponse(ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (aUc *TrackUsecase) DeleteFromFavourites(userID uint64, trackID uint64) *ErrorResponse {
+	_, err := aUc.trackRep.SelectByID(trackID)
+
+	if err == sql.ErrNoRows {
+		return NewErrorResponse(ErrTrackNotExist, err)
+	}
+
+	if err := aUc.trackRep.DeleteTrackFromUsersTracks(userID, trackID); err != nil {
+		return NewErrorResponse(ErrInternal, err)
+	}
+
+	return nil
 }

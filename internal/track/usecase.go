@@ -12,6 +12,9 @@ type TrackUsecase interface {
 	GetByAlbumID(albumID uint64) ([]*models.Track, *ErrorResponse)
 	GetByID(id uint64) (*models.Track, *ErrorResponse)
 	GetByParams(count uint64, from uint64) ([]*models.Track, *ErrorResponse)
+	GetFavoritesByUserID(userID uint64) ([]*models.Track, *ErrorResponse)
 	UpdateTrack(track *models.Track) *ErrorResponse
 	UpdateTrackAudio(track *models.Track) *ErrorResponse
+	AddToFavourites(userID, trackID uint64) *ErrorResponse
+	DeleteFromFavourites(userID, trackID uint64) *ErrorResponse
 }
