@@ -157,7 +157,7 @@ func (ar *TrackRep) SelectByAlbumID(albumID uint64) ([]*models.Track, error) {
 	a.poster,
 	ar.name,
 	a.artist_id
-	from tracks as t join albums a on t.album_id = a.id join artists ar on a.artist_id = ar.id where a.album_id = $1`
+	from tracks as t join albums a on t.album_id = a.id join artists ar on a.artist_id = ar.id where a.id = $1`
 
 	tracks := []*models.Track{}
 
