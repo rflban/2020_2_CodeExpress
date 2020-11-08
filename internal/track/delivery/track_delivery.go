@@ -1,6 +1,8 @@
 package delivery
 
 import (
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
 
@@ -18,22 +20,130 @@ import (
 )
 
 type TrackHandler struct {
-	trackUsecase track.TrackUsecase
+	trackUsecase   track.TrackUsecase
+	sessionUsecase session.SessionUsecase
+	userUsecase    user.UserUsecase
 }
 
-func NewTrackHandler(trackUsecase track.TrackUsecase) *TrackHandler {
+func NewTrackHandler(trackUsecase track.TrackUsecase, sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *TrackHandler {
 	return &TrackHandler{
-		trackUsecase: trackUsecase,
+		trackUsecase:   trackUsecase,
+		sessionUsecase: sessionUsecase,
+		userUsecase:    userUsecase,
 	}
 }
 
 func (ah *TrackHandler) Configure(e *echo.Echo) {
 	e.GET("/api/v1/tracks", ah.HandlerTracksByParams())
-	e.POST("api/v1/tracks", ah.HandlerCreateTrack())
+	e.POST("/api/v1/tracks", ah.HandlerCreateTrack())
 	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack())
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack())
 	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"))
-	e.GET("api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
+	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
+	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser())
+	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites())
+	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites())
+}
+
+func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie(ConstSessionName)
+
+		if err != nil {
+			errResp := NewErrorResponse(ErrNotAuthorized, err)
+			return RespondWithError(errResp, ctx)
+		}
+
+		userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		_, errNoUser := ah.userUsecase.GetById(userSession.UserID)
+
+		if errNoUser != nil {
+			return RespondWithError(errNoUser, ctx)
+		}
+
+		id, err := strconv.Atoi(ctx.Param("id"))
+
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		if err := ah.trackUsecase.DeleteFromFavourites(userSession.UserID, uint64(id)); err != nil {
+			return RespondWithError(err, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, OKResponse)
+	}
+}
+
+func (ah *TrackHandler) HandlerAddToUsersFavourites() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie(ConstSessionName)
+
+		if err != nil {
+			errResp := NewErrorResponse(ErrNotAuthorized, err)
+			return RespondWithError(errResp, ctx)
+		}
+
+		userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		_, errNoUser := ah.userUsecase.GetById(userSession.UserID)
+
+		if errNoUser != nil {
+			return RespondWithError(errNoUser, ctx)
+		}
+
+		id, err := strconv.Atoi(ctx.Param("id"))
+
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		if err := ah.trackUsecase.AddToFavourites(userSession.UserID, uint64(id)); err != nil {
+			return RespondWithError(err, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, OKResponse)
+	}
+}
+
+func (ah *TrackHandler) HandlerFavouritesByUser() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie(ConstSessionName)
+
+		if err != nil {
+			errResp := NewErrorResponse(ErrNotAuthorized, err)
+			return RespondWithError(errResp, ctx)
+		}
+
+		userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		_, errNoUser := ah.userUsecase.GetById(userSession.UserID)
+
+		if errNoUser != nil {
+			return RespondWithError(errNoUser, ctx)
+		}
+
+		tracks, errResp := ah.trackUsecase.GetFavoritesByUserID(userSession.UserID)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, tracks)
+	}
 }
 
 func (ah *TrackHandler) HandlerTracksByArtistID() echo.HandlerFunc {
