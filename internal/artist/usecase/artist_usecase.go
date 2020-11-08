@@ -78,17 +78,8 @@ func (aUc *ArtistUsecase) GetByParams(count uint64, from uint64) ([]*models.Arti
 	return artists, nil
 }
 
-func (aUc *ArtistUsecase) UpdateArtistName(artist *models.Artist) *ErrorResponse {
-	exists, err := aUc.checkNameExists(artist.Name)
-
-	if err != nil {
-		return NewErrorResponse(ErrInternal, err)
-	}
-	if exists {
-		return NewErrorResponse(ErrNameAlreadyExist, nil)
-	}
-
-	err = aUc.artistRep.UpdateName(artist)
+func (aUc *ArtistUsecase) UpdateArtist(artist *models.Artist) *ErrorResponse {
+	err := aUc.artistRep.Update(artist)
 
 	if err == sql.ErrNoRows {
 		return NewErrorResponse(ErrArtistNotExist, err)
@@ -101,24 +92,22 @@ func (aUc *ArtistUsecase) UpdateArtistName(artist *models.Artist) *ErrorResponse
 	return nil
 }
 
-func (aUc *ArtistUsecase) UpdateArtistPoster(artist *models.Artist) *ErrorResponse {
-
-	err := aUc.artistRep.UpdatePoster(artist)
+func (aUc *ArtistUsecase) GetByName(name string) (*models.Artist, *ErrorResponse) {
+	artist, err := aUc.artistRep.SelectByName(name)
 
 	if err == sql.ErrNoRows {
-		return NewErrorResponse(ErrArtistNotExist, err)
+		return nil, NewErrorResponse(ErrArtistNotExist, err)
 	}
 
 	if err != nil {
-		return NewErrorResponse(ErrInternal, err)
+		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
-	return nil
+	return artist, nil
 }
 
 func (aUc *ArtistUsecase) checkNameExists(name string) (bool, error) {
 	_, err := aUc.artistRep.SelectByName(name)
-
 	if err == sql.ErrNoRows {
 		return false, nil
 	}

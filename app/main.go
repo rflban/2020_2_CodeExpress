@@ -76,6 +76,7 @@ func main() {
 	e.Static("/artist_posters", "artist_posters")
 	e.Static("/track_audio", "track_audio")
 	e.Static("/album_posters", "album_posters")
+	e.Static("/artist_avatars", "artist_avatars")
 
 	userRep := userRepository.NewUserRep(dbConn)
 	sessionRep := sessionRepository.NewSessionRep(dbConn)

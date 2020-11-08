@@ -5,7 +5,9 @@ DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_t
 CREATE TABLE artists (
     id serial NOT NULL PRIMARY KEY,
     name varchar(100) NOT NULL UNIQUE,
-    poster varchar(100) DEFAULT ''
+    description text,
+    poster varchar(100) DEFAULT '',
+    avatar varchar(100) DEFAULT ''
 );
 
 CREATE TABLE users (
