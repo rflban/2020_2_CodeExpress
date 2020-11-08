@@ -78,7 +78,8 @@ func (ah *ArtistHandler) HandlerArtistsByParams() echo.HandlerFunc {
 
 func (ah *ArtistHandler) HandlerCreateArtist() echo.HandlerFunc {
 	type Request struct {
-		Name string `json:"name" validate:"required"`
+		Name        string `json:"name" validate:"required"`
+		Description string `json:"description"`
 	}
 
 	return func(ctx echo.Context) error {
@@ -93,7 +94,8 @@ func (ah *ArtistHandler) HandlerCreateArtist() echo.HandlerFunc {
 		}
 
 		artist := &models.Artist{
-			Name: req.Name,
+			Name:        req.Name,
+			Description: req.Description,
 		}
 
 		if err := ah.artistUsecase.CreateArtist(artist); err != nil {
@@ -106,7 +108,8 @@ func (ah *ArtistHandler) HandlerCreateArtist() echo.HandlerFunc {
 
 func (ah *ArtistHandler) HandlerUpdateArtist() echo.HandlerFunc {
 	type Request struct {
-		Name string `json:"name" validate:"required"`
+		Name        string `json:"name" validate:"required"`
+		Description string `json:"description"`
 	}
 
 	return func(ctx echo.Context) error {
@@ -126,12 +129,19 @@ func (ah *ArtistHandler) HandlerUpdateArtist() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		artist := &models.Artist{
-			ID:   uint64(id),
-			Name: req.Name,
+		artist, errResp := ah.artistUsecase.GetByName(req.Name)
+
+		if errResp == nil && artist.ID != uint64(id) {
+			return RespondWithError(NewErrorResponse(ErrNameAlreadyExist, nil), ctx)
 		}
 
-		if err := ah.artistUsecase.UpdateArtistName(artist); err != nil {
+		artist = &models.Artist{
+			ID:          uint64(id),
+			Name:        req.Name,
+			Description: req.Description,
+		}
+
+		if err := ah.artistUsecase.UpdateArtist(artist); err != nil {
 			return RespondWithError(err, ctx)
 		}
 
@@ -165,24 +175,42 @@ func (ah *ArtistHandler) HandlerUploadArtistPhoto() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		photoUploader := &PhotoUploader{}
-
-		path, err := photoUploader.UploadPhoto(ctx, "poster", "./artist_posters/")
-
-		if err != nil {
-			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
-		}
-
 		artist, errResp := ah.artistUsecase.GetByID(uint64(id))
 
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 
-		artist.Poster = path
+		photoUploader := &PhotoUploader{}
+		posterField, avatarField := "poster", "avatar"
+		isChanged := false
 
-		if errResp := ah.artistUsecase.UpdateArtistPoster(artist); errResp != nil {
-			return RespondWithError(errResp, ctx)
+		if _, err := ctx.FormFile(posterField); err == nil {
+			path, err := photoUploader.UploadPhoto(ctx, posterField, "./artist_posters/")
+
+			if err != nil {
+				return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+			}
+			isChanged = true
+			artist.Poster = path
+		}
+
+		if _, err := ctx.FormFile(avatarField); err == nil {
+			path, err := photoUploader.UploadPhoto(ctx, avatarField, "./artist_avatars/")
+
+			if err != nil {
+				return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+			}
+			isChanged = true
+			artist.Avatar = path
+		}
+
+		if isChanged {
+			if err := ah.artistUsecase.UpdateArtist(artist); err != nil {
+				return RespondWithError(err, ctx)
+			}
+		} else {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
 		return ctx.JSON(http.StatusOK, artist)
