@@ -1,11 +1,7 @@
 package delivery
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"io"
 	"net/http"
-	"os"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
@@ -16,10 +12,12 @@ import (
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/photo_uploader"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/validator"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,7 +38,7 @@ func (uh *UserHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/user", uh.handlerCurrentUserInfo())
 	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile(), mm.CheckCSRF)
 	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword(), mm.CheckCSRF)
-	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar(), mm.CheckCSRF)
+	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar(), middleware.BodyLimit("10M"))
 }
 
 func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
@@ -199,44 +197,14 @@ func (uh *UserHandler) handlerUpdateAvatar() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		formFile, err := ctx.FormFile("avatar")
+		photoUploader := photo_uploader.PhotoUploader{}
+		avatarPath, err := photoUploader.UploadPhoto(ctx, "avatar", "./avatars/")
 		if err != nil {
-			errResp := NewErrorResponse(ErrNoAvatar, err)
+			errResp := NewErrorResponse(ErrBadRequest, err)
 			return RespondWithError(errResp, ctx)
 		}
 
-		if formFile.Size > int64(10<<20) { //TODO: magic number
-			errResp := NewErrorResponse(ErrNoAvatar, err) //TODO: другая ошибка будет
-			return RespondWithError(errResp, ctx)
-		}
-
-		source, err := formFile.Open()
-		if err != nil {
-			errResp := NewErrorResponse(ErrNoAvatar, err)
-			return RespondWithError(errResp, ctx)
-		}
-		defer func() {
-			_ = source.Close()
-		}()
-
-		fileExtension := "png" //TODO: убрать в другое место; захордкоженное расширение
-		randBytes := md5.Sum([]byte(fileExtension + user.Name))
-		randString := hex.EncodeToString(randBytes[:])
-		fileName := randString + "." + fileExtension
-		pathToNewFile := "./avatars/" + fileName
-		destination, err := os.OpenFile(pathToNewFile, os.O_WRONLY|os.O_CREATE, os.FileMode(int(0777)))
-		if err != nil {
-			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
-		}
-		defer func() {
-			_ = destination.Close()
-		}()
-
-		if _, err := io.Copy(destination, source); err != nil {
-			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
-		}
-
-		user, errResp = uh.userUsecase.UpdateAvatar(session.UserID, pathToNewFile)
+		user, errResp = uh.userUsecase.UpdateAvatar(session.UserID, avatarPath)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
