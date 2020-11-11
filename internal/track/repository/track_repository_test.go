@@ -1,0 +1,505 @@
+package repository_test
+
+import (
+	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/repository"
+	"github.com/go-playground/assert/v2"
+)
+
+func TestTrackRepository_Insert(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	track := &models.Track{
+		Title:   title,
+		AlbumID: albumID,
+	}
+
+	expectedTrack := &models.Track{
+		Title:   title,
+		AlbumID: albumID,
+		ID:      id,
+		Index:   index,
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "index"}).AddRow(id, index)
+
+	mock.
+		ExpectQuery(`insert into tracks`).
+		WithArgs(albumID, title).
+		WillReturnRows(rows)
+
+	if err := repo.Insert(track); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, track, expectedTrack)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_Update(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+
+	expectedTrack := &models.Track{
+		Title:   title,
+		AlbumID: albumID,
+		ID:      id,
+		Index:   index,
+	}
+
+	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
+
+	mock.
+		ExpectQuery(`update tracks`).
+		WithArgs(albumID, title, index, id).
+		WillReturnRows(rows)
+
+	if err := repo.Update(expectedTrack); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_UpdateAudio(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	audio := "Some audio"
+	duration := 200
+
+	expectedTrack := &models.Track{
+		Title:    title,
+		AlbumID:  albumID,
+		ID:       id,
+		Index:    index,
+		Audio:    audio,
+		Duration: duration,
+	}
+
+	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
+
+	mock.
+		ExpectQuery(`update tracks`).
+		WithArgs(audio, duration, id).
+		WillReturnRows(rows)
+
+	if err := repo.UpdateAudio(expectedTrack); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_Delete(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	id := uint64(1)
+	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
+
+	mock.
+		ExpectQuery(`delete from tracks`).
+		WithArgs(id).
+		WillReturnRows(rows)
+
+	if err := repo.Delete(id); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_DeleteTrackFromUsersTracks(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	trackID := uint64(1)
+	userID := uint64(24)
+	rows := sqlmock.NewRows([]string{"track_id"}).AddRow(trackID)
+
+	mock.
+		ExpectQuery(`delete from user_track`).
+		WithArgs(userID, trackID).
+		WillReturnRows(rows)
+
+	if err := repo.DeleteTrackFromUsersTracks(userID, trackID); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_InsertTrackToUser(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	trackID := uint64(1)
+	userID := uint64(24)
+	rows := sqlmock.NewRows([]string{"track_id"}).AddRow(trackID)
+
+	mock.
+		ExpectQuery(`insert into user_track`).
+		WithArgs(userID, trackID).
+		WillReturnRows(rows)
+
+	if err := repo.InsertTrackToUser(userID, trackID); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_SelectByID(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	audio := "Some audio"
+	duration := 200
+	poster := "Some poster"
+	artistName := "Some artist name"
+	artistID := uint64(50)
+
+	expectedTrack := &models.Track{
+		Title:       title,
+		AlbumID:     albumID,
+		ID:          id,
+		Index:       index,
+		Audio:       audio,
+		Duration:    duration,
+		ArtistID:    artistID,
+		Artist:      artistName,
+		AlbumPoster: poster,
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+
+	mock.
+		ExpectQuery(`select`).
+		WithArgs(id).
+		WillReturnRows(rows)
+
+	track, err := repo.SelectByID(id)
+
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, track, expectedTrack)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_SelectByArtistID(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	audio := "Some audio"
+	duration := 200
+	poster := "Some poster"
+	artistName := "Some artist name"
+	artistID := uint64(50)
+
+	expectedTrack := &models.Track{
+		Title:       title,
+		AlbumID:     albumID,
+		ID:          id,
+		Index:       index,
+		Audio:       audio,
+		Duration:    duration,
+		ArtistID:    artistID,
+		Artist:      artistName,
+		AlbumPoster: poster,
+	}
+
+	expectedTracks := []*models.Track{expectedTrack}
+
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+
+	mock.
+		ExpectQuery(`select`).
+		WithArgs(artistID).
+		WillReturnRows(rows)
+
+	tracks, err := repo.SelectByArtistID(artistID)
+
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, tracks, expectedTracks)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_SelectByAlbumID(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	audio := "Some audio"
+	duration := 200
+	poster := "Some poster"
+	artistName := "Some artist name"
+	artistID := uint64(50)
+
+	expectedTrack := &models.Track{
+		Title:       title,
+		AlbumID:     albumID,
+		ID:          id,
+		Index:       index,
+		Audio:       audio,
+		Duration:    duration,
+		ArtistID:    artistID,
+		Artist:      artistName,
+		AlbumPoster: poster,
+	}
+
+	expectedTracks := []*models.Track{expectedTrack}
+
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+
+	mock.
+		ExpectQuery(`select`).
+		WithArgs(albumID).
+		WillReturnRows(rows)
+
+	tracks, err := repo.SelectByAlbumID(albumID)
+
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, tracks, expectedTracks)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_SelectByParam(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	audio := "Some audio"
+	duration := 200
+	poster := "Some poster"
+	artistName := "Some artist name"
+	artistID := uint64(50)
+
+	expectedTrack := &models.Track{
+		Title:       title,
+		AlbumID:     albumID,
+		ID:          id,
+		Index:       index,
+		Audio:       audio,
+		Duration:    duration,
+		ArtistID:    artistID,
+		Artist:      artistName,
+		AlbumPoster: poster,
+	}
+
+	expectedTracks := []*models.Track{expectedTrack}
+
+	count, from := uint64(1), uint64(0)
+
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+
+	mock.
+		ExpectQuery(`select`).
+		WithArgs(count, from).
+		WillReturnRows(rows)
+
+	tracks, err := repo.SelectByParam(count, from)
+
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, tracks, expectedTracks)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestTrackRepository_SelectFavoritesByUserID(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewTrackRep(db)
+
+	title := "Some title"
+	albumID := uint64(42)
+	id := uint64(1)
+	index := uint8(1)
+	audio := "Some audio"
+	duration := 200
+	poster := "Some poster"
+	artistName := "Some artist name"
+	artistID := uint64(50)
+
+	expectedTrack := &models.Track{
+		Title:       title,
+		AlbumID:     albumID,
+		ID:          id,
+		Index:       index,
+		Audio:       audio,
+		Duration:    duration,
+		ArtistID:    artistID,
+		Artist:      artistName,
+		AlbumPoster: poster,
+	}
+
+	expectedTracks := []*models.Track{expectedTrack}
+
+	userID := uint64(1)
+
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+
+	mock.
+		ExpectQuery(`select`).
+		WithArgs(userID).
+		WillReturnRows(rows)
+
+	tracks, err := repo.SelectFavoritesByUserID(userID)
+
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, tracks, expectedTracks)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
