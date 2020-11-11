@@ -108,32 +108,18 @@ func (mr *MockArtistRepMockRecorder) SelectByParam(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByParam", reflect.TypeOf((*MockArtistRep)(nil).SelectByParam), arg0, arg1)
 }
 
-// UpdateName mocks base method
-func (m *MockArtistRep) UpdateName(arg0 *models.Artist) error {
+// Update mocks base method
+func (m *MockArtistRep) Update(arg0 *models.Artist) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateName", arg0)
+	ret := m.ctrl.Call(m, "Update", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateName indicates an expected call of UpdateName
-func (mr *MockArtistRepMockRecorder) UpdateName(arg0 interface{}) *gomock.Call {
+// Update indicates an expected call of Update
+func (mr *MockArtistRepMockRecorder) Update(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateName", reflect.TypeOf((*MockArtistRep)(nil).UpdateName), arg0)
-}
-
-// UpdatePoster mocks base method
-func (m *MockArtistRep) UpdatePoster(arg0 *models.Artist) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePoster", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdatePoster indicates an expected call of UpdatePoster
-func (mr *MockArtistRepMockRecorder) UpdatePoster(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePoster", reflect.TypeOf((*MockArtistRep)(nil).UpdatePoster), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockArtistRep)(nil).Update), arg0)
 }
 
 // MockArtistUsecase is a mock of ArtistUsecase interface
@@ -202,6 +188,21 @@ func (mr *MockArtistUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockArtistUsecase)(nil).GetByID), arg0)
 }
 
+// GetByName mocks base method
+func (m *MockArtistUsecase) GetByName(arg0 string) (*models.Artist, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByName", arg0)
+	ret0, _ := ret[0].(*models.Artist)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// GetByName indicates an expected call of GetByName
+func (mr *MockArtistUsecaseMockRecorder) GetByName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockArtistUsecase)(nil).GetByName), arg0)
+}
+
 // GetByParams mocks base method
 func (m *MockArtistUsecase) GetByParams(arg0, arg1 uint64) ([]*models.Artist, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
@@ -217,30 +218,16 @@ func (mr *MockArtistUsecaseMockRecorder) GetByParams(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByParams", reflect.TypeOf((*MockArtistUsecase)(nil).GetByParams), arg0, arg1)
 }
 
-// UpdateArtistName mocks base method
-func (m *MockArtistUsecase) UpdateArtistName(arg0 *models.Artist) *error_response.ErrorResponse {
+// UpdateArtist mocks base method
+func (m *MockArtistUsecase) UpdateArtist(arg0 *models.Artist) *error_response.ErrorResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateArtistName", arg0)
+	ret := m.ctrl.Call(m, "UpdateArtist", arg0)
 	ret0, _ := ret[0].(*error_response.ErrorResponse)
 	return ret0
 }
 
-// UpdateArtistName indicates an expected call of UpdateArtistName
-func (mr *MockArtistUsecaseMockRecorder) UpdateArtistName(arg0 interface{}) *gomock.Call {
+// UpdateArtist indicates an expected call of UpdateArtist
+func (mr *MockArtistUsecaseMockRecorder) UpdateArtist(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateArtistName", reflect.TypeOf((*MockArtistUsecase)(nil).UpdateArtistName), arg0)
-}
-
-// UpdateArtistPoster mocks base method
-func (m *MockArtistUsecase) UpdateArtistPoster(arg0 *models.Artist) *error_response.ErrorResponse {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateArtistPoster", arg0)
-	ret0, _ := ret[0].(*error_response.ErrorResponse)
-	return ret0
-}
-
-// UpdateArtistPoster indicates an expected call of UpdateArtistPoster
-func (mr *MockArtistUsecaseMockRecorder) UpdateArtistPoster(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateArtistPoster", reflect.TypeOf((*MockArtistUsecase)(nil).UpdateArtistPoster), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateArtist", reflect.TypeOf((*MockArtistUsecase)(nil).UpdateArtist), arg0)
 }
