@@ -20,15 +20,17 @@ func TestCreate(t *testing.T) {
 	repo := NewArtistRep(db)
 
 	name := "Johny Depp"
+	description := "SMTH"
 	testArtist := &models.Artist{
-		Name: name,
+		Name:        name,
+		Description: description,
 	}
 
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 
 	mock.
 		ExpectQuery(`insert into artists`).
-		WithArgs(name).
+		WithArgs(name, description).
 		WillReturnRows(rows)
 
 	if err := repo.Insert(testArtist); err != nil {
@@ -61,10 +63,10 @@ func TestUpdateName(t *testing.T) {
 
 	mock.
 		ExpectQuery(`update artists`).
-		WithArgs(testArtist.Name, testArtist.ID).
+		WithArgs(testArtist.Name, testArtist.Poster, testArtist.Avatar, testArtist.Description, testArtist.ID).
 		WillReturnRows(rows)
 
-	if err := repo.UpdateName(testArtist); err != nil {
+	if err := repo.Update(testArtist); err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
@@ -94,10 +96,10 @@ func TestUpdatePoster(t *testing.T) {
 
 	mock.
 		ExpectQuery(`update artists`).
-		WithArgs(testArtist.Poster, testArtist.ID).
+		WithArgs(testArtist.Name, testArtist.Poster, testArtist.Avatar, testArtist.Description, testArtist.ID).
 		WillReturnRows(rows)
 
-	if err := repo.UpdatePoster(testArtist); err != nil {
+	if err := repo.Update(testArtist); err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
@@ -144,7 +146,7 @@ func TestSelectByID(t *testing.T) {
 	}
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "name", "poster"}).AddRow(1, "Johny Depp", "")
+	rows := sqlmock.NewRows([]string{"id", "name", "poster", "avatar", "description"}).AddRow(1, "Johny Depp", "", "", "")
 	query := "select"
 
 	repo := NewArtistRep(db)
@@ -165,7 +167,7 @@ func TestSelectByName(t *testing.T) {
 	}
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "name", "poster"}).AddRow(1, "Johny Depp", "")
+	rows := sqlmock.NewRows([]string{"id", "name", "poster", "avatar", "description"}).AddRow(1, "Johny Depp", "", "", "")
 	query := "select"
 
 	repo := NewArtistRep(db)
@@ -186,10 +188,10 @@ func TestSelectByParam(t *testing.T) {
 	}
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "name", "poster"})
+	rows := sqlmock.NewRows([]string{"id", "name", "poster", "avatar", "description"})
 
-	rows.AddRow(1, "Johny Depp", "")
-	rows.AddRow(2, "Johny Depp2", "")
+	rows.AddRow(1, "Johny Depp", "", "", "")
+	rows.AddRow(2, "Johny Depp2", "", "", "")
 
 	query := "select"
 

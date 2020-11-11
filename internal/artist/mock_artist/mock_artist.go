@@ -5,11 +5,10 @@
 package mock_artist
 
 import (
-	reflect "reflect"
-
 	models "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	error_response "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockArtistRep is a mock of ArtistRep interface
