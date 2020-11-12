@@ -140,37 +140,11 @@ func TestArtistUsecase_UpdateArtistName(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByName(gomock.Eq(expectedArtist.Name)).
-		Return(nil, sql.ErrNoRows)
-
-	mockRepo.
-		EXPECT().
-		UpdateName(gomock.Eq(expectedArtist)).
+		Update(gomock.Eq(expectedArtist)).
 		Return(nil)
 
-	err := mockUsecase.UpdateArtistName(expectedArtist)
+	err := mockUsecase.UpdateArtist(expectedArtist)
 	assert.Equal(t, err, nil)
-}
-
-func TestArtistUsecase_UpdateArtistName_FailedSelect(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
-
-	expectedArtist := &models.Artist{
-		ID:   1,
-		Name: "Imagine Dragons",
-	}
-
-	mockRepo.
-		EXPECT().
-		SelectByName(gomock.Eq(expectedArtist.Name)).
-		Return(expectedArtist, nil)
-
-	err := mockUsecase.UpdateArtistName(expectedArtist)
-	assert.Equal(t, err, NewErrorResponse(ErrNameAlreadyExist, nil))
 }
 
 func TestArtistUsecase_UpdateArtistName_FailedUpdate(t *testing.T) {
@@ -187,15 +161,10 @@ func TestArtistUsecase_UpdateArtistName_FailedUpdate(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByName(gomock.Eq(expectedArtist.Name)).
-		Return(nil, sql.ErrNoRows)
-
-	mockRepo.
-		EXPECT().
-		UpdateName(gomock.Eq(expectedArtist)).
+		Update(gomock.Eq(expectedArtist)).
 		Return(sql.ErrNoRows)
 
-	err := mockUsecase.UpdateArtistName(expectedArtist)
+	err := mockUsecase.UpdateArtist(expectedArtist)
 	assert.Equal(t, err, NewErrorResponse(ErrArtistNotExist, sql.ErrNoRows))
 }
 
@@ -214,10 +183,10 @@ func TestArtistUsecase_UpdateArtistPoster(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		UpdatePoster(gomock.Eq(expectedArtist)).
+		Update(gomock.Eq(expectedArtist)).
 		Return(nil)
 
-	err := mockUsecase.UpdateArtistPoster(expectedArtist)
+	err := mockUsecase.UpdateArtist(expectedArtist)
 	assert.Equal(t, err, nil)
 }
 
@@ -236,10 +205,10 @@ func TestArtistUsecase_UpdateArtistPoster_Failed(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		UpdatePoster(gomock.Eq(expectedArtist)).
+		Update(gomock.Eq(expectedArtist)).
 		Return(sql.ErrNoRows)
 
-	err := mockUsecase.UpdateArtistPoster(expectedArtist)
+	err := mockUsecase.UpdateArtist(expectedArtist)
 	assert.Equal(t, err, NewErrorResponse(ErrArtistNotExist, sql.ErrNoRows))
 }
 

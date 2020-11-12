@@ -86,7 +86,12 @@ func TestHandlerUpdateArtist(t *testing.T) {
 
 	mockUsecase.
 		EXPECT().
-		UpdateArtistName(gomock.Eq(artist)).
+		GetByName(artist.Name).
+		Return(artist, nil)
+
+	mockUsecase.
+		EXPECT().
+		UpdateArtist(gomock.Eq(artist)).
 		Return(nil)
 
 	artistHandler := delivery.NewArtistHandler(mockUsecase)
