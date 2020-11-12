@@ -1,15 +1,29 @@
 package mwares
 
 import (
+	"errors"
 	"time"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
+	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
+	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 )
 
-type MiddlewareManager struct{}
+type MiddlewareManager struct {
+	sessionUsecase session.SessionUsecase
+}
+
+func NewMiddlewareManager(sessionUsecase session.SessionUsecase) *MiddlewareManager {
+	return &MiddlewareManager{
+		sessionUsecase: sessionUsecase,
+	}
+}
 
 func (mm *MiddlewareManager) PanicRecovering(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
@@ -44,5 +58,36 @@ func (mm *MiddlewareManager) CORS() echo.MiddlewareFunc {
 		AllowHeaders:     ConstAllowedHeaders,
 		AllowMethods:     ConstAllowedMethods,
 		AllowOrigins:     ConstAllowedOrigins,
+		ExposeHeaders:    ConstAllowedExpose,
 	})
+}
+
+func (mm *MiddlewareManager) CheckCSRF(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		csrfErr := errors.New("Bad csrf token received")
+		sessionCookie, err := ctx.Cookie(ConstSessionName)
+
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrNotAuthorized, err), ctx)
+		}
+
+		session, errResp := mm.sessionUsecase.GetByID(sessionCookie.Value)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		token := ctx.Request().Header.Get(ConstCSRFTokenName)
+
+		if token == "" {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, csrfErr), ctx)
+		}
+
+		errResp = csrf.ValidateCSRFToken(session, token)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		return next(ctx)
+	}
 }

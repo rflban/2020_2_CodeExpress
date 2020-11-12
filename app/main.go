@@ -68,16 +68,6 @@ func main() {
 	}
 	log.Printf("DB connected on %s", conf.GetDbConnString())
 
-	e := echo.New()
-	mm := &mwares.MiddlewareManager{}
-
-	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS()) //TODO: Сделать нормальный CORS
-	e.Static("/avatars", "avatars")
-	e.Static("/artist_posters", "artist_posters")
-	e.Static("/track_audio", "track_audio")
-	e.Static("/album_posters", "album_posters")
-	e.Static("/artist_avatars", "artist_avatars")
-
 	userRep := userRepository.NewUserRep(dbConn)
 	sessionRep := sessionRepository.NewSessionRep(dbConn)
 	artistRep := artistRepository.NewArtistRep(dbConn)
@@ -96,11 +86,21 @@ func main() {
 	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase, sessionUsecase, userUsecase)
 
-	userHandler.Configure(e)
+	e := echo.New()
+	mm := mwares.NewMiddlewareManager(sessionUsecase)
+
+	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS())
+	e.Static("/avatars", "avatars")
+	e.Static("/artist_posters", "artist_posters")
+	e.Static("/track_audio", "track_audio")
+	e.Static("/album_posters", "album_posters")
+	e.Static("/artist_avatars", "artist_avatars")
+
+	userHandler.Configure(e, mm)
 	sessionHandler.Configure(e)
-	artistHandler.Configure(e)
-	trackHandler.Configure(e)
-	albumHandler.Configure(e)
+	artistHandler.Configure(e, mm)
+	trackHandler.Configure(e, mm)
+	albumHandler.Configure(e, mm)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

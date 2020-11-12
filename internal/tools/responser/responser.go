@@ -7,7 +7,7 @@ import (
 )
 
 func RespondWithError(err *ErrorResponse, ctx echo.Context) error {
-	if err.Error != nil { //TODO: Реализовать контроль уровня логирования
+	if err.Error != nil {
 		logrus.Info(err.Error)
 	}
 	return ctx.JSON(err.StatusCode, err.UserError)
