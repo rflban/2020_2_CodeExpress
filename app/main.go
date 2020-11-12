@@ -89,7 +89,7 @@ func main() {
 	e := echo.New()
 	mm := mwares.NewMiddlewareManager(sessionUsecase)
 
-	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS())
+	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS(), mm.XSS())
 	e.Static("/avatars", "avatars")
 	e.Static("/artist_posters", "artist_posters")
 	e.Static("/track_audio", "track_audio")
