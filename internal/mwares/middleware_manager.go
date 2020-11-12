@@ -91,3 +91,9 @@ func (mm *MiddlewareManager) CheckCSRF(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(ctx)
 	}
 }
+
+func (mm *MiddlewareManager) XSS() echo.MiddlewareFunc {
+	return middleware.SecureWithConfig(middleware.SecureConfig{
+		XSSProtection: "1; mode=block",
+	})
+}
