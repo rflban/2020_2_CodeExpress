@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist"
@@ -34,14 +35,14 @@ func NewAlbumHandler(albumUsecase album.AlbumUsecase, artistUsecase artist.Artis
 	}
 }
 
-func (ah *AlbumHandler) Configure(e *echo.Echo) {
+func (ah *AlbumHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/artists/:id/albums", ah.HandlerAlbumsByArtist())
 	e.GET("/api/v1/albums", ah.HandlerAlbumsByParams())
 	e.GET("/api/v1/albums/:id", ah.HandlerAlbumTracks())
-	e.POST("api/v1/albums", ah.HandlerCreateAlbum())
-	e.PUT("/api/v1/albums/:id", ah.HandlerUpdateAlbum())
-	e.DELETE("/api/v1/albums/:id", ah.HandlerDeleteAlbum())
-	e.POST("/api/v1/albums/:id/photo", ah.HandlerUploadAlbumPhoto(), middleware.BodyLimit("10M"))
+	e.POST("api/v1/albums", ah.HandlerCreateAlbum(), mm.CheckCSRF)
+	e.PUT("/api/v1/albums/:id", ah.HandlerUpdateAlbum(), mm.CheckCSRF)
+	e.DELETE("/api/v1/albums/:id", ah.HandlerDeleteAlbum(), mm.CheckCSRF)
+	e.POST("/api/v1/albums/:id/photo", ah.HandlerUploadAlbumPhoto(), middleware.BodyLimit("10M"), mm.CheckCSRF)
 }
 
 func (ah *AlbumHandler) HandlerAlbumsByArtist() echo.HandlerFunc {

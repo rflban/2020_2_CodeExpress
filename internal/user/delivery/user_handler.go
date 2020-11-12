@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/builder"
 
@@ -32,12 +35,12 @@ func NewUserHandler(userUsecase user.UserUsecase, sessionUsecase session.Session
 	}
 }
 
-func (uh *UserHandler) Configure(e *echo.Echo) {
+func (uh *UserHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.POST("/api/v1/user", uh.handlerRegisterUser())
 	e.GET("/api/v1/user", uh.handlerCurrentUserInfo())
-	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile()) //TODO: change заменить на update
-	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword())
-	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar())
+	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile(), mm.CheckCSRF)
+	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword(), mm.CheckCSRF)
+	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar(), mm.CheckCSRF)
 }
 
 func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
@@ -67,6 +70,14 @@ func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
 		if err := uh.sessionUsecase.CreateSession(session); err != nil {
 			return RespondWithError(err, ctx)
 		}
+
+		token, e := csrf.NewCSRFToken(session)
+
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		ctx.Response().Header().Set("X-CSRF-TOKEN", token)
 
 		cookie := builder.BuildCookie(session)
 		ctx.SetCookie(cookie)

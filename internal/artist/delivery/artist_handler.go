@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/photo_uploader"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
@@ -26,13 +27,13 @@ func NewArtistHandler(artistUsecase artist.ArtistUsecase) *ArtistHandler {
 	}
 }
 
-func (ah *ArtistHandler) Configure(e *echo.Echo) {
+func (ah *ArtistHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/artists/:id", ah.HandlerArtistByID())
 	e.GET("/api/v1/artists", ah.HandlerArtistsByParams())
-	e.POST("api/v1/artists", ah.HandlerCreateArtist())
-	e.PUT("/api/v1/artists/:id", ah.HandlerUpdateArtist())
-	e.DELETE("/api/v1/artists/:id", ah.HandlerDeleteArtist())
-	e.POST("/api/v1/artists/:id/photo", ah.HandlerUploadArtistPhoto(), middleware.BodyLimit("10M"))
+	e.POST("api/v1/artists", ah.HandlerCreateArtist(), mm.CheckCSRF)
+	e.PUT("/api/v1/artists/:id", ah.HandlerUpdateArtist(), mm.CheckCSRF)
+	e.DELETE("/api/v1/artists/:id", ah.HandlerDeleteArtist(), mm.CheckCSRF)
+	e.POST("/api/v1/artists/:id/photo", ah.HandlerUploadArtistPhoto(), middleware.BodyLimit("10M"), mm.CheckCSRF)
 }
 
 func (ah *ArtistHandler) HandlerArtistByID() echo.HandlerFunc {

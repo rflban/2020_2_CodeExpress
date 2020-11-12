@@ -3,8 +3,10 @@ package consts
 import "net/http"
 
 const (
-	ConstSessionName = "code_express_session_id"
-	ConstDaysSession = 1
+	ConstSessionName      = "code_express_session_id"
+	ConstDaysSession      = 1
+	ConstCSRFTokenName    = "X-Csrf-Token"
+	ConstMinutesCSRFToken = 15
 )
 
 var ConstAllowedOrigins = []string{
@@ -25,4 +27,9 @@ var ConstAllowedHeaders = []string{
 	"Access-Control-Allow-Headers",
 	"Authorization",
 	"X-Requested-With",
+	ConstCSRFTokenName,
+}
+
+var ConstAllowedExpose = []string{
+	ConstCSRFTokenName,
 }

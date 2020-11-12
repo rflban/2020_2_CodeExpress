@@ -1,10 +1,12 @@
 package delivery
 
 import (
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
@@ -33,16 +35,16 @@ func NewTrackHandler(trackUsecase track.TrackUsecase, sessionUsecase session.Ses
 	}
 }
 
-func (ah *TrackHandler) Configure(e *echo.Echo) {
+func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/tracks", ah.HandlerTracksByParams())
-	e.POST("/api/v1/tracks", ah.HandlerCreateTrack())
-	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack())
-	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack())
-	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"))
+	e.POST("/api/v1/tracks", ah.HandlerCreateTrack(), mm.CheckCSRF)
+	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack(), mm.CheckCSRF)
+	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
+	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"), mm.CheckCSRF)
 	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
 	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser())
-	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites())
-	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites())
+	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckCSRF)
+	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckCSRF)
 }
 
 func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {

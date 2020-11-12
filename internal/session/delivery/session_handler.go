@@ -3,6 +3,8 @@ package delivery
 import (
 	"net/http"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
+
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
@@ -60,6 +62,14 @@ func (sh *SessionHandler) handlerLogin() echo.HandlerFunc {
 		if err := sh.sessionUsecase.CreateSession(session); err != nil {
 			return RespondWithError(err, ctx)
 		}
+
+		token, e := csrf.NewCSRFToken(session)
+
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		ctx.Response().Header().Set("X-CSRF-TOKEN", token)
 
 		cookie := builder.BuildCookie(session)
 		ctx.SetCookie(cookie)
