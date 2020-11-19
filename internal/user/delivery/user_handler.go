@@ -37,10 +37,10 @@ func NewUserHandler(userUsecase user.UserUsecase, sessionUsecase session.Session
 
 func (uh *UserHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.POST("/api/v1/user", uh.handlerRegisterUser())
-	e.GET("/api/v1/user", uh.handlerCurrentUserInfo())
-	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile(), mm.CheckCSRF)
-	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword(), mm.CheckCSRF)
-	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar(), mm.CheckCSRF)
+	e.GET("/api/v1/user", uh.handlerCurrentUserInfo(), mm.CheckAuth)
+	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile(), mm.CheckCSRF, mm.CheckAuth)
+	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword(), mm.CheckCSRF, mm.CheckAuth)
+	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar(), mm.CheckCSRF, mm.CheckAuth)
 }
 
 func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
@@ -88,18 +88,9 @@ func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
 
 func (uh *UserHandler) handlerCurrentUserInfo() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		cookie, err := ctx.Cookie(ConstSessionName)
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
+		user_id := ctx.Get(ConstAuthedUserParam)
 
-		session, errResp := uh.sessionUsecase.GetByID(cookie.Value)
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		user, errResp := uh.userUsecase.GetById(session.UserID)
+		user, errResp := uh.userUsecase.GetById(user_id.(uint64))
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -124,18 +115,9 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 			return ctx.JSON(err.StatusCode, err.UserError)
 		}
 
-		cookie, err := ctx.Cookie(ConstSessionName)
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
+		user_id := ctx.Get(ConstAuthedUserParam)
 
-		session, errResp := uh.sessionUsecase.GetByID(cookie.Value)
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		user, errResp := uh.userUsecase.UpdateProfile(session.UserID, req.Name, req.Email)
+		user, errResp := uh.userUsecase.UpdateProfile(user_id.(uint64), req.Name, req.Email)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -161,18 +143,9 @@ func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
 			return ctx.JSON(err.StatusCode, err.UserError)
 		}
 
-		cookie, err := ctx.Cookie(ConstSessionName)
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
+		user_id := ctx.Get(ConstAuthedUserParam)
 
-		session, errResp := uh.sessionUsecase.GetByID(cookie.Value)
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		errResp = uh.userUsecase.UpdatePassword(session.UserID, req.OldPassword, req.Password)
+		errResp := uh.userUsecase.UpdatePassword(user_id.(uint64), req.OldPassword, req.Password)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -183,18 +156,9 @@ func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
 
 func (uh *UserHandler) handlerUpdateAvatar() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		cookie, err := ctx.Cookie(ConstSessionName)
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
+		user_id := ctx.Get(ConstAuthedUserParam)
 
-		session, errResp := uh.sessionUsecase.GetByID(cookie.Value)
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		user, errResp := uh.userUsecase.GetById(session.UserID)
+		user, errResp := uh.userUsecase.GetById(user_id.(uint64))
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -236,7 +200,7 @@ func (uh *UserHandler) handlerUpdateAvatar() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
 		}
 
-		user, errResp = uh.userUsecase.UpdateAvatar(session.UserID, pathToNewFile)
+		user, errResp = uh.userUsecase.UpdateAvatar(user_id.(uint64), pathToNewFile)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
