@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
@@ -17,11 +19,13 @@ import (
 
 type MiddlewareManager struct {
 	sessionUsecase session.SessionUsecase
+	userUsecase    user.UserUsecase
 }
 
-func NewMiddlewareManager(sessionUsecase session.SessionUsecase) *MiddlewareManager {
+func NewMiddlewareManager(sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *MiddlewareManager {
 	return &MiddlewareManager{
 		sessionUsecase: sessionUsecase,
+		userUsecase:    userUsecase,
 	}
 }
 
@@ -96,4 +100,30 @@ func (mm *MiddlewareManager) XSS() echo.MiddlewareFunc {
 	return middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection: "1; mode=block",
 	})
+}
+
+func (mm *MiddlewareManager) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie(ConstSessionName)
+
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrNotAuthorized, err), ctx)
+		}
+
+		session, errResp := mm.sessionUsecase.GetByID(cookie.Value)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		_, errResp = mm.userUsecase.GetById(session.UserID)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Set(ConstAuthedUserParam, session.UserID)
+
+		return next(ctx)
+	}
 }

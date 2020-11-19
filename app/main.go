@@ -84,10 +84,10 @@ func main() {
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
 	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
-	trackHandler := trackDelivery.NewTrackHandler(trackUsecase, sessionUsecase, userUsecase)
+	trackHandler := trackDelivery.NewTrackHandler(trackUsecase)
 
 	e := echo.New()
-	mm := mwares.NewMiddlewareManager(sessionUsecase)
+	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase)
 
 	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS(), mm.XSS())
 	e.Static("/avatars", "avatars")

@@ -7,6 +7,7 @@ const (
 	ConstDaysSession      = 1
 	ConstCSRFTokenName    = "X-Csrf-Token"
 	ConstMinutesCSRFToken = 15
+	ConstAuthedUserParam  = "authorized_user"
 )
 
 var ConstAllowedOrigins = []string{
