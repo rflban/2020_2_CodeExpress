@@ -301,3 +301,51 @@ func (ar *TrackRep) DeleteTrackFromUsersTracks(userID, trackID uint64) error {
 
 	return nil
 }
+
+func (ar *TrackRep) SelectByPlaylistID(playlistID uint64) ([]*models.Track, error) {
+	query := `
+	select 
+	t.id, 
+	t.album_id, 
+	t.title, 
+	t.duration,
+	t.index, 
+	t.audio, 
+	a.poster, 
+	ar.name, 
+	a.artist_id 
+	from track_playlist as tp 
+	join tracks as t on tp.track_id = t.id 
+	join albums a on t.album_id = a.id 
+	join artists ar on a.artist_id = ar.id where tp.playlist_id = $1`
+
+	tracks := []*models.Track{}
+
+	rows, err := ar.dbConn.Query(query, playlistID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		track := &models.Track{}
+		err := rows.
+			Scan(&track.ID,
+				&track.AlbumID,
+				&track.Title,
+				&track.Duration,
+				&track.Index,
+				&track.Audio,
+				&track.AlbumPoster,
+				&track.Artist,
+				&track.ArtistID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		tracks = append(tracks, track)
+	}
+
+	return tracks, nil
+}

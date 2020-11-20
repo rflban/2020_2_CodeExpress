@@ -14,4 +14,5 @@ type TrackRep interface {
 	SelectByParam(count uint64, from uint64) ([]*models.Track, error)
 	SelectByAlbumID(albumID uint64) ([]*models.Track, error)
 	SelectFavoritesByUserID(userID uint64) ([]*models.Track, error)
+	SelectByPlaylistID(playlistID uint64) ([]*models.Track, error)
 }

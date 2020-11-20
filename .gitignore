@@ -3,6 +3,9 @@ artist_posters/
 track_audio/
 album_posters/
 artist_avatars/
+playlist_posters/
+*.out
+*.tmp
 
 # Created by https://www.toptal.com/developers/gitignore/api/jetbrains+all,linux,macos,executable
 # Edit at https://www.toptal.com/developers/gitignore?templates=jetbrains+all,linux,macos,executable

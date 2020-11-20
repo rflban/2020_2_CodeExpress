@@ -17,4 +17,5 @@ type TrackUsecase interface {
 	UpdateTrackAudio(track *models.Track) *ErrorResponse
 	AddToFavourites(userID, trackID uint64) *ErrorResponse
 	DeleteFromFavourites(userID, trackID uint64) *ErrorResponse
+	GetByPlaylistID(playlistID uint64) ([]*models.Track, *ErrorResponse)
 }
