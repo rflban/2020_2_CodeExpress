@@ -42,7 +42,6 @@ CREATE TABLE user_track (
     FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
-<<<<<<< HEAD
 CREATE TABLE playlists (
     id serial NOT NULL PRIMARY KEY,
     user_id int NOT NULL,
@@ -60,9 +59,7 @@ CREATE TABLE track_playlist (
 );
 
 CREATE TABLE session (
-=======
 CREATE TABLE session (--TODO: sessions
->>>>>>> ff8a9b4... CP-92: Реализован поиск по названию альбома, имени артиста, и названию трека.
     id varchar(64) NOT NULL PRIMARY KEY,
     userID int NOT NULL,--TODO: user_id
     expire date NOT NULL,--TODO: expires
