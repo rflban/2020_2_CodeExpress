@@ -32,6 +32,10 @@ import (
 	playlistRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/playlist/repository"
 	playlistUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/playlist/usecase"
 
+	searchDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search/delivery"
+	searchRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search/repository"
+	searchUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search/usecase"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/config"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/labstack/echo/v4"
@@ -78,6 +82,7 @@ func main() {
 	trackRep := trackRepository.NewTrackRep(dbConn)
 	albumRep := albumRepository.NewAlbumRep(dbConn)
 	playlistRep := playlistRepository.NewPlaylistRep(dbConn)
+	searchRep := searchRepository.NewSearchRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
@@ -85,6 +90,7 @@ func main() {
 	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
 	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
 	playlistUsecase := playlistUsecase.NewPlaylistUsecase(playlistRep)
+	searchUsecase := searchUsecase.NewSearchUsecase(searchRep)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
@@ -92,6 +98,7 @@ func main() {
 	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase)
 	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase)
+	searchHandler := searchDelivery.NewSearchHandler(searchUsecase)
 
 	e := echo.New()
 	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase)
@@ -110,6 +117,7 @@ func main() {
 	trackHandler.Configure(e, mm)
 	albumHandler.Configure(e, mm)
 	playlistHandler.Configure(e, mm)
+	searchHandler.Configure(e)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

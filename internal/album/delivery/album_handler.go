@@ -58,10 +58,10 @@ func (ah *AlbumHandler) HandlerAlbumsByArtist() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		artist, errEesp := ah.artistUsecase.GetByID(uint64(id))
+		artist, errResp := ah.artistUsecase.GetByID(uint64(id))
 
-		if errEesp != nil {
-			return RespondWithError(errEesp, ctx)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
 		}
 
 		albums, errResp := ah.albumUsecase.GetByArtistID(uint64(id))

@@ -22,7 +22,11 @@ const (
 	ErrAlbumNotExist
 	ErrTitleAlreadyExist
 	ErrNoFavoritesTracks
+<<<<<<< HEAD
 	ErrPlaylistNotExist
+=======
+	ErrEmptySearchQuery
+>>>>>>> ff8a9b4... CP-92: Реализован поиск по названию альбома, имени артиста, и названию трека.
 )
 
 var Errors = map[int]error{
@@ -42,7 +46,11 @@ var Errors = map[int]error{
 	ErrAlbumNotExist:            errors.New("Album not found"),
 	ErrTitleAlreadyExist:        errors.New("Title already exists"),
 	ErrNoFavoritesTracks:        errors.New("User has no favorite tracks"),
+<<<<<<< HEAD
 	ErrPlaylistNotExist:         errors.New("Playlist not found"),
+=======
+	ErrEmptySearchQuery:         errors.New("Empty search query"),
+>>>>>>> ff8a9b4... CP-92: Реализован поиск по названию альбома, имени артиста, и названию трека.
 }
 
 var StatusCodes = map[int]int{
@@ -62,5 +70,9 @@ var StatusCodes = map[int]int{
 	ErrAlbumNotExist:            http.StatusNotFound,
 	ErrTitleAlreadyExist:        http.StatusForbidden,
 	ErrNoFavoritesTracks:        http.StatusNotFound,
+<<<<<<< HEAD
 	ErrPlaylistNotExist:         http.StatusNotFound,
+=======
+	ErrEmptySearchQuery:         http.StatusBadRequest,
+>>>>>>> ff8a9b4... CP-92: Реализован поиск по названию альбома, имени артиста, и названию трека.
 }
