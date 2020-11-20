@@ -22,6 +22,7 @@ const (
 	ErrAlbumNotExist
 	ErrTitleAlreadyExist
 	ErrNoFavoritesTracks
+	ErrPlaylistNotExist
 )
 
 var Errors = map[int]error{
@@ -41,6 +42,7 @@ var Errors = map[int]error{
 	ErrAlbumNotExist:            errors.New("Album not found"),
 	ErrTitleAlreadyExist:        errors.New("Title already exists"),
 	ErrNoFavoritesTracks:        errors.New("User has no favorite tracks"),
+	ErrPlaylistNotExist:         errors.New("Playlist not found"),
 }
 
 var StatusCodes = map[int]int{
@@ -60,4 +62,5 @@ var StatusCodes = map[int]int{
 	ErrAlbumNotExist:            http.StatusNotFound,
 	ErrTitleAlreadyExist:        http.StatusForbidden,
 	ErrNoFavoritesTracks:        http.StatusNotFound,
+	ErrPlaylistNotExist:         http.StatusNotFound,
 }
