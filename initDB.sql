@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_t
 CREATE TABLE artists (
     id serial NOT NULL PRIMARY KEY,
     name varchar(100) NOT NULL UNIQUE,
-    description text,
+    description text, --TODO: NOT NULL? везде так
     poster varchar(100) DEFAULT '',
     avatar varchar(100) DEFAULT ''
 );
@@ -21,16 +21,16 @@ CREATE TABLE albums (
     artist_id int NOT NULL,
     title varchar(100) NOT NULL,
     poster varchar(100) DEFAULT '',
-    FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE
+    FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE--TODO: foreign можно по-другому навешивать, сразу при идентификации поля...
 );
 
 CREATE TABLE tracks (
     id serial NOT NULL PRIMARY KEY,
     album_id int NOT NULL,
     title varchar(100) NOT NULL,
-    duration int NOT NULL default 0,
-    index int NOT NULL default 0,
-    audio varchar(100) not NULL default '',
+    duration int NOT NULL DEFAULT 0,
+    index int NOT NULL DEFAULT 0,
+    audio varchar(100) not NULL DEFAULT '',
     FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
@@ -58,10 +58,10 @@ CREATE TABLE track_playlist (
     FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
 );
 
-CREATE TABLE session (
+CREATE TABLE session (--TODO: sessions
     id varchar(64) NOT NULL PRIMARY KEY,
-    userID int NOT NULL,
-    expire date NOT NULL,
+    userID int NOT NULL,--TODO: user_id
+    expire date NOT NULL,--TODO: expires
     FOREIGN KEY(userID) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -74,3 +74,6 @@ $emp_stamp$ LANGUAGE plpgsql;
 
 CREATE TRIGGER emp_stamp BEFORE INSERT ON tracks
     FOR EACH ROW EXECUTE PROCEDURE count_index();
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO meuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO meuser;
