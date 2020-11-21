@@ -96,9 +96,9 @@ func (ur *UserRep) SelectByNameOrEmail(name string, email string) ([]*models.Use
 		name,
 		email,
 	)
-	defer func() {
-		_ = rows.Close()
-	}()
+	//defer func() {
+	//	_ = rows.Close()
+	//}()
 	if err != nil {
 		return nil, err
 	}
