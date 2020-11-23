@@ -73,7 +73,7 @@ func (pu *PlaylistUsecase) GetByUserID(userID uint64) ([]*models.Playlist, *Erro
 	playlists, err := pu.playlistRep.SelectByUserID(userID)
 
 	if err == sql.ErrNoRows {
-		return nil, NewErrorResponse(ErrPlaylistNotExist, err)
+		return nil, nil
 	}
 
 	if err != nil {

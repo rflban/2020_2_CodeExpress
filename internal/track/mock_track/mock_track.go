@@ -5,10 +5,11 @@
 package mock_track
 
 import (
+	reflect "reflect"
+
 	models "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	error_response "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockTrackRep is a mock of TrackRep interface
@@ -148,6 +149,21 @@ func (m *MockTrackRep) SelectByParam(arg0, arg1 uint64) ([]*models.Track, error)
 func (mr *MockTrackRepMockRecorder) SelectByParam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByParam", reflect.TypeOf((*MockTrackRep)(nil).SelectByParam), arg0, arg1)
+}
+
+// SelectByPlaylistID mocks base method
+func (m *MockTrackRep) SelectByPlaylistID(arg0 uint64) ([]*models.Track, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectByPlaylistID", arg0)
+	ret0, _ := ret[0].([]*models.Track)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectByPlaylistID indicates an expected call of SelectByPlaylistID
+func (mr *MockTrackRepMockRecorder) SelectByPlaylistID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByPlaylistID", reflect.TypeOf((*MockTrackRep)(nil).SelectByPlaylistID), arg0)
 }
 
 // SelectFavoritesByUserID mocks base method
@@ -330,6 +346,21 @@ func (m *MockTrackUsecase) GetByParams(arg0, arg1 uint64) ([]*models.Track, *err
 func (mr *MockTrackUsecaseMockRecorder) GetByParams(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByParams", reflect.TypeOf((*MockTrackUsecase)(nil).GetByParams), arg0, arg1)
+}
+
+// GetByPlaylistID mocks base method
+func (m *MockTrackUsecase) GetByPlaylistID(arg0 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByPlaylistID", arg0)
+	ret0, _ := ret[0].([]*models.Track)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// GetByPlaylistID indicates an expected call of GetByPlaylistID
+func (mr *MockTrackUsecaseMockRecorder) GetByPlaylistID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPlaylistID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByPlaylistID), arg0)
 }
 
 // GetFavoritesByUserID mocks base method
