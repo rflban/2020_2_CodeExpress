@@ -8,12 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/mock_session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/mock_user"
-
-	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/builder"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/delivery"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/mock_track"
@@ -65,9 +59,9 @@ func TestAlbumDelivery_HandlerCreateTrack(t *testing.T) {
 			return nil
 		})
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -126,9 +120,9 @@ func TestAlbumDelivery_HandlerUpdateTrack(t *testing.T) {
 		UpdateTrack(gomock.Eq(expectedTrack)).
 		Return(nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -159,9 +153,9 @@ func TestAlbumDelivery_HandlerDeleteTrack(t *testing.T) {
 		DeleteTrack(gomock.Eq(id)).
 		Return(nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/v1/tracks/42", strings.NewReader(string("")))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -194,9 +188,9 @@ func TestAlbumDelivery_HandlerTracksByParams(t *testing.T) {
 		GetByParams(gomock.Eq(count), gomock.Eq(from)).
 		Return(expectedTracks, nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/tracks?count=1&from=0", strings.NewReader(string("")))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -227,9 +221,9 @@ func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
 		GetByArtistID(id).
 		Return(expectedTracks, nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/artists/42/tracks", strings.NewReader(string("")))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -240,164 +234,6 @@ func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
 
 	handler := albumHandler.HandlerTracksByArtistID()
 
-	err := handler(ctx)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, http.StatusOK, resWriter.Code)
-}
-
-func TestAlbumDelivery_HandlerFavouritesByUser(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
-	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
-	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
-
-	userID := uint64(42)
-	cookieValue := "Some cookie value"
-
-	expectedTracks := []*models.Track{
-		&models.Track{ID: 0},
-		&models.Track{ID: 1},
-	}
-
-	session := &models.Session{
-		ID:     cookieValue,
-		UserID: userID,
-		Name:   ConstSessionName,
-	}
-
-	user := &models.User{ID: userID}
-
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
-	userMockUsecase.
-		EXPECT().
-		GetById(session.UserID).
-		Return(user, nil)
-
-	trackMockUsecase.
-		EXPECT().
-		GetFavoritesByUserID(user.ID).
-		Return(expectedTracks, nil)
-
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
-	e := echo.New()
-	albumHandler.Configure(e)
-
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/favorite/tracks", strings.NewReader(string("")))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.AddCookie(builder.BuildCookie(session))
-	resWriter := httptest.NewRecorder()
-	ctx := e.NewContext(req, resWriter)
-
-	handler := albumHandler.HandlerFavouritesByUser()
-	err := handler(ctx)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, http.StatusOK, resWriter.Code)
-}
-
-func TestAlbumDelivery_HandlerAddToUsersFavourites(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
-	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
-	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
-
-	userID := uint64(42)
-	trackID := uint64(156)
-	cookieValue := "Some cookie value"
-
-	session := &models.Session{
-		ID:     cookieValue,
-		UserID: userID,
-		Name:   ConstSessionName,
-	}
-
-	user := &models.User{ID: userID}
-
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
-	userMockUsecase.
-		EXPECT().
-		GetById(session.UserID).
-		Return(user, nil)
-
-	trackMockUsecase.
-		EXPECT().
-		AddToFavourites(user.ID, trackID).
-		Return(nil)
-
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
-	e := echo.New()
-	albumHandler.Configure(e)
-
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/favorite/tracks/156", strings.NewReader(string("")))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.AddCookie(builder.BuildCookie(session))
-	resWriter := httptest.NewRecorder()
-	ctx := e.NewContext(req, resWriter)
-	ctx.SetParamNames("id")
-	ctx.SetParamValues("156")
-
-	handler := albumHandler.HandlerAddToUsersFavourites()
-	err := handler(ctx)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, http.StatusOK, resWriter.Code)
-}
-
-func TestAlbumDelivery_HandlerDeleteFromUsersFavourites(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
-	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
-	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
-
-	userID := uint64(42)
-	trackID := uint64(156)
-	cookieValue := "Some cookie value"
-
-	session := &models.Session{
-		ID:     cookieValue,
-		UserID: userID,
-		Name:   ConstSessionName,
-	}
-
-	user := &models.User{ID: userID}
-
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
-	userMockUsecase.
-		EXPECT().
-		GetById(session.UserID).
-		Return(user, nil)
-
-	trackMockUsecase.
-		EXPECT().
-		DeleteFromFavourites(user.ID, trackID).
-		Return(nil)
-
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
-	e := echo.New()
-	albumHandler.Configure(e)
-
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/favorite/tracks/156", strings.NewReader(string("")))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.AddCookie(builder.BuildCookie(session))
-	resWriter := httptest.NewRecorder()
-	ctx := e.NewContext(req, resWriter)
-	ctx.SetParamNames("id")
-	ctx.SetParamValues("156")
-
-	handler := albumHandler.HandlerDeleteFromUsersFavourites()
 	err := handler(ctx)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusOK, resWriter.Code)
