@@ -17,7 +17,7 @@ func NewSearchRep(dbConn *sql.DB) search.SearchRep {
 }
 
 func (sr *SearchRep) SelectAlbums(query string, offset uint64, limit uint64) ([]*models.Album, error) {
-	rows, err := sr.dbConn.Query("SELECT albums.id, albums.title, albums.artist_id, artists.name, albums.poster FROM albums JOIN artists ON albums.artist_id = artists.id WHERE albums.title ILIKE '%' || $1 || '%' LIMIT $2 OFFSET $3;",
+	rows, err := sr.dbConn.Query("SELECT albums.id, albums.title, albums.artist_id, artists.name, albums.poster FROM albums JOIN artists ON albums.artist_id = artists.id WHERE albums.title ILIKE '%' || $1 || '%' ORDER BY albums.title, artists.name LIMIT $2 OFFSET $3;",
 		query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (sr *SearchRep) SelectAlbums(query string, offset uint64, limit uint64) ([]
 }
 
 func (sr *SearchRep) SelectArtists(query string, offset uint64, limit uint64) ([]*models.Artist, error) {
-	rows, err := sr.dbConn.Query("SELECT artists.id, artists.name, artists.description, artists.poster, artists.avatar FROM artists WHERE artists.name ILIKE '%' || $1 || '%' LIMIT $2 OFFSET $3;",
+	rows, err := sr.dbConn.Query("SELECT artists.id, artists.name, artists.description, artists.poster, artists.avatar FROM artists WHERE artists.name ILIKE '%' || $1 || '%' ORDER BY artists.name LIMIT $2 OFFSET $3;",
 		query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (sr *SearchRep) SelectArtists(query string, offset uint64, limit uint64) ([
 }
 
 func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64) ([]*models.Track, error) {
-	rows, err := sr.dbConn.Query("SELECT tracks.id, tracks.album_id, albums.poster, albums.artist_id, artists.name, tracks.title, tracks.duration, tracks.index, tracks.audio FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id WHERE tracks.title ILIKE '%' || $1 || '%' LIMIT $2 OFFSET $3;",
+	rows, err := sr.dbConn.Query("SELECT tracks.id, tracks.album_id, albums.poster, albums.artist_id, artists.name, tracks.title, tracks.duration, tracks.index, tracks.audio FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id WHERE tracks.title ILIKE '%' || $1 || '%' ORDER BY tracks.title LIMIT $2 OFFSET $3;",
 		query, limit, offset)
 	if err != nil {
 		return nil, err
