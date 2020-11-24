@@ -52,7 +52,7 @@ func TestTrackUsecase_CreateTrack_Internal(t *testing.T) {
 	mockUsecase := usecase.NewTrackUsecase(mockRepo)
 
 	track := &models.Track{}
-	dbErr := errors.New("Some db error")
+	dbErr := errors.New("Some db error\n")
 
 	mockRepo.
 		EXPECT().
@@ -72,7 +72,7 @@ func TestTrackUsecase_CreateTrack_Failed(t *testing.T) {
 
 	id := uint64(42)
 	track := &models.Track{}
-	dbErr := errors.New("Some db error")
+	dbErr := errors.New("Some db error\n")
 
 	mockRepo.
 		EXPECT().
@@ -134,7 +134,7 @@ func TestArtistUsecase_DeleteArtist_Internal(t *testing.T) {
 	mockUsecase := usecase.NewTrackUsecase(mockRepo)
 
 	id := uint64(5)
-	dbErr := errors.New("Some db error")
+	dbErr := errors.New("Some db error\n")
 
 	mockRepo.
 		EXPECT().
@@ -194,7 +194,7 @@ func TestArtistUsecase_GetByID_Internal(t *testing.T) {
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
 	mockUsecase := usecase.NewTrackUsecase(mockRepo)
 
-	dbErr := errors.New("Some db error")
+	dbErr := errors.New("Some db error\n")
 	expectedTrack := &models.Track{
 		ID: 1,
 	}
@@ -261,7 +261,7 @@ func TestArtistUsecase_GetByArtistID_Internal(t *testing.T) {
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
 	mockUsecase := usecase.NewTrackUsecase(mockRepo)
 
-	dbErr := errors.New("Some db error")
+	dbErr := errors.New("Some db error\n")
 	expectedTrack := &models.Track{
 		ID: 1,
 	}
@@ -308,7 +308,7 @@ func TestArtistUsecase_GetByArtistParams_Internal(t *testing.T) {
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
 	mockUsecase := usecase.NewTrackUsecase(mockRepo)
 
-	dbErr := errors.New("Some db error")
+	dbErr := errors.New("Some db error\n")
 	count, from := uint64(1), uint64(0)
 
 	mockRepo.

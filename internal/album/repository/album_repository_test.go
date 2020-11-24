@@ -21,17 +21,17 @@ func TestAlbumRepository_Insert(t *testing.T) {
 	repo := repository.NewAlbumRep(db)
 
 	title := "Some title"
-	artist_id := uint64(0)
+	artistId := uint64(0)
 	album := &models.Album{
 		Title:    title,
-		ArtistID: artist_id,
+		ArtistID: artistId,
 	}
 
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 
 	mock.
 		ExpectQuery(`insert into albums`).
-		WithArgs(artist_id, title).
+		WithArgs(artistId, title).
 		WillReturnRows(rows)
 
 	if err := repo.Insert(album); err != nil {
@@ -56,18 +56,18 @@ func TestAlbumRepository_Update(t *testing.T) {
 
 	id := uint64(0)
 	title := "Some title"
-	artist_id := uint64(0)
+	artistId := uint64(0)
 	album := &models.Album{
 		ID:       id,
 		Title:    title,
-		ArtistID: artist_id,
+		ArtistID: artistId,
 	}
 
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 
 	mock.
 		ExpectQuery(`update albums`).
-		WithArgs(title, artist_id, id).
+		WithArgs(title, artistId, id).
 		WillReturnRows(rows)
 
 	if err := repo.Update(album); err != nil {

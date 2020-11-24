@@ -67,7 +67,7 @@ func TestAlbumDelivery_HandlerCreateTrack(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -128,7 +128,7 @@ func TestAlbumDelivery_HandlerUpdateTrack(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -161,9 +161,9 @@ func TestAlbumDelivery_HandlerDeleteTrack(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/tracks/42", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/tracks/42", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
@@ -185,8 +185,12 @@ func TestAlbumDelivery_HandlerTracksByParams(t *testing.T) {
 	count, from := uint64(1), uint64(0)
 
 	expectedTracks := []*models.Track{
-		&models.Track{ID: 0},
-		&models.Track{ID: 1},
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
 	}
 
 	trackMockUsecase.
@@ -196,9 +200,9 @@ func TestAlbumDelivery_HandlerTracksByParams(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/tracks?count=1&from=0", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/tracks?count=1&from=0", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
@@ -218,8 +222,12 @@ func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
 	id := uint64(42)
 
 	expectedTracks := []*models.Track{
-		&models.Track{ID: 0},
-		&models.Track{ID: 1},
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
 	}
 
 	trackMockUsecase.
@@ -229,9 +237,9 @@ func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/artists/42/tracks", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/artists/42/tracks", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
@@ -256,8 +264,12 @@ func TestAlbumDelivery_HandlerFavouritesByUser(t *testing.T) {
 	cookieValue := "Some cookie value"
 
 	expectedTracks := []*models.Track{
-		&models.Track{ID: 0},
-		&models.Track{ID: 1},
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
 	}
 
 	session := &models.Session{
@@ -285,9 +297,9 @@ func TestAlbumDelivery_HandlerFavouritesByUser(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/favorite/tracks", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/favorite/tracks", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()
@@ -335,9 +347,9 @@ func TestAlbumDelivery_HandlerAddToUsersFavourites(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/favorite/tracks/156", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/favorite/tracks/156", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()
@@ -387,9 +399,9 @@ func TestAlbumDelivery_HandlerDeleteFromUsersFavourites(t *testing.T) {
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/favorite/tracks/156", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/favorite/tracks/156", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()

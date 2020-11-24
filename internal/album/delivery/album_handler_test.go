@@ -77,7 +77,7 @@ func TestAlbumDelivery_HandlerCreateAlbum(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -128,7 +128,7 @@ func TestAlbumDelivery_HandlerCreateAlbum_Failed(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -189,7 +189,7 @@ func TestAlbumDelivery_HandlerUpdateAlbum(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
@@ -220,7 +220,7 @@ func TestAlbumDelivery_HandlerDeleteAlbum(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal("")
 	assert.Equal(t, err, nil)
@@ -282,7 +282,7 @@ func TestAlbumDelivery_HandlerAlbumsByArtist(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal("")
 	assert.Equal(t, err, nil)
@@ -333,7 +333,7 @@ func TestAlbumDelivery_HandlerAlbumsByParams(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal("")
 	assert.Equal(t, err, nil)
@@ -388,7 +388,7 @@ func TestAlbumDelivery_HandlerAlbumTracks(t *testing.T) {
 
 	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, trackMockUsecase)
 	e := echo.New()
-	albumHandler.Configure(e)
+	albumHandler.Configure(e, nil)
 
 	jsonRequest, err := json.Marshal("")
 	assert.Equal(t, err, nil)

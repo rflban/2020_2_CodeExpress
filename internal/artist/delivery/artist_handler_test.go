@@ -44,7 +44,7 @@ func TestHandlerCreateArtist(t *testing.T) {
 
 	artistHandler := delivery.NewArtistHandler(mockUsecase)
 	e := echo.New()
-	artistHandler.Configure(e)
+	artistHandler.Configure(e, nil)
 
 	jsonArtist, err := json.Marshal(artist)
 	assert.Equal(t, err, nil)
@@ -96,7 +96,7 @@ func TestHandlerUpdateArtist(t *testing.T) {
 
 	artistHandler := delivery.NewArtistHandler(mockUsecase)
 	e := echo.New()
-	artistHandler.Configure(e)
+	artistHandler.Configure(e, nil)
 
 	jsonArtist, err := json.Marshal(artist)
 	assert.Equal(t, err, nil)
@@ -140,7 +140,7 @@ func TestHandlerDeleteArtist(t *testing.T) {
 
 	artistHandler := delivery.NewArtistHandler(mockUsecase)
 	e := echo.New()
-	artistHandler.Configure(e)
+	artistHandler.Configure(e, nil)
 
 	jsonArtist, err := json.Marshal(artist)
 	assert.Equal(t, err, nil)
@@ -186,7 +186,7 @@ func TestHandlerArtistByID(t *testing.T) {
 
 	artistHandler := delivery.NewArtistHandler(mockUsecase)
 	e := echo.New()
-	artistHandler.Configure(e)
+	artistHandler.Configure(e, nil)
 
 	jsonExpectedArtist, err := json.Marshal(expectedArtist)
 	assert.Equal(t, err, nil)
@@ -237,7 +237,7 @@ func TestHandlerArtistByParam(t *testing.T) {
 
 	artistHandler := delivery.NewArtistHandler(mockUsecase)
 	e := echo.New()
-	artistHandler.Configure(e)
+	artistHandler.Configure(e, nil)
 
 	jsonExpectedArtists, err := json.Marshal(expectedArtists)
 	assert.Equal(t, err, nil)

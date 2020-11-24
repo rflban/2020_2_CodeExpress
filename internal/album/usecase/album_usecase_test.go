@@ -94,7 +94,7 @@ func TestAlbumUsecase_DeleteAlbum_Failed_Internal(t *testing.T) {
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
 	id := uint64(5)
-	dbErr := errors.New("Some database err")
+	dbErr := errors.New("Some database err\n")
 
 	mockRepo.
 		EXPECT().
@@ -159,7 +159,7 @@ func TestAlbumUsecase_GetByID_Failed_Internal(t *testing.T) {
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
 	id := uint64(5)
-	dbErr := errors.New("Some database err")
+	dbErr := errors.New("Some database err\n")
 
 	mockRepo.
 		EXPECT().
@@ -178,7 +178,7 @@ func TestAlbumUsecase_GetByArtistID(t *testing.T) {
 	mockRepo := mock_album.NewMockAlbumRep(ctrl)
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
-	artist_id := uint64(0)
+	artistId := uint64(0)
 
 	expectedAlbum1 := &models.Album{
 		ID:         1,
@@ -200,10 +200,10 @@ func TestAlbumUsecase_GetByArtistID(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByArtistID(gomock.Eq(artist_id)).
+		SelectByArtistID(gomock.Eq(artistId)).
 		Return(expectedAlbums, nil)
 
-	album, err := mockUsecase.GetByArtistID(artist_id)
+	album, err := mockUsecase.GetByArtistID(artistId)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, album, expectedAlbums)
 }
@@ -215,14 +215,14 @@ func TestAlbumUsecase_GetByArtistID_Failed(t *testing.T) {
 	mockRepo := mock_album.NewMockAlbumRep(ctrl)
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
-	artist_id := uint64(5)
+	artistId := uint64(5)
 
 	mockRepo.
 		EXPECT().
-		SelectByArtistID(gomock.Eq(artist_id)).
+		SelectByArtistID(gomock.Eq(artistId)).
 		Return(nil, sql.ErrNoRows)
 
-	album, err := mockUsecase.GetByArtistID(artist_id)
+	album, err := mockUsecase.GetByArtistID(artistId)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, album, nil)
 }
@@ -234,15 +234,15 @@ func TestAlbumUsecase_GetByArtistID_Failed_Internal(t *testing.T) {
 	mockRepo := mock_album.NewMockAlbumRep(ctrl)
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
-	artist_id := uint64(5)
-	dbErr := errors.New("Some database err")
+	artistId := uint64(5)
+	dbErr := errors.New("Some database err\n")
 
 	mockRepo.
 		EXPECT().
-		SelectByArtistID(gomock.Eq(artist_id)).
+		SelectByArtistID(gomock.Eq(artistId)).
 		Return(nil, dbErr)
 
-	album, err := mockUsecase.GetByArtistID(artist_id)
+	album, err := mockUsecase.GetByArtistID(artistId)
 	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
 	assert.Equal(t, album, nil)
 }
@@ -291,7 +291,7 @@ func TestAlbumUsecase_UpdateAlbum_Internal(t *testing.T) {
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
 	album := &models.Album{}
-	dbErr := errors.New("Some database err")
+	dbErr := errors.New("Some database err\n")
 
 	mockRepo.
 		EXPECT().
@@ -346,7 +346,7 @@ func TestAlbumUsecase_UpdateAlbumPoster_Internal(t *testing.T) {
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
 	album := &models.Album{}
-	dbErr := errors.New("Some database err")
+	dbErr := errors.New("Some database err\n")
 
 	mockRepo.
 		EXPECT().
@@ -421,7 +421,7 @@ func TestAlbumUsecase_GetByParams_Failed_Internal(t *testing.T) {
 	mockUsecase := usecase.NewAlbumUsecase(mockRepo)
 
 	count, from := uint64(2), uint64(0)
-	dbErr := errors.New("Some database err")
+	dbErr := errors.New("Some database err\n")
 
 	mockRepo.
 		EXPECT().
