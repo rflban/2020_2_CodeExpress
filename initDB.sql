@@ -3,9 +3,9 @@ DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_t
 CREATE TABLE artists (
     id serial NOT NULL PRIMARY KEY,
     name varchar(100) NOT NULL UNIQUE,
-    description text, --TODO: NOT NULL? везде так
-    poster varchar(100) DEFAULT '',
-    avatar varchar(100) DEFAULT ''
+    description text NOT NULL DEFAULT '',
+    poster varchar(100) NOT NULL DEFAULT '',
+    avatar varchar(100) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE users (
@@ -75,6 +75,8 @@ $emp_stamp$ LANGUAGE plpgsql;
 
 CREATE TRIGGER emp_stamp BEFORE INSERT ON tracks
     FOR EACH ROW EXECUTE PROCEDURE count_index();
+
+CREATE INDEX IF NOT EXISTS albums_title_index ON albums (title);
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO meuser;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO meuser;
