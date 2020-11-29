@@ -1,11 +1,12 @@
-package usecase
+package usecase_test
 
 import (
 	"database/sql"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
-	mock_user "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/user_mock"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/mock_user"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/usecase"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -16,7 +17,7 @@ func TestUserUsecase_CreateUser_Passed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	user := &models.User{
 		Name:     "Username",
@@ -49,7 +50,7 @@ func TestUserUsecase_CreateUser_FailedName(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	user := &models.User{
 		Name:     "Username",
@@ -79,7 +80,7 @@ func TestUserUsecase_CreateUser_FailedEmail(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	user := &models.User{
 		Name:     "Username",
@@ -109,7 +110,7 @@ func TestUserUsecase_GetById_Passed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	expectedUser := &models.User{
 		ID:       1,
@@ -133,7 +134,7 @@ func TestUserUsecase_GetById_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	mockRepo.
 		EXPECT().
@@ -145,12 +146,104 @@ func TestUserUsecase_GetById_Failed(t *testing.T) {
 	assert.Nil(t, user)
 }
 
+func TestUserUsecase_LoginUser_Passed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	expectedUser := &models.User{
+		ID:       1,
+		Name:     "Username",
+		Email:    "email@mail.ru",
+		Password: "qwertyuiop123",
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectByLogin(gomock.Eq(expectedUser.Name)).
+		Return(expectedUser, nil)
+
+	mockRepo.
+		EXPECT().
+		SelectByLogin(gomock.Eq(expectedUser.Email)).
+		Return(expectedUser, nil)
+
+	user, err := mockUsecase.GetUserByLogin(expectedUser.Name, "qwertyuiop123") //TODO: копипаст кода? Сделать TestCase?
+	assert.Nil(t, err)
+	assert.Equal(t, user, expectedUser)
+
+	user, err = mockUsecase.GetUserByLogin(expectedUser.Email, "qwertyuiop123")
+	assert.Nil(t, err)
+	assert.Equal(t, user, expectedUser)
+}
+
+func TestUserUsecase_LoginUser_Failed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	mockRepo.
+		EXPECT().
+		SelectByLogin(gomock.Eq("Username")).
+		Return(nil, sql.ErrNoRows)
+
+	mockRepo.
+		EXPECT().
+		SelectByLogin(gomock.Eq("email@mail.ru")).
+		Return(nil, sql.ErrNoRows)
+
+	user, err := mockUsecase.GetUserByLogin("Username", "qwertyuiop123")
+	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
+	assert.Nil(t, user)
+
+	user, err = mockUsecase.GetUserByLogin("email@mail.ru", "qwertyuiop123")
+	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
+	assert.Nil(t, user)
+}
+
+func TestUserUsecase_LoginUser_FailedPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	expectedUser := &models.User{
+		ID:       1,
+		Name:     "Username",
+		Email:    "email@mail.ru",
+		Password: "qwertyuiop123",
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectByLogin(gomock.Eq(expectedUser.Name)).
+		Return(expectedUser, nil)
+
+	mockRepo.
+		EXPECT().
+		SelectByLogin(gomock.Eq(expectedUser.Email)).
+		Return(expectedUser, nil)
+
+	user, err := mockUsecase.GetUserByLogin(expectedUser.Name, "qwertyuiop")
+	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
+	assert.Nil(t, user)
+
+	user, err = mockUsecase.GetUserByLogin(expectedUser.Email, "qwertyuiop")
+	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
+	assert.Nil(t, user)
+}
+
 func TestUserUsecase_UpdateProfile_Passed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	user := &models.User{
 		ID:    1,
@@ -182,7 +275,7 @@ func TestUserUsecase_UpdateProfile_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	updatedUser := &models.User{
 		ID:    1,
@@ -234,7 +327,7 @@ func TestUserUsecase_UpdatePassword_Passed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	user := &models.User{
 		ID:       1,
@@ -258,6 +351,7 @@ func TestUserUsecase_UpdatePassword_Passed(t *testing.T) {
 
 	err := mockUsecase.UpdatePassword(updatedUser.ID, user.Password, updatedUser.Password)
 	assert.Nil(t, err)
+	//assert.Equal(t, resultUser, updatedUser)
 }
 
 func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
@@ -265,7 +359,7 @@ func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
 
 	user := &models.User{
 		ID:       1,
@@ -287,36 +381,4 @@ func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
 
 	err = mockUsecase.UpdatePassword(user.ID, "qwertyuiop123", user.Password)
 	assert.Equal(t, err, NewErrorResponse(ErrWrongOldPassword, nil))
-}
-
-func TestUserUsecase_UpdateAvatar_Failed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
-
-	user := &models.User{
-		ID:     1,
-		Avatar: "avatar1.png",
-	}
-
-	expectedUser := &models.User{
-		ID:     1,
-		Avatar: "avatar2.webp",
-	}
-
-	mockRepo.
-		EXPECT().
-		SelectById(gomock.Eq(user.ID)).
-		Return(user, nil)
-
-	mockRepo.
-		EXPECT().
-		Update(gomock.Eq(expectedUser)).
-		Return(nil)
-
-	resultUser, err := mockUsecase.UpdateAvatar(user.ID, expectedUser.Avatar)
-	assert.Nil(t, err)
-	assert.Equal(t, user, resultUser)
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/validator"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,14 +33,14 @@ func NewUserHandler(userUsecase user.UserUsecase, sessionUsecase session.Session
 }
 
 func (uh *UserHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
-	e.POST("/api/v1/user", uh.handlerRegisterUser())
-	e.GET("/api/v1/user", uh.handlerCurrentUserInfo(), mm.CheckAuth)
-	e.PUT("/api/v1/user/profile", uh.handlerUpdateProfile(), mm.CheckCSRF, mm.CheckAuth)
-	e.PUT("/api/v1/user/password", uh.handlerUpdatePassword(), mm.CheckCSRF, mm.CheckAuth)
-	e.PUT("/api/v1/user/photo", uh.handlerUpdateAvatar(), mm.CheckCSRF, mm.CheckAuth, middleware.BodyLimit("10M"))
+	e.POST("/api/v1/user", uh.HandlerRegisterUser())
+	e.GET("/api/v1/user", uh.HandlerCurrentUserInfo())
+	e.PUT("/api/v1/user/profile", uh.HandlerUpdateProfile(), mm.CheckCSRF)
+	e.PUT("/api/v1/user/password", uh.HandlerUpdatePassword(), mm.CheckCSRF)
+	e.PUT("/api/v1/user/photo", uh.HandlerUpdateAvatar(), mm.CheckCSRF)
 }
 
-func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
+func (uh *UserHandler) HandlerRegisterUser() echo.HandlerFunc {
 	type Request struct {
 		Name             string `json:"username" validate:"required"`
 		Email            string `json:"email" validate:"required,email"`
@@ -84,7 +83,7 @@ func (uh *UserHandler) handlerRegisterUser() echo.HandlerFunc {
 	}
 }
 
-func (uh *UserHandler) handlerCurrentUserInfo() echo.HandlerFunc {
+func (uh *UserHandler) HandlerCurrentUserInfo() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		user_id := ctx.Get(ConstAuthedUserParam)
 
@@ -97,7 +96,7 @@ func (uh *UserHandler) handlerCurrentUserInfo() echo.HandlerFunc {
 	}
 }
 
-func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
+func (uh *UserHandler) HandlerUpdateProfile() echo.HandlerFunc {
 	type Request struct {
 		Name  string `json:"username" validate:"required"`
 		Email string `json:"email" validate:"required,email"`
@@ -124,7 +123,7 @@ func (uh *UserHandler) handlerUpdateProfile() echo.HandlerFunc {
 	}
 }
 
-func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
+func (uh *UserHandler) HandlerUpdatePassword() echo.HandlerFunc {
 	type Request struct {
 		OldPassword      string `json:"old_password" validate:"required"`
 		Password         string `json:"password" validate:"required,gte=8"`
@@ -152,7 +151,7 @@ func (uh *UserHandler) handlerUpdatePassword() echo.HandlerFunc {
 	}
 }
 
-func (uh *UserHandler) handlerUpdateAvatar() echo.HandlerFunc {
+func (uh *UserHandler) HandlerUpdateAvatar() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		user_id := ctx.Get(ConstAuthedUserParam)
 
