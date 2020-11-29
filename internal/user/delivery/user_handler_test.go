@@ -179,11 +179,6 @@ func TestUserDelivery_HandlerCurrentUserInfo(t *testing.T) {
 		GetById(session.UserID).
 		Return(expectedUser, nil)
 
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
 	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
 	e := echo.New()
 	userHandler.Configure(e, nil)
@@ -199,6 +194,7 @@ func TestUserDelivery_HandlerCurrentUserInfo(t *testing.T) {
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
 
 	handler := userHandler.HandlerCurrentUserInfo()
 	err = handler(ctx)
@@ -254,11 +250,6 @@ func TestUserDelivery_HandlerUpdateProfile(t *testing.T) {
 		UpdateProfile(session.UserID, name, email).
 		Return(expectedUser, nil)
 
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
 	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
 	e := echo.New()
 	userHandler.Configure(e, nil)
@@ -274,6 +265,7 @@ func TestUserDelivery_HandlerUpdateProfile(t *testing.T) {
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
 
 	handler := userHandler.HandlerUpdateProfile()
 	err = handler(ctx)
@@ -369,11 +361,6 @@ func TestUserDelivery_HandlerUpdatePassword(t *testing.T) {
 		UpdatePassword(session.UserID, password, newPassword).
 		Return(nil)
 
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
 	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
 	e := echo.New()
 	userHandler.Configure(e, nil)
@@ -386,6 +373,7 @@ func TestUserDelivery_HandlerUpdatePassword(t *testing.T) {
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
 
 	handler := userHandler.HandlerUpdatePassword()
 	err = handler(ctx)
@@ -488,11 +476,6 @@ func TestUserDelivery_HandlerUpdateAvatar(t *testing.T) {
 		GetById(session.UserID).
 		Return(expectedUser, nil)
 
-	sessionMockUsecase.
-		EXPECT().
-		GetByID(cookieValue).
-		Return(session, nil)
-
 	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
 	e := echo.New()
 	userHandler.Configure(e, nil)
@@ -505,6 +488,7 @@ func TestUserDelivery_HandlerUpdateAvatar(t *testing.T) {
 	req.AddCookie(builder.BuildCookie(session))
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
 
 	handler := userHandler.HandlerUpdateAvatar()
 	err = handler(ctx)
