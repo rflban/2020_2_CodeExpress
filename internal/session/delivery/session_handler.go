@@ -30,11 +30,11 @@ func NewSessionHandler(sessionUsecase session.SessionUsecase, userUsecase user.U
 }
 
 func (sh *SessionHandler) Configure(e *echo.Echo) {
-	e.POST("/api/v1/session", sh.handlerLogin())
-	e.DELETE("/api/v1/session", sh.handlerLogout())
+	e.POST("/api/v1/session", sh.HandlerLogin())
+	e.DELETE("/api/v1/session", sh.HandlerLogout())
 }
 
-func (sh *SessionHandler) handlerLogin() echo.HandlerFunc {
+func (sh *SessionHandler) HandlerLogin() echo.HandlerFunc {
 	type Request struct {
 		Login    string `json:"login" validate:"required"`
 		Password string `json:"password" validate:"required"`
@@ -78,7 +78,7 @@ func (sh *SessionHandler) handlerLogin() echo.HandlerFunc {
 	}
 }
 
-func (sh *SessionHandler) handlerLogout() echo.HandlerFunc {
+func (sh *SessionHandler) HandlerLogout() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie(ConstSessionName)
 
