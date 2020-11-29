@@ -28,6 +28,10 @@ import (
 	albumRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/repository"
 	albumUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/usecase"
 
+	playlistDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/playlist/delivery"
+	playlistRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/playlist/repository"
+	playlistUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/playlist/usecase"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/config"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/labstack/echo/v4"
@@ -73,18 +77,21 @@ func main() {
 	artistRep := artistRepository.NewArtistRep(dbConn)
 	trackRep := trackRepository.NewTrackRep(dbConn)
 	albumRep := albumRepository.NewAlbumRep(dbConn)
+	playlistRep := playlistRepository.NewPlaylistRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
 	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
 	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
 	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
+	playlistUsecase := playlistUsecase.NewPlaylistUsecase(playlistRep)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
 	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase)
+	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase)
 
 	e := echo.New()
 	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase)
@@ -95,12 +102,14 @@ func main() {
 	e.Static("/track_audio", "track_audio")
 	e.Static("/album_posters", "album_posters")
 	e.Static("/artist_avatars", "artist_avatars")
+	e.Static("/playlist_posters", "playlist_posters")
 
 	userHandler.Configure(e, mm)
 	sessionHandler.Configure(e)
 	artistHandler.Configure(e, mm)
 	trackHandler.Configure(e, mm)
 	albumHandler.Configure(e, mm)
+	playlistHandler.Configure(e, mm)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

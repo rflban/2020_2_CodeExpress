@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"database/sql"
+
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
@@ -189,4 +190,18 @@ func (aUc *TrackUsecase) DeleteFromFavourites(userID uint64, trackID uint64) *Er
 	}
 
 	return nil
+}
+
+func (aUc *TrackUsecase) GetByPlaylistID(playlistID uint64) ([]*models.Track, *ErrorResponse) {
+	tracks, err := aUc.trackRep.SelectByPlaylistID(playlistID)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	return tracks, nil
 }

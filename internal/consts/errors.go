@@ -21,6 +21,7 @@ const (
 	ErrTrackNotExist
 	ErrAlbumNotExist
 	ErrNoFavoritesTracks
+	ErrPlaylistNotExist
 )
 
 var Errors = map[int]error{
@@ -39,6 +40,7 @@ var Errors = map[int]error{
 	ErrTrackNotExist:            errors.New("Трек не найден"),                      //Track not found
 	ErrAlbumNotExist:            errors.New("Альбом не найден"),                    //Album not found
 	ErrNoFavoritesTracks:        errors.New("У пользователя нет избранных треков"), //User has no favorite tracks
+	ErrPlaylistNotExist:         errors.New("Плейлист не найден"),
 }
 
 var StatusCodes = map[int]int{
@@ -57,4 +59,5 @@ var StatusCodes = map[int]int{
 	ErrTrackNotExist:            http.StatusNotFound,
 	ErrAlbumNotExist:            http.StatusNotFound,
 	ErrNoFavoritesTracks:        http.StatusNotFound,
+	ErrPlaylistNotExist:         http.StatusNotFound,
 }
