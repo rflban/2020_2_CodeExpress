@@ -5,8 +5,6 @@ import (
 	"strconv"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
@@ -22,16 +20,12 @@ import (
 )
 
 type TrackHandler struct {
-	trackUsecase   track.TrackUsecase
-	sessionUsecase session.SessionUsecase
-	userUsecase    user.UserUsecase
+	trackUsecase track.TrackUsecase
 }
 
-func NewTrackHandler(trackUsecase track.TrackUsecase, sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *TrackHandler {
+func NewTrackHandler(trackUsecase track.TrackUsecase) *TrackHandler {
 	return &TrackHandler{
-		trackUsecase:   trackUsecase,
-		sessionUsecase: sessionUsecase,
-		userUsecase:    userUsecase,
+		trackUsecase: trackUsecase,
 	}
 }
 
@@ -42,31 +36,14 @@ func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
 	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"), mm.CheckCSRF)
 	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
-	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser())
-	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckCSRF)
-	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckCSRF)
+	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser(), mm.CheckAuth)
+	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckCSRF, mm.CheckAuth)
+	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckCSRF, mm.CheckAuth)
 }
 
 func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		cookie, err := ctx.Cookie(ConstSessionName)
-
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
-
-		userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
-
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		_, errNoUser := ah.userUsecase.GetById(userSession.UserID)
-
-		if errNoUser != nil {
-			return RespondWithError(errNoUser, ctx)
-		}
+		user_id := ctx.Get(ConstAuthedUserParam)
 
 		id, err := strconv.Atoi(ctx.Param("id"))
 
@@ -74,7 +51,7 @@ func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		if err := ah.trackUsecase.DeleteFromFavourites(userSession.UserID, uint64(id)); err != nil {
+		if err := ah.trackUsecase.DeleteFromFavourites(user_id.(uint64), uint64(id)); err != nil {
 			return RespondWithError(err, ctx)
 		}
 
@@ -84,24 +61,7 @@ func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {
 
 func (ah *TrackHandler) HandlerAddToUsersFavourites() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		cookie, err := ctx.Cookie(ConstSessionName)
-
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
-
-		userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
-
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		_, errNoUser := ah.userUsecase.GetById(userSession.UserID)
-
-		if errNoUser != nil {
-			return RespondWithError(errNoUser, ctx)
-		}
+		user_id := ctx.Get(ConstAuthedUserParam)
 
 		id, err := strconv.Atoi(ctx.Param("id"))
 
@@ -109,7 +69,7 @@ func (ah *TrackHandler) HandlerAddToUsersFavourites() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		if err := ah.trackUsecase.AddToFavourites(userSession.UserID, uint64(id)); err != nil {
+		if err := ah.trackUsecase.AddToFavourites(user_id.(uint64), uint64(id)); err != nil {
 			return RespondWithError(err, ctx)
 		}
 
@@ -119,26 +79,9 @@ func (ah *TrackHandler) HandlerAddToUsersFavourites() echo.HandlerFunc {
 
 func (ah *TrackHandler) HandlerFavouritesByUser() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		cookie, err := ctx.Cookie(ConstSessionName)
+		user_id := ctx.Get(ConstAuthedUserParam)
 
-		if err != nil {
-			errResp := NewErrorResponse(ErrNotAuthorized, err)
-			return RespondWithError(errResp, ctx)
-		}
-
-		userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
-
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		_, errNoUser := ah.userUsecase.GetById(userSession.UserID)
-
-		if errNoUser != nil {
-			return RespondWithError(errNoUser, ctx)
-		}
-
-		tracks, errResp := ah.trackUsecase.GetFavoritesByUserID(userSession.UserID)
+		tracks, errResp := ah.trackUsecase.GetFavoritesByUserID(user_id.(uint64))
 
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
