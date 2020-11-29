@@ -1,6 +1,10 @@
 package consts
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/pion/webrtc/v3"
+)
 
 const (
 	ConstSessionName      = "code_express_session_id"
@@ -12,7 +16,6 @@ const (
 
 var ConstAllowedOrigins = []string{
 	"https://musicexpress.sarafa2n.ru",
-	"localhost",
 }
 
 var ConstAllowedMethods = []string{
@@ -33,4 +36,12 @@ var ConstAllowedHeaders = []string{
 
 var ConstAllowedExpose = []string{
 	ConstCSRFTokenName,
+}
+
+var ConstPeerConnectionConfig = webrtc.Configuration{
+	ICEServers: []webrtc.ICEServer{
+		{
+			URLs: []string{"stun:stun.l.google.com:19302"},
+		},
+	},
 }

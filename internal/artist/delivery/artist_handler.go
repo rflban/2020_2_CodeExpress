@@ -269,7 +269,7 @@ func (ah *ArtistHandler) HandlerUploadArtistPhoto() echo.HandlerFunc {
 
 func (ah *ArtistHandler) HandlerArtistOfTheDay() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		id := time.Now().Weekday()
+		id := time.Now().Weekday() + 1
 
 		artist, errResp := ah.artistUsecase.GetByID(uint64(id))
 

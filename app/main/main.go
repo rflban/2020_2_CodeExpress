@@ -44,6 +44,9 @@ import (
 	searchRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search/repository"
 	searchUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search/usecase"
 
+	notificationDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/notification/delivery"
+	notificationUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/notification/usecase"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/config"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 	"github.com/labstack/echo/v4"
@@ -118,6 +121,7 @@ func main() {
 	defer trackGRPCConn.Close()
 	trackGRPC := proto_track.NewTrackServiceClient(trackGRPCConn)
 	trackUsecase := trackUsecase.NewTrackUsecase(trackGRPC)
+	notificationUsecase := notificationUsecase.NewNotificationUsecase()
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
@@ -126,6 +130,7 @@ func main() {
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase, sessionUsecase, userUsecase)
 	searchHandler := searchDelivery.NewSearchHandler(searchUsecase, sessionUsecase, userUsecase)
 	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase, userUsecase, sessionUsecase)
+	notificationHandler := notificationDelivery.NewNotificationDelivery(notificationUsecase, trackUsecase)
 
 	e := echo.New()
 	monitoring := monitoring.NewMonitoring(e)
@@ -146,6 +151,7 @@ func main() {
 	albumHandler.Configure(e, mm)
 	playlistHandler.Configure(e, mm)
 	searchHandler.Configure(e)
+	notificationHandler.Configure(e, mm)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

@@ -10,6 +10,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
+	github.com/gorilla/websocket v1.4.2
 	github.com/jinzhu/copier v0.0.0-20201025035756-632e723a6687
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/lib/pq v1.8.0
@@ -17,6 +18,8 @@ require (
 	github.com/mailru/easyjson v0.7.6
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/pion/rtcp v1.2.4
+	github.com/pion/webrtc/v3 v3.0.0-beta.14
 	github.com/prometheus/client_golang v0.8.0
 	github.com/prometheus/common v0.0.0-20180801064454-c7de2306084e // indirect
 	github.com/prometheus/procfs v0.0.0-20180725123919-05ee40e3a273 // indirect
