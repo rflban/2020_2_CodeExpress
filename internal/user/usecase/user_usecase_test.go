@@ -145,98 +145,6 @@ func TestUserUsecase_GetById_Failed(t *testing.T) {
 	assert.Nil(t, user)
 }
 
-func TestUserUsecase_LoginUser_Passed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
-
-	expectedUser := &models.User{
-		ID:       1,
-		Name:     "Username",
-		Email:    "email@mail.ru",
-		Password: "qwertyuiop123",
-	}
-
-	mockRepo.
-		EXPECT().
-		SelectByLogin(gomock.Eq(expectedUser.Name)).
-		Return(expectedUser, nil)
-
-	mockRepo.
-		EXPECT().
-		SelectByLogin(gomock.Eq(expectedUser.Email)).
-		Return(expectedUser, nil)
-
-	user, err := mockUsecase.Login(expectedUser.Name, "qwertyuiop123") //TODO: копипаст кода? Сделать TestCase?
-	assert.Nil(t, err)
-	assert.Equal(t, user, expectedUser)
-
-	user, err = mockUsecase.Login(expectedUser.Email, "qwertyuiop123")
-	assert.Nil(t, err)
-	assert.Equal(t, user, expectedUser)
-}
-
-func TestUserUsecase_LoginUser_Failed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
-
-	mockRepo.
-		EXPECT().
-		SelectByLogin(gomock.Eq("Username")).
-		Return(nil, sql.ErrNoRows)
-
-	mockRepo.
-		EXPECT().
-		SelectByLogin(gomock.Eq("email@mail.ru")).
-		Return(nil, sql.ErrNoRows)
-
-	user, err := mockUsecase.Login("Username", "qwertyuiop123")
-	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
-	assert.Nil(t, user)
-
-	user, err = mockUsecase.Login("email@mail.ru", "qwertyuiop123")
-	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
-	assert.Nil(t, user)
-}
-
-func TestUserUsecase_LoginUser_FailedPassword(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_user.NewMockUserRep(ctrl)
-	mockUsecase := NewUserUsecase(mockRepo)
-
-	expectedUser := &models.User{
-		ID:       1,
-		Name:     "Username",
-		Email:    "email@mail.ru",
-		Password: "qwertyuiop123",
-	}
-
-	mockRepo.
-		EXPECT().
-		SelectByLogin(gomock.Eq(expectedUser.Name)).
-		Return(expectedUser, nil)
-
-	mockRepo.
-		EXPECT().
-		SelectByLogin(gomock.Eq(expectedUser.Email)).
-		Return(expectedUser, nil)
-
-	user, err := mockUsecase.Login(expectedUser.Name, "qwertyuiop")
-	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
-	assert.Nil(t, user)
-
-	user, err = mockUsecase.Login(expectedUser.Email, "qwertyuiop")
-	assert.Equal(t, err, NewErrorResponse(ErrIncorrectLoginOrPassword, nil))
-	assert.Nil(t, user)
-}
-
 func TestUserUsecase_UpdateProfile_Passed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -348,9 +256,8 @@ func TestUserUsecase_UpdatePassword_Passed(t *testing.T) {
 		Update(gomock.Eq(user)).
 		Return(nil)
 
-	resultUser, err := mockUsecase.UpdatePassword(updatedUser.ID, user.Password, updatedUser.Password)
+	err := mockUsecase.UpdatePassword(updatedUser.ID, user.Password, updatedUser.Password)
 	assert.Nil(t, err)
-	assert.Equal(t, resultUser, updatedUser)
 }
 
 func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
@@ -370,16 +277,46 @@ func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
 		SelectById(gomock.Eq(user.ID)).
 		Return(user, nil)
 
-	updatedUser, err := mockUsecase.UpdatePassword(user.ID, user.Password, user.Password)
+	err := mockUsecase.UpdatePassword(user.ID, user.Password, user.Password)
 	assert.Equal(t, err, NewErrorResponse(ErrNewPasswordIsOld, nil))
-	assert.Nil(t, updatedUser)
 
 	mockRepo.
 		EXPECT().
 		SelectById(gomock.Eq(user.ID)).
 		Return(user, nil)
 
-	updatedUser, err = mockUsecase.UpdatePassword(user.ID, "qwertyuiop123", user.Password)
+	err = mockUsecase.UpdatePassword(user.ID, "qwertyuiop123", user.Password)
 	assert.Equal(t, err, NewErrorResponse(ErrWrongOldPassword, nil))
-	assert.Nil(t, updatedUser)
+}
+
+func TestUserUsecase_UpdateAvatar_Failed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := NewUserUsecase(mockRepo)
+
+	user := &models.User{
+		ID:     1,
+		Avatar: "avatar1.png",
+	}
+
+	expectedUser := &models.User{
+		ID:     1,
+		Avatar: "avatar2.webp",
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectById(gomock.Eq(user.ID)).
+		Return(user, nil)
+
+	mockRepo.
+		EXPECT().
+		Update(gomock.Eq(expectedUser)).
+		Return(nil)
+
+	resultUser, err := mockUsecase.UpdateAvatar(user.ID, expectedUser.Avatar)
+	assert.Nil(t, err)
+	assert.Equal(t, user, resultUser)
 }

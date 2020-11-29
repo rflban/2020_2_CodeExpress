@@ -20,27 +20,25 @@ const (
 	ErrArtistNotExist
 	ErrTrackNotExist
 	ErrAlbumNotExist
-	ErrTitleAlreadyExist
 	ErrNoFavoritesTracks
 )
 
 var Errors = map[int]error{
-	ErrInternal:                 errors.New("Internal server error"),
-	ErrBadRequest:               errors.New("Bad request received"),
-	ErrEmailAlreadyExist:        errors.New("Email already exists"),
-	ErrNameAlreadyExist:         errors.New("Name already exists"),
-	ErrIncorrectLoginOrPassword: errors.New("Incorrect login or password"),
-	ErrNotAuthorized:            errors.New("Not authorized"),
-	ErrNoEmail:                  errors.New("No email field"),
-	ErrNoUsername:               errors.New("No username field"),
-	ErrNoAvatar:                 errors.New("No avatar field"),
-	ErrWrongOldPassword:         errors.New("Wrong old password"),
-	ErrNewPasswordIsOld:         errors.New("New password matches old"),
-	ErrArtistNotExist:           errors.New("Artist not found"),
-	ErrTrackNotExist:            errors.New("Track not found"),
-	ErrAlbumNotExist:            errors.New("Album not found"),
-	ErrTitleAlreadyExist:        errors.New("Title already exists"),
-	ErrNoFavoritesTracks:        errors.New("User has no favorite tracks"),
+	ErrInternal:                 errors.New("Внутренняя ошибка сервера"),           //Internal server error
+	ErrBadRequest:               errors.New("Некорректный запрос"),                 //Bad request received
+	ErrEmailAlreadyExist:        errors.New("Email уже существует"),                //Email already exists
+	ErrNameAlreadyExist:         errors.New("Имя пользователя уже существует"),     //Name already exists
+	ErrIncorrectLoginOrPassword: errors.New("Неверный логин или пароль"),           //Incorrect login or password
+	ErrNotAuthorized:            errors.New("Не авторизован"),                      //Not authorized
+	ErrNoEmail:                  errors.New("Не заполнено поле Email"),             //No email field
+	ErrNoUsername:               errors.New("Не заполнено поле Имя пользователя"),  //No username field
+	ErrNoAvatar:                 errors.New("Не заполнено поле Аватар"),            //No avatar field
+	ErrWrongOldPassword:         errors.New("Неверный старый пароль"),              //Wrong old password
+	ErrNewPasswordIsOld:         errors.New("Новый пароль совпадает со старым"),    //New password matches old
+	ErrArtistNotExist:           errors.New("Артист не найден"),                    //Artist not found
+	ErrTrackNotExist:            errors.New("Трек не найден"),                      //Track not found
+	ErrAlbumNotExist:            errors.New("Альбом не найден"),                    //Album not found
+	ErrNoFavoritesTracks:        errors.New("У пользователя нет избранных треков"), //User has no favorite tracks
 }
 
 var StatusCodes = map[int]int{
@@ -58,6 +56,5 @@ var StatusCodes = map[int]int{
 	ErrArtistNotExist:           http.StatusNotFound,
 	ErrTrackNotExist:            http.StatusNotFound,
 	ErrAlbumNotExist:            http.StatusNotFound,
-	ErrTitleAlreadyExist:        http.StatusForbidden,
 	ErrNoFavoritesTracks:        http.StatusNotFound,
 }
