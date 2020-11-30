@@ -4,14 +4,13 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
+	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
-	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
-	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
