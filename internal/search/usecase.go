@@ -6,7 +6,5 @@ import (
 )
 
 type SearchUsecase interface {
-	SearchAlbums(query string, offset uint64, limit uint64) ([]*models.Album, *ErrorResponse)
-	SearchArtists(query string, offset uint64, limit uint64) ([]*models.Artist, *ErrorResponse)
-	SearchTracks(query string, offset uint64, limit uint64) ([]*models.Track, *ErrorResponse)
+	Search(query string, offset uint64, limit uint64) (*models.Search, *ErrorResponse)
 }

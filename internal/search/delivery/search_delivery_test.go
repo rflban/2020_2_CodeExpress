@@ -70,18 +70,8 @@ func TestSearchDelivery_HandlerSearch_Passed(t *testing.T) {
 
 	searchMockUsecase.
 		EXPECT().
-		SearchAlbums(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit)).
-		Return(expectedSearch.Albums, nil)
-
-	searchMockUsecase.
-		EXPECT().
-		SearchArtists(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit)).
-		Return(expectedSearch.Artists, nil)
-
-	searchMockUsecase.
-		EXPECT().
-		SearchTracks(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit)).
-		Return(expectedSearch.Tracks, nil)
+		Search(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit)).
+		Return(expectedSearch, nil)
 
 	jsonExpectedSearch, err := json.Marshal(expectedSearch)
 	assert.Nil(t, err)
@@ -107,4 +97,31 @@ func TestSearchDelivery_HandlerSearch_Passed(t *testing.T) {
 	responseBody, err := ioutil.ReadAll(responseWriter.Body)
 	assert.Nil(t, err)
 	assert.Equal(t, responseBody[:len(responseBody)-1], jsonExpectedSearch)
+}
+
+func TestSearchDelivery_HandlerSearch_Failed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	searchMockUsecase := mock_search.NewMockSearchUsecase(ctrl)
+
+	query := "  "
+	var offset, limit uint64 = 0, 10
+
+	searchHandler := NewSearchHandler(searchMockUsecase)
+	e := echo.New()
+	searchHandler.Configure(e)
+
+	param := make(url.Values)
+	param["query"] = []string{query}
+	param["offset"] = []string{strconv.FormatUint(offset, 10)}
+	param["limit"] = []string{strconv.FormatUint(limit, 10)}
+
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/search?"+param.Encode(), nil)
+	responseWriter := httptest.NewRecorder()
+	context := e.NewContext(request, responseWriter)
+
+	handler := searchHandler.HandlerSearch()
+	err := handler(context)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusBadRequest, responseWriter.Code)
 }

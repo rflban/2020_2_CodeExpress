@@ -2,7 +2,6 @@ package delivery
 
 import (
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
@@ -43,20 +42,7 @@ func (sh *SearchHandler) HandlerSearch() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		search := &models.Search{}
-		var errResp *ErrorResponse
-
-		search.Albums, errResp = sh.searchUsecase.SearchAlbums(query, offset, limit)
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		search.Artists, errResp = sh.searchUsecase.SearchArtists(query, offset, limit)
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
-		}
-
-		search.Tracks, errResp = sh.searchUsecase.SearchTracks(query, offset, limit)
+		search, errResp := sh.searchUsecase.Search(query, offset, limit)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}

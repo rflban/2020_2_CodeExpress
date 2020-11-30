@@ -17,29 +17,23 @@ func NewSearchUsecase(searchRep search.SearchRep) *SearchUsecase {
 	}
 }
 
-func (sUc *SearchUsecase) SearchAlbums(query string, offset uint64, limit uint64) ([]*models.Album, *ErrorResponse) {
-	albums, err := sUc.searchRep.SelectAlbums(query, offset, limit)
+func (sUc *SearchUsecase) Search(query string, offset uint64, limit uint64) (*models.Search, *ErrorResponse) {
+	search := &models.Search{}
+	var err error
+	search.Albums, err = sUc.searchRep.SelectAlbums(query, offset, limit)
 	if err != nil {
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
-	return albums, nil
-}
-
-func (sUc *SearchUsecase) SearchArtists(query string, offset uint64, limit uint64) ([]*models.Artist, *ErrorResponse) {
-	artists, err := sUc.searchRep.SelectArtists(query, offset, limit)
+	search.Artists, err = sUc.searchRep.SelectArtists(query, offset, limit)
 	if err != nil {
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
-	return artists, nil
-}
-
-func (sUc *SearchUsecase) SearchTracks(query string, offset uint64, limit uint64) ([]*models.Track, *ErrorResponse) {
-	tracks, err := sUc.searchRep.SelectTracks(query, offset, limit)
+	search.Tracks, err = sUc.searchRep.SelectTracks(query, offset, limit)
 	if err != nil {
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
-	return tracks, nil
+	return search, nil
 }
