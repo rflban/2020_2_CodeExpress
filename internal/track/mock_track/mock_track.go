@@ -5,11 +5,10 @@
 package mock_track
 
 import (
-	reflect "reflect"
-
 	models "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	error_response "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockTrackRep is a mock of TrackRep interface
@@ -106,19 +105,19 @@ func (mr *MockTrackRepMockRecorder) SelectByAlbumID(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByAlbumID", reflect.TypeOf((*MockTrackRep)(nil).SelectByAlbumID), arg0)
 }
 
-// SelectByArtistID mocks base method
-func (m *MockTrackRep) SelectByArtistID(arg0 uint64) ([]*models.Track, error) {
+// SelectByArtistId mocks base method
+func (m *MockTrackRep) SelectByArtistId(arg0, arg1 uint64) ([]*models.Track, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectByArtistID", arg0)
+	ret := m.ctrl.Call(m, "SelectByArtistId", arg0, arg1)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SelectByArtistID indicates an expected call of SelectByArtistID
-func (mr *MockTrackRepMockRecorder) SelectByArtistID(arg0 interface{}) *gomock.Call {
+// SelectByArtistId indicates an expected call of SelectByArtistId
+func (mr *MockTrackRepMockRecorder) SelectByArtistId(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByArtistID", reflect.TypeOf((*MockTrackRep)(nil).SelectByArtistID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByArtistId", reflect.TypeOf((*MockTrackRep)(nil).SelectByArtistId), arg0, arg1)
 }
 
 // SelectByID mocks base method
@@ -136,19 +135,19 @@ func (mr *MockTrackRepMockRecorder) SelectByID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByID", reflect.TypeOf((*MockTrackRep)(nil).SelectByID), arg0)
 }
 
-// SelectByParam mocks base method
-func (m *MockTrackRep) SelectByParam(arg0, arg1 uint64) ([]*models.Track, error) {
+// SelectByParams mocks base method
+func (m *MockTrackRep) SelectByParams(arg0, arg1, arg2 uint64) ([]*models.Track, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectByParam", arg0, arg1)
+	ret := m.ctrl.Call(m, "SelectByParams", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SelectByParam indicates an expected call of SelectByParam
-func (mr *MockTrackRepMockRecorder) SelectByParam(arg0, arg1 interface{}) *gomock.Call {
+// SelectByParams indicates an expected call of SelectByParams
+func (mr *MockTrackRepMockRecorder) SelectByParams(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByParam", reflect.TypeOf((*MockTrackRep)(nil).SelectByParam), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByParams", reflect.TypeOf((*MockTrackRep)(nil).SelectByParams), arg0, arg1, arg2)
 }
 
 // SelectByPlaylistID mocks base method
@@ -303,19 +302,19 @@ func (mr *MockTrackUsecaseMockRecorder) GetByAlbumID(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlbumID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByAlbumID), arg0)
 }
 
-// GetByArtistID mocks base method
-func (m *MockTrackUsecase) GetByArtistID(arg0 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+// GetByArtistId mocks base method
+func (m *MockTrackUsecase) GetByArtistId(arg0, arg1 uint64) ([]*models.Track, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByArtistID", arg0)
+	ret := m.ctrl.Call(m, "GetByArtistId", arg0, arg1)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(*error_response.ErrorResponse)
 	return ret0, ret1
 }
 
-// GetByArtistID indicates an expected call of GetByArtistID
-func (mr *MockTrackUsecaseMockRecorder) GetByArtistID(arg0 interface{}) *gomock.Call {
+// GetByArtistId indicates an expected call of GetByArtistId
+func (mr *MockTrackUsecaseMockRecorder) GetByArtistId(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByArtistID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByArtistID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByArtistId", reflect.TypeOf((*MockTrackUsecase)(nil).GetByArtistId), arg0, arg1)
 }
 
 // GetByID mocks base method
@@ -334,18 +333,18 @@ func (mr *MockTrackUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
 }
 
 // GetByParams mocks base method
-func (m *MockTrackUsecase) GetByParams(arg0, arg1 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+func (m *MockTrackUsecase) GetByParams(arg0, arg1, arg2 uint64) ([]*models.Track, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByParams", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetByParams", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(*error_response.ErrorResponse)
 	return ret0, ret1
 }
 
 // GetByParams indicates an expected call of GetByParams
-func (mr *MockTrackUsecaseMockRecorder) GetByParams(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) GetByParams(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByParams", reflect.TypeOf((*MockTrackUsecase)(nil).GetByParams), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByParams", reflect.TypeOf((*MockTrackUsecase)(nil).GetByParams), arg0, arg1, arg2)
 }
 
 // GetByPlaylistID mocks base method

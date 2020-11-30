@@ -1,6 +1,8 @@
 package delivery
 
 import (
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
 
@@ -20,12 +22,17 @@ import (
 )
 
 type TrackHandler struct {
-	trackUsecase track.TrackUsecase
+	trackUsecase   track.TrackUsecase
+	sessionUsecase session.SessionUsecase
+	userUsecase    user.UserUsecase
 }
 
-func NewTrackHandler(trackUsecase track.TrackUsecase) *TrackHandler {
+func NewTrackHandler(trackUsecase track.TrackUsecase, sessionUsecase session.SessionUsecase,
+	userUsecase user.UserUsecase) *TrackHandler {
 	return &TrackHandler{
-		trackUsecase: trackUsecase,
+		trackUsecase:   trackUsecase,
+		sessionUsecase: sessionUsecase,
+		userUsecase:    userUsecase,
 	}
 }
 
@@ -34,7 +41,8 @@ func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.POST("/api/v1/tracks", ah.HandlerCreateTrack(), mm.CheckCSRF)
 	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack(), mm.CheckCSRF)
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
-	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"), mm.CheckCSRF)
+	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"),
+		mm.CheckCSRF)
 	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
 	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser(), mm.CheckAuth)
 	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckCSRF, mm.CheckAuth)
@@ -99,8 +107,13 @@ func (ah *TrackHandler) HandlerTracksByArtistID() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		tracks, errResp := ah.trackUsecase.GetByArtistID(uint64(id))
-
+		var tracks []*models.Track
+		var errResp *ErrorResponse
+		if user := ah.tryGetUser(ctx); user != nil {
+			tracks, errResp = ah.trackUsecase.GetByArtistId(uint64(id), user.ID)
+		} else {
+			tracks, errResp = ah.trackUsecase.GetByArtistId(uint64(id), 0)
+		}
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -122,8 +135,13 @@ func (ah *TrackHandler) HandlerTracksByParams() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		tracks, errResp := ah.trackUsecase.GetByParams(uint64(count), uint64(from))
-
+		var tracks []*models.Track
+		var errResp *ErrorResponse
+		if user := ah.tryGetUser(ctx); user != nil {
+			tracks, errResp = ah.trackUsecase.GetByParams(uint64(count), uint64(from), user.ID)
+		} else {
+			tracks, errResp = ah.trackUsecase.GetByParams(uint64(count), uint64(from), 0)
+		}
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -254,4 +272,23 @@ func (ah *TrackHandler) HandlerUploadTrackAudio() echo.HandlerFunc {
 
 		return ctx.JSON(http.StatusOK, track)
 	}
+}
+
+func (ah *TrackHandler) tryGetUser(ctx echo.Context) *models.User {
+	cookie, err := ctx.Cookie(ConstSessionName)
+	if err != nil {
+		return nil
+	}
+
+	userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
+	if errResp != nil {
+		return nil
+	}
+
+	user, errNoUser := ah.userUsecase.GetById(userSession.UserID)
+	if errNoUser != nil {
+		return nil
+	}
+
+	return user
 }

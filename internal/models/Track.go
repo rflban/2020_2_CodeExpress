@@ -10,4 +10,5 @@ type Track struct {
 	Audio       string `json:"audio"`
 	Artist      string `json:"artist"`
 	ArtistID    uint64 `json:"artist_id"`
+	IsFavorite  bool   `json:"is_favorite"`
 }

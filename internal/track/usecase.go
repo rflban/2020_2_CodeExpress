@@ -8,10 +8,10 @@ import (
 type TrackUsecase interface {
 	CreateTrack(track *models.Track) *ErrorResponse
 	DeleteTrack(id uint64) *ErrorResponse
-	GetByArtistID(artistID uint64) ([]*models.Track, *ErrorResponse)
+	GetByArtistId(artistId uint64, userId uint64) ([]*models.Track, *ErrorResponse)
 	GetByAlbumID(albumID uint64) ([]*models.Track, *ErrorResponse)
 	GetByID(id uint64) (*models.Track, *ErrorResponse)
-	GetByParams(count uint64, from uint64) ([]*models.Track, *ErrorResponse)
+	GetByParams(count uint64, from uint64, userId uint64) ([]*models.Track, *ErrorResponse)
 	GetFavoritesByUserID(userID uint64) ([]*models.Track, *ErrorResponse)
 	UpdateTrack(track *models.Track) *ErrorResponse
 	UpdateTrackAudio(track *models.Track) *ErrorResponse

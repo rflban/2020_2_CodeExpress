@@ -59,7 +59,7 @@ func TestAlbumDelivery_HandlerCreateTrack(t *testing.T) {
 			return nil
 		})
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -120,7 +120,7 @@ func TestAlbumDelivery_HandlerUpdateTrack(t *testing.T) {
 		UpdateTrack(gomock.Eq(expectedTrack)).
 		Return(nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -153,11 +153,11 @@ func TestAlbumDelivery_HandlerDeleteTrack(t *testing.T) {
 		DeleteTrack(gomock.Eq(id)).
 		Return(nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/tracks/42", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/tracks/42", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
@@ -179,20 +179,24 @@ func TestAlbumDelivery_HandlerTracksByParams(t *testing.T) {
 	count, from := uint64(1), uint64(0)
 
 	expectedTracks := []*models.Track{
-		&models.Track{ID: 0},
-		&models.Track{ID: 1},
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
 	}
 
 	trackMockUsecase.
 		EXPECT().
-		GetByParams(gomock.Eq(count), gomock.Eq(from)).
+		GetByParams(gomock.Eq(count), gomock.Eq(from), uint64(0)).
 		Return(expectedTracks, nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/tracks?count=1&from=0", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/tracks?count=1&from=0", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
@@ -212,20 +216,24 @@ func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
 	id := uint64(42)
 
 	expectedTracks := []*models.Track{
-		&models.Track{ID: 0},
-		&models.Track{ID: 1},
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
 	}
 
 	trackMockUsecase.
 		EXPECT().
-		GetByArtistID(id).
+		GetByArtistId(id, uint64(0)).
 		Return(expectedTracks, nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase)
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/artists/42/tracks", strings.NewReader(string("")))
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/artists/42/tracks", strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
