@@ -90,7 +90,7 @@ func main() {
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
 	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
-	trackHandler := trackDelivery.NewTrackHandler(trackUsecase)
+	trackHandler := trackDelivery.NewTrackHandler(trackUsecase, sessionUsecase, userUsecase)
 	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase)
 
 	e := echo.New()
