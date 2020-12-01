@@ -18,6 +18,10 @@ type Config struct {
 		Host string `json:"host"`
 		Port int    `json:"port"`
 	} `json:"server"`
+	SessionMicroservice struct {
+		Host string `json:"host"`
+		Port int    `json:"port"`
+	} `json:"session_microservice"`
 }
 
 func (c *Config) GetDbConnString() string {
@@ -28,6 +32,10 @@ func (c *Config) GetDbConnString() string {
 
 func (c *Config) GetServerConnString() string {
 	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
+
+func (c *Config) GetSessionMicroserviceConnString() string {
+	return fmt.Sprintf("%s:%d", c.SessionMicroservice.Host, c.SessionMicroservice.Port)
 }
 
 func LoadConfig(configFileName string) (*Config, error) {

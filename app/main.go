@@ -6,6 +6,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
+
+	"google.golang.org/grpc"
+
 	"github.com/sirupsen/logrus"
 
 	userDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/delivery"
@@ -13,7 +17,6 @@ import (
 	userUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/usecase"
 
 	sessionDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/delivery"
-	sessionRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/repository"
 	sessionUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/usecase"
 
 	artistDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/delivery"
@@ -77,7 +80,6 @@ func main() {
 	log.Printf("DB connected on %s", conf.GetDbConnString())
 
 	userRep := userRepository.NewUserRep(dbConn)
-	sessionRep := sessionRepository.NewSessionRep(dbConn)
 	artistRep := artistRepository.NewArtistRep(dbConn)
 	trackRep := trackRepository.NewTrackRep(dbConn)
 	albumRep := albumRepository.NewAlbumRep(dbConn)
@@ -85,12 +87,19 @@ func main() {
 	searchRep := searchRepository.NewSearchRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
-	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
 	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
 	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
 	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
 	playlistUsecase := playlistUsecase.NewPlaylistUsecase(playlistRep)
 	searchUsecase := searchUsecase.NewSearchUsecase(searchRep)
+
+	sessionGRPCConn, err := grpc.Dial(conf.GetSessionMicroserviceConnString(), grpc.WithInsecure())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer sessionGRPCConn.Close()
+	sessionGRPC := proto_session.NewSessionServiceClient(sessionGRPCConn)
+	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionGRPC)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
