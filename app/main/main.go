@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
 
 	"google.golang.org/grpc"
@@ -24,7 +26,6 @@ import (
 	artistUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/usecase"
 
 	trackDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/delivery"
-	trackRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/repository"
 	trackUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/usecase"
 
 	albumDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/delivery"
@@ -81,14 +82,12 @@ func main() {
 
 	userRep := userRepository.NewUserRep(dbConn)
 	artistRep := artistRepository.NewArtistRep(dbConn)
-	trackRep := trackRepository.NewTrackRep(dbConn)
 	albumRep := albumRepository.NewAlbumRep(dbConn)
 	playlistRep := playlistRepository.NewPlaylistRep(dbConn)
 	searchRep := searchRepository.NewSearchRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
 	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
-	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
 	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
 	playlistUsecase := playlistUsecase.NewPlaylistUsecase(playlistRep)
 	searchUsecase := searchUsecase.NewSearchUsecase(searchRep)
@@ -100,6 +99,14 @@ func main() {
 	defer sessionGRPCConn.Close()
 	sessionGRPC := proto_session.NewSessionServiceClient(sessionGRPCConn)
 	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionGRPC)
+
+	trackGRPCConn, err := grpc.Dial(conf.GetTrackMicroserviceConnString(), grpc.WithInsecure())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer trackGRPCConn.Close()
+	trackGRPC := proto_track.NewTrackServiceClient(trackGRPCConn)
+	trackUsecase := trackUsecase.NewTrackUsecase(trackGRPC)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)

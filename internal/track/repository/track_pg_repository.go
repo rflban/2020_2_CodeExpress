@@ -51,7 +51,16 @@ func (ar *TrackRep) Delete(id uint64) error {
 
 func (ar *TrackRep) SelectByID(id uint64) (*models.Track, error) {
 	track := &models.Track{}
-	if err := ar.dbConn.QueryRow("SELECT tracks.id, tracks.album_id, tracks.title, tracks.duration, tracks.index, tracks.audio, albums.poster FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id WHERE tracks.id = $1;",
+	if err := ar.dbConn.QueryRow(`SELECT 
+	tracks.id, 
+	tracks.album_id, 
+	tracks.title, 
+	tracks.duration, 
+	tracks.index, 
+	tracks.audio, 
+	albums.poster, 
+	artists.name, 
+	artists.id FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id WHERE tracks.id = $1`,
 		id).Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
 		&track.AlbumPoster, &track.Artist, &track.ArtistID); err != nil {
 		return nil, err
@@ -60,7 +69,20 @@ func (ar *TrackRep) SelectByID(id uint64) (*models.Track, error) {
 }
 
 func (ar *TrackRep) SelectByArtistId(artistId uint64, userId uint64) ([]*models.Track, error) {
-	rows, err := ar.dbConn.Query("SELECT tracks.id, tracks.album_id, tracks.title, tracks.duration, tracks.index, tracks.audio, albums.poster, artists.id, artists.name, user_track.user_id FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $2 WHERE artists.id = $1;",
+	rows, err := ar.dbConn.Query(`SELECT 
+	tracks.id, 
+	tracks.album_id, 
+	tracks.title, 
+	tracks.duration, 
+	tracks.index, 
+	tracks.audio, 
+	albums.poster, 
+	artists.id, 
+	artists.name, 
+	user_track.user_id FROM tracks 
+	JOIN albums ON tracks.album_id = albums.id 
+	JOIN artists ON albums.artist_id = artists.id 
+	LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $2 WHERE artists.id = $1`,
 		artistId, userId)
 	if err != nil {
 		return nil, err
@@ -131,7 +153,20 @@ func (ar *TrackRep) SelectByAlbumID(albumID uint64) ([]*models.Track, error) {
 }
 
 func (ar *TrackRep) SelectByParams(count uint64, from uint64, userId uint64) ([]*models.Track, error) {
-	rows, err := ar.dbConn.Query("SELECT tracks.id, tracks.album_id, tracks.title, tracks.duration, tracks.index, tracks.audio, albums.poster, artists.id, artists.name, user_track.user_id FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3 ORDER BY tracks.title LIMIT $1 OFFSET $2;",
+	rows, err := ar.dbConn.Query(`SELECT 
+	tracks.id, 
+	tracks.album_id, 
+	tracks.title, 
+	tracks.duration, 
+	tracks.index, 
+	tracks.audio, 
+	albums.poster, 
+	artists.id, 
+	artists.name, 
+	user_track.user_id FROM tracks 
+	JOIN albums ON tracks.album_id = albums.id 
+	JOIN artists ON albums.artist_id = artists.id 
+	LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3 ORDER BY tracks.title LIMIT $1 OFFSET $2`,
 		count, from, userId)
 	if err != nil {
 		return nil, err
@@ -157,7 +192,19 @@ func (ar *TrackRep) SelectByParams(count uint64, from uint64, userId uint64) ([]
 }
 
 func (ar *TrackRep) SelectFavoritesByUserID(userID uint64) ([]*models.Track, error) {
-	rows, err := ar.dbConn.Query("SELECT tracks.id, tracks.album_id, tracks.title, tracks.duration, tracks.index, tracks.audio, albums.poster, artists.id, artists.name FROM user_track JOIN tracks ON user_track.track_id = tracks.id JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id WHERE user_track.user_id = $1;",
+	rows, err := ar.dbConn.Query(`SELECT 
+	tracks.id, 
+	tracks.album_id, 
+	tracks.title, 
+	tracks.duration, 
+	tracks.index, 
+	tracks.audio, 
+	albums.poster, 
+	artists.id, 
+	artists.name FROM user_track 
+	JOIN tracks ON user_track.track_id = tracks.id 
+	JOIN albums ON tracks.album_id = albums.id 
+	JOIN artists ON albums.artist_id = artists.id WHERE user_track.user_id = $1`,
 		userID)
 	if err != nil {
 		return nil, err
