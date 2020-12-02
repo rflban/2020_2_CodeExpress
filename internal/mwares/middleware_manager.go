@@ -2,6 +2,9 @@ package mwares
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
@@ -19,12 +22,15 @@ import (
 type MiddlewareManager struct {
 	sessionUsecase session.SessionUsecase
 	userUsecase    user.UserUsecase
+	monitoring     *monitoring.Monitoring
 }
 
-func NewMiddlewareManager(sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *MiddlewareManager {
+func NewMiddlewareManager(sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase,
+	monitoring *monitoring.Monitoring) *MiddlewareManager {
 	return &MiddlewareManager{
 		sessionUsecase: sessionUsecase,
 		userUsecase:    userUsecase,
+		monitoring:     monitoring,
 	}
 }
 
@@ -34,6 +40,20 @@ func (mm *MiddlewareManager) PanicRecovering(next echo.HandlerFunc) echo.Handler
 			if err := recover(); err != nil {
 				logrus.Warn(err)
 			}
+		}()
+		defer func() error {
+			if err := recover(); err != nil {
+				status := strconv.Itoa(ctx.Response().Status)
+				path := ctx.Request().URL.Path
+				method := ctx.Request().Method
+
+				mm.monitoring.Hits.WithLabelValues(status, path, method).Inc()
+				mm.monitoring.Duration.WithLabelValues(status, path, method).Observe(0)
+
+				logrus.Warn(err)
+				return ctx.JSON(http.StatusInternalServerError, nil)
+			}
+			return nil
 		}()
 
 		return next(ctx)
@@ -48,7 +68,16 @@ func (mm *MiddlewareManager) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 		err := next(ctx)
 		end := time.Now()
 
-		logrus.Info("Status: ", ctx.Response().Status, " Work time: ", end.Sub(start))
+		workTime := end.Sub(start)
+
+		status := strconv.Itoa(ctx.Response().Status)
+		path := ctx.Request().URL.Path
+		method := ctx.Request().Method
+
+		mm.monitoring.Hits.WithLabelValues(status, path, method).Inc()
+		mm.monitoring.Duration.WithLabelValues(status, path, method).Observe(workTime.Seconds())
+
+		logrus.Info("Status: ", ctx.Response().Status, " Work time: ", workTime) //end.Sub(start)
 		logrus.Println()
 
 		return err

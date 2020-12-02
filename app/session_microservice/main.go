@@ -3,15 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/grpc_session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
 	"net"
 	"os"
 
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/grpc_session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
-
-	"google.golang.org/grpc"
-
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 
 	sessionRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/repository"
 
@@ -62,5 +60,6 @@ func main() {
 
 	sessionServer := grpc.NewServer()
 	proto_session.RegisterSessionServiceServer(sessionServer, grpc_session.NewSessionGRPCUsecase(sessionRep))
+
 	logrus.Fatal(sessionServer.Serve(lis))
 }

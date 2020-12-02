@@ -3,14 +3,14 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
 	"log"
 	"os"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/admin/proto_admin"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
-
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
 
 	"google.golang.org/grpc"
 
@@ -126,9 +126,14 @@ func main() {
 	searchHandler := searchDelivery.NewSearchHandler(searchUsecase)
 
 	e := echo.New()
-	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase)
 
+	/*p := prometheus.NewPrometheus("echo", urlSkipper)
+	p.Use(e)*/
+
+	monitoring := monitoring.NewMonitoring(e)
+	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase, monitoring)
 	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS(), mm.XSS())
+
 	e.Static("/avatars", "avatars")
 	e.Static("/artist_posters", "artist_posters")
 	e.Static("/track_audio", "track_audio")
