@@ -23,6 +23,7 @@ const (
 	ErrNoFavoritesTracks
 	ErrPlaylistNotExist
 	ErrEmptySearchQuery
+	ErrNotAdmin
 )
 
 var Errors = map[int]error{
@@ -43,6 +44,7 @@ var Errors = map[int]error{
 	ErrNoFavoritesTracks:        errors.New("У пользователя нет избранных треков"), //User has no favorite tracks
 	ErrPlaylistNotExist:         errors.New("Плейлист не найден"),
 	ErrEmptySearchQuery:         errors.New("Пустой запрос на поиск"),
+	ErrNotAdmin:                 errors.New("Недостаточно прав"),
 }
 
 var StatusCodes = map[int]int{
@@ -63,4 +65,5 @@ var StatusCodes = map[int]int{
 	ErrNoFavoritesTracks:        http.StatusNotFound,
 	ErrPlaylistNotExist:         http.StatusNotFound,
 	ErrEmptySearchQuery:         http.StatusBadRequest,
+	ErrNotAdmin:                 http.StatusUnauthorized,
 }

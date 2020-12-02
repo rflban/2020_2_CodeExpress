@@ -15,37 +15,12 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestArtistUsecase_CreateArtist(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
-
-	artist := &models.Artist{
-		Name: "Imagine Dragons",
-	}
-
-	mockRepo.
-		EXPECT().
-		Insert(gomock.Eq(artist)).
-		Return(nil)
-
-	mockRepo.
-		EXPECT().
-		SelectByName(gomock.Eq(artist.Name)).
-		Return(nil, sql.ErrNoRows)
-
-	err := mockUsecase.CreateArtist(artist)
-	assert.Equal(t, err, nil)
-}
-
 func TestArtistUsecase_GetByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:   1,
@@ -67,7 +42,7 @@ func TestArtistUsecase_GetByID_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:   1,
@@ -89,7 +64,7 @@ func TestArtistUsecase_DeleteArtist(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:   1,
@@ -110,7 +85,7 @@ func TestArtistUsecase_DeleteArtist_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:   1,
@@ -131,7 +106,7 @@ func TestArtistUsecase_UpdateArtistName(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:   1,
@@ -152,7 +127,7 @@ func TestArtistUsecase_UpdateArtistName_FailedUpdate(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:   1,
@@ -173,7 +148,7 @@ func TestArtistUsecase_UpdateArtistPoster(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:     1,
@@ -195,7 +170,7 @@ func TestArtistUsecase_UpdateArtistPoster_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist := &models.Artist{
 		ID:     1,
@@ -217,7 +192,7 @@ func TestArtistUsecase_GetByParams(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	expectedArtist1 := &models.Artist{
 		ID:     1,
@@ -251,7 +226,7 @@ func TestArtistUsecase_GetByParams_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_artist.NewMockArtistRep(ctrl)
-	mockUsecase := usecase.NewArtistUsecase(mockRepo)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
 
 	count := uint64(2)
 	from := uint64(100)

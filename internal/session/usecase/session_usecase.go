@@ -4,6 +4,11 @@ import (
 	"database/sql"
 	"time"
 
+	"golang.org/x/net/context"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/grpc_session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
+
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
@@ -11,17 +16,21 @@ import (
 )
 
 type SessionUsecase struct {
-	sessionRep session.SessionRep
+	sessionGRPC proto_session.SessionServiceClient
 }
 
-func NewSessionUsecase(sessionRep session.SessionRep) session.SessionUsecase {
+func NewSessionUsecase(sessionGRPC proto_session.SessionServiceClient) session.SessionUsecase {
 	return &SessionUsecase{
-		sessionRep: sessionRep,
+		sessionGRPC: sessionGRPC,
 	}
 }
 
 func (sUc *SessionUsecase) GetByID(id string) (*models.Session, *ErrorResponse) {
-	session, err := sUc.sessionRep.SelectById(id)
+	sessionID := &proto_session.SessionID{
+		ID: id,
+	}
+
+	session, err := sUc.sessionGRPC.GetByID(context.Background(), sessionID)
 
 	if err == sql.ErrNoRows {
 		return nil, NewErrorResponse(ErrNotAuthorized, err)
@@ -31,18 +40,18 @@ func (sUc *SessionUsecase) GetByID(id string) (*models.Session, *ErrorResponse) 
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
-	return session, nil
+	return grpc_session.GRPCSessionToSession(session), nil
 }
 
 func (sUc *SessionUsecase) CreateSession(session *models.Session) *ErrorResponse {
-	if err := sUc.sessionRep.Insert(session); err != nil {
+	if _, err := sUc.sessionGRPC.CreateSession(context.Background(), grpc_session.SessionToGRPCSession(session)); err != nil {
 		return NewErrorResponse(ErrInternal, err)
 	}
 	return nil
 }
 
 func (sUc *SessionUsecase) DeleteSession(session *models.Session) *ErrorResponse {
-	if err := sUc.sessionRep.Delete(session); err != nil {
+	if _, err := sUc.sessionGRPC.DeleteSession(context.Background(), grpc_session.SessionToGRPCSession(session)); err != nil {
 		return NewErrorResponse(ErrInternal, err)
 	}
 

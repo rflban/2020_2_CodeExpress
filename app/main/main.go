@@ -6,6 +6,14 @@ import (
 	"log"
 	"os"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/admin/proto_admin"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
+
+	"google.golang.org/grpc"
+
 	"github.com/sirupsen/logrus"
 
 	userDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/delivery"
@@ -13,7 +21,6 @@ import (
 	userUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/usecase"
 
 	sessionDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/delivery"
-	sessionRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/repository"
 	sessionUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/usecase"
 
 	artistDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/delivery"
@@ -21,7 +28,6 @@ import (
 	artistUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist/usecase"
 
 	trackDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/delivery"
-	trackRepository "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/repository"
 	trackUsecase "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/usecase"
 
 	albumDelivery "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/album/delivery"
@@ -77,20 +83,39 @@ func main() {
 	log.Printf("DB connected on %s", conf.GetDbConnString())
 
 	userRep := userRepository.NewUserRep(dbConn)
-	sessionRep := sessionRepository.NewSessionRep(dbConn)
 	artistRep := artistRepository.NewArtistRep(dbConn)
-	trackRep := trackRepository.NewTrackRep(dbConn)
 	albumRep := albumRepository.NewAlbumRep(dbConn)
 	playlistRep := playlistRepository.NewPlaylistRep(dbConn)
 	searchRep := searchRepository.NewSearchRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
-	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionRep)
-	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
-	trackUsecase := trackUsecase.NewTrackUsecase(trackRep)
 	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
 	playlistUsecase := playlistUsecase.NewPlaylistUsecase(playlistRep)
 	searchUsecase := searchUsecase.NewSearchUsecase(searchRep)
+
+	adminGRPCConn, err := grpc.Dial(conf.GetAdminMicroserviceConnString(), grpc.WithInsecure())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer adminGRPCConn.Close()
+	adminGRPC := proto_admin.NewAdminServiceClient(adminGRPCConn)
+	artistUsecase := artistUsecase.NewArtistUsecase(artistRep, adminGRPC)
+
+	sessionGRPCConn, err := grpc.Dial(conf.GetSessionMicroserviceConnString(), grpc.WithInsecure())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer sessionGRPCConn.Close()
+	sessionGRPC := proto_session.NewSessionServiceClient(sessionGRPCConn)
+	sessionUsecase := sessionUsecase.NewSessionUsecase(sessionGRPC)
+
+	trackGRPCConn, err := grpc.Dial(conf.GetTrackMicroserviceConnString(), grpc.WithInsecure())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer trackGRPCConn.Close()
+	trackGRPC := proto_track.NewTrackServiceClient(trackGRPCConn)
+	trackUsecase := trackUsecase.NewTrackUsecase(trackGRPC)
 
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)

@@ -1,0 +1,70 @@
+syntax="proto3";
+
+package proto_track;
+
+message TrackID {
+    uint64 ID = 1;
+}
+
+message UserID {
+    uint64 ID = 1;
+}
+
+message GetByArtistIdMessage {
+    uint64 ArtistID = 1;
+    uint64 UserID = 2;
+}
+
+message AlbumID {
+    uint64 ID = 1;
+}
+
+message PlaylistID {
+    uint64 ID = 1;
+}
+
+message GetByParamsMessage {
+    uint64 UserID = 1;
+    uint64 Count = 2;
+    uint64 From = 3;
+}
+
+message Favorites {
+    uint64 UserID = 1;
+    uint64 TrackID = 2;
+}
+
+message Nothing {
+}
+
+message Track {
+    uint64 ID = 1;
+    string Title = 2;
+    int64 Duration = 3;
+    string AlbumPoster = 4;
+    uint64 AlbumID = 5;
+    uint32 Index = 6;
+    string Audio = 7;
+    string Artist = 8;
+    uint64 ArtistID = 9;
+    bool IsFavorite = 10;
+} 
+
+message Tracks {
+    repeated Track Tracks = 1;
+}
+
+service TrackService {
+	rpc CreateTrack(Track) returns (Track);
+	rpc DeleteTrack(TrackID) returns (Nothing);
+	rpc GetByArtistId(GetByArtistIdMessage) returns (Tracks);
+	rpc GetByAlbumID(AlbumID) returns (Tracks);
+	rpc GetByID(TrackID) returns (Track);
+	rpc GetByParams(GetByParamsMessage) returns (Tracks);
+	rpc GetFavoritesByUserID(UserID) returns (Tracks);
+	rpc UpdateTrack(Track) returns (Nothing);
+	rpc UpdateTrackAudio(Track) returns (Nothing);
+	rpc AddToFavourites(Favorites) returns (Nothing);
+	rpc DeleteFromFavourites(Favorites) returns (Nothing);
+	rpc GetByPlaylistID(PlaylistID) returns (Tracks);
+}

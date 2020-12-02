@@ -1,10 +1,11 @@
 package delivery
 
 import (
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares"
 
@@ -41,12 +42,11 @@ func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.POST("/api/v1/tracks", ah.HandlerCreateTrack(), mm.CheckCSRF)
 	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack(), mm.CheckCSRF)
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
-	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"),
-		mm.CheckCSRF)
+	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"), mm.CheckCSRF)
 	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
 	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser(), mm.CheckAuth)
-	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckCSRF, mm.CheckAuth)
-	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckCSRF, mm.CheckAuth)
+	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
+	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
 }
 
 func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {

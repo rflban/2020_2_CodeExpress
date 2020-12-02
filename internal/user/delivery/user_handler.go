@@ -17,6 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/validator"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,10 +35,10 @@ func NewUserHandler(userUsecase user.UserUsecase, sessionUsecase session.Session
 
 func (uh *UserHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.POST("/api/v1/user", uh.HandlerRegisterUser())
-	e.GET("/api/v1/user", uh.HandlerCurrentUserInfo())
-	e.PUT("/api/v1/user/profile", uh.HandlerUpdateProfile(), mm.CheckCSRF)
-	e.PUT("/api/v1/user/password", uh.HandlerUpdatePassword(), mm.CheckCSRF)
-	e.PUT("/api/v1/user/photo", uh.HandlerUpdateAvatar(), mm.CheckCSRF)
+	e.GET("/api/v1/user", uh.HandlerCurrentUserInfo(), mm.CheckAuth)
+	e.PUT("/api/v1/user/profile", uh.HandlerUpdateProfile(), mm.CheckCSRF, mm.CheckAuth)
+	e.PUT("/api/v1/user/password", uh.HandlerUpdatePassword(), mm.CheckCSRF, mm.CheckAuth)
+	e.PUT("/api/v1/user/photo", uh.HandlerUpdateAvatar(), mm.CheckCSRF, mm.CheckAuth, middleware.BodyLimit("10M"))
 }
 
 func (uh *UserHandler) HandlerRegisterUser() echo.HandlerFunc {
@@ -86,6 +87,10 @@ func (uh *UserHandler) HandlerRegisterUser() echo.HandlerFunc {
 func (uh *UserHandler) HandlerCurrentUserInfo() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		user_id := ctx.Get(ConstAuthedUserParam)
+
+		if user_id == nil {
+			return RespondWithError(NewErrorResponse(ErrNotAuthorized, nil), ctx)
+		}
 
 		user, errResp := uh.userUsecase.GetById(user_id.(uint64))
 		if errResp != nil {
