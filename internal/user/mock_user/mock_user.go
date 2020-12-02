@@ -94,6 +94,21 @@ func (mr *MockUserRepMockRecorder) SelectByNameOrEmail(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByNameOrEmail", reflect.TypeOf((*MockUserRep)(nil).SelectByNameOrEmail), arg0, arg1)
 }
 
+// SelectIfAdmin mocks base method
+func (m *MockUserRep) SelectIfAdmin(arg0 uint64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectIfAdmin", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectIfAdmin indicates an expected call of SelectIfAdmin
+func (mr *MockUserRepMockRecorder) SelectIfAdmin(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectIfAdmin", reflect.TypeOf((*MockUserRep)(nil).SelectIfAdmin), arg0)
+}
+
 // Update mocks base method
 func (m *MockUserRep) Update(arg0 *models.User) error {
 	m.ctrl.T.Helper()
@@ -129,6 +144,21 @@ func NewMockUserUsecase(ctrl *gomock.Controller) *MockUserUsecase {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 	return m.recorder
+}
+
+// CheckAdmin mocks base method
+func (m *MockUserUsecase) CheckAdmin(arg0 uint64) (bool, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckAdmin", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// CheckAdmin indicates an expected call of CheckAdmin
+func (mr *MockUserUsecaseMockRecorder) CheckAdmin(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAdmin", reflect.TypeOf((*MockUserUsecase)(nil).CheckAdmin), arg0)
 }
 
 // Create mocks base method

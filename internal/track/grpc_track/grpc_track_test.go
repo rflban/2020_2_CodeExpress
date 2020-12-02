@@ -1,15 +1,17 @@
-package usecase_test
+package grpc_track_test
 
 import (
 	"database/sql"
 	"errors"
 	"testing"
 
-	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/grpc_track"
+	"golang.org/x/net/context"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
-	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/mock_track"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/usecase"
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
 )
@@ -19,12 +21,10 @@ func TestTrackUsecase_CreateTrack(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	id := uint64(42)
-	index := uint8(50)
 	track := &models.Track{}
-	newTrack := &models.Track{ID: id, Index: index}
 
 	mockRepo.
 		EXPECT().
@@ -34,22 +34,16 @@ func TestTrackUsecase_CreateTrack(t *testing.T) {
 			return nil
 		})
 
-	mockRepo.
-		EXPECT().
-		SelectByID(id).
-		Return(newTrack, nil)
-
-	err := mockUsecase.CreateTrack(track)
+	_, err := mockGRPC.CreateTrack(context.Background(), grpc_track.TrackToTrackGRPC(track))
 	assert.Equal(t, err, nil)
-	assert.Equal(t, track.Index, index)
 }
 
-func TestTrackUsecase_CreateTrack_Internal(t *testing.T) {
+func TestTrackUsecase_CreateTrack_Failed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	track := &models.Track{}
 	dbErr := errors.New("Some db error")
@@ -59,36 +53,8 @@ func TestTrackUsecase_CreateTrack_Internal(t *testing.T) {
 		Insert(gomock.Eq(track)).
 		Return(dbErr)
 
-	err := mockUsecase.CreateTrack(track)
-	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
-}
-
-func TestTrackUsecase_CreateTrack_Failed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
-
-	id := uint64(42)
-	track := &models.Track{}
-	dbErr := errors.New("Some db error")
-
-	mockRepo.
-		EXPECT().
-		Insert(gomock.Eq(track)).
-		DoAndReturn(func(track *models.Track) error {
-			track.ID = id
-			return nil
-		})
-
-	mockRepo.
-		EXPECT().
-		SelectByID(id).
-		Return(nil, dbErr)
-
-	err := mockUsecase.CreateTrack(track)
-	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
+	_, err := mockGRPC.CreateTrack(context.Background(), grpc_track.TrackToTrackGRPC(track))
+	assert.Equal(t, err, dbErr)
 }
 
 func TestArtistUsecase_DeleteArtist(t *testing.T) {
@@ -96,7 +62,7 @@ func TestArtistUsecase_DeleteArtist(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	id := uint64(5)
 	mockRepo.
@@ -104,7 +70,9 @@ func TestArtistUsecase_DeleteArtist(t *testing.T) {
 		Delete(gomock.Eq(id)).
 		Return(nil)
 
-	err := mockUsecase.DeleteTrack(id)
+	_, err := mockGRPC.DeleteTrack(context.Background(), &proto_track.TrackID{
+		ID: id,
+	})
 	assert.Equal(t, err, nil)
 }
 
@@ -113,7 +81,7 @@ func TestArtistUsecase_DeleteArtist_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	id := uint64(5)
 
@@ -122,8 +90,10 @@ func TestArtistUsecase_DeleteArtist_Failed(t *testing.T) {
 		Delete(gomock.Eq(id)).
 		Return(sql.ErrNoRows)
 
-	err := mockUsecase.DeleteTrack(id)
-	assert.Equal(t, err, NewErrorResponse(ErrTrackNotExist, sql.ErrNoRows))
+	_, err := mockGRPC.DeleteTrack(context.Background(), &proto_track.TrackID{
+		ID: id,
+	})
+	assert.Equal(t, err, sql.ErrNoRows)
 }
 
 func TestArtistUsecase_DeleteArtist_Internal(t *testing.T) {
@@ -131,7 +101,7 @@ func TestArtistUsecase_DeleteArtist_Internal(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	id := uint64(5)
 	dbErr := errors.New("Some db error")
@@ -141,8 +111,10 @@ func TestArtistUsecase_DeleteArtist_Internal(t *testing.T) {
 		Delete(gomock.Eq(id)).
 		Return(dbErr)
 
-	err := mockUsecase.DeleteTrack(id)
-	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
+	_, err := mockGRPC.DeleteTrack(context.Background(), &proto_track.TrackID{
+		ID: id,
+	})
+	assert.Equal(t, err, dbErr)
 }
 
 func TestArtistUsecase_GetByID(t *testing.T) {
@@ -150,7 +122,7 @@ func TestArtistUsecase_GetByID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	expectedTrack := &models.Track{
 		ID: 1,
@@ -161,9 +133,10 @@ func TestArtistUsecase_GetByID(t *testing.T) {
 		SelectByID(gomock.Eq(expectedTrack.ID)).
 		Return(expectedTrack, nil)
 
-	track, err := mockUsecase.GetByID(expectedTrack.ID)
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
+		ID: expectedTrack.ID,
+	})
 	assert.Equal(t, err, nil)
-	assert.Equal(t, track, expectedTrack)
 }
 
 func TestArtistUsecase_GetByID_Failed(t *testing.T) {
@@ -171,7 +144,7 @@ func TestArtistUsecase_GetByID_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	expectedTrack := &models.Track{
 		ID: 1,
@@ -182,9 +155,10 @@ func TestArtistUsecase_GetByID_Failed(t *testing.T) {
 		SelectByID(gomock.Eq(expectedTrack.ID)).
 		Return(nil, sql.ErrNoRows)
 
-	track, err := mockUsecase.GetByID(expectedTrack.ID)
-	assert.Equal(t, track, nil)
-	assert.Equal(t, err, NewErrorResponse(ErrTrackNotExist, sql.ErrNoRows))
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
+		ID: expectedTrack.ID,
+	})
+	assert.Equal(t, err, sql.ErrNoRows)
 }
 
 func TestArtistUsecase_GetByID_Internal(t *testing.T) {
@@ -192,7 +166,7 @@ func TestArtistUsecase_GetByID_Internal(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	dbErr := errors.New("Some db error")
 	expectedTrack := &models.Track{
@@ -204,9 +178,10 @@ func TestArtistUsecase_GetByID_Internal(t *testing.T) {
 		SelectByID(gomock.Eq(expectedTrack.ID)).
 		Return(nil, dbErr)
 
-	track, err := mockUsecase.GetByID(expectedTrack.ID)
-	assert.Equal(t, track, nil)
-	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
+		ID: expectedTrack.ID,
+	})
+	assert.Equal(t, err, dbErr)
 }
 
 func TestArtistUsecase_GetByArtistID(t *testing.T) {
@@ -214,7 +189,7 @@ func TestArtistUsecase_GetByArtistID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	expectedTrack := &models.Track{
 		ID:       1,
@@ -228,9 +203,11 @@ func TestArtistUsecase_GetByArtistID(t *testing.T) {
 		SelectByArtistId(gomock.Eq(expectedTrack.ArtistID), uint64(0)).
 		Return(expectedTracks, nil)
 
-	tracks, err := mockUsecase.GetByArtistId(expectedTrack.ArtistID, uint64(0))
+	_, err := mockGRPC.GetByArtistId(context.Background(), &proto_track.GetByArtistIdMessage{
+		UserID:   uint64(0),
+		ArtistID: expectedTrack.ArtistID,
+	})
 	assert.Equal(t, err, nil)
-	assert.Equal(t, tracks, expectedTracks)
 }
 
 func TestArtistUsecase_GetByArtistID_Failed(t *testing.T) {
@@ -238,7 +215,7 @@ func TestArtistUsecase_GetByArtistID_Failed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	expectedTrack := &models.Track{
 		ID: 1,
@@ -249,9 +226,10 @@ func TestArtistUsecase_GetByArtistID_Failed(t *testing.T) {
 		SelectByID(gomock.Eq(expectedTrack.ID)).
 		Return(nil, sql.ErrNoRows)
 
-	track, err := mockUsecase.GetByID(expectedTrack.ID)
-	assert.Equal(t, track, nil)
-	assert.Equal(t, err, NewErrorResponse(ErrTrackNotExist, sql.ErrNoRows))
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
+		ID: expectedTrack.ID,
+	})
+	assert.Equal(t, err, sql.ErrNoRows)
 }
 
 func TestArtistUsecase_GetByArtistID_Internal(t *testing.T) {
@@ -259,7 +237,7 @@ func TestArtistUsecase_GetByArtistID_Internal(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	dbErr := errors.New("Some db error")
 	expectedTrack := &models.Track{
@@ -271,9 +249,10 @@ func TestArtistUsecase_GetByArtistID_Internal(t *testing.T) {
 		SelectByID(gomock.Eq(expectedTrack.ID)).
 		Return(nil, dbErr)
 
-	track, err := mockUsecase.GetByID(expectedTrack.ID)
-	assert.Equal(t, track, nil)
-	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
+		ID: expectedTrack.ID,
+	})
+	assert.Equal(t, err, dbErr)
 }
 
 func TestArtistUsecase_GetByArtistParams(t *testing.T) {
@@ -281,7 +260,7 @@ func TestArtistUsecase_GetByArtistParams(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	count, from := uint64(1), uint64(0)
 	expectedTrack := &models.Track{
@@ -296,9 +275,12 @@ func TestArtistUsecase_GetByArtistParams(t *testing.T) {
 		SelectByParams(gomock.Eq(count), gomock.Eq(from), uint64(0)).
 		Return(expectedTracks, nil)
 
-	tracks, err := mockUsecase.GetByParams(count, from, uint64(0))
+	_, err := mockGRPC.GetByParams(context.Background(), &proto_track.GetByParamsMessage{
+		Count:  count,
+		From:   from,
+		UserID: uint64(0),
+	})
 	assert.Equal(t, err, nil)
-	assert.Equal(t, tracks, expectedTracks)
 }
 
 func TestArtistUsecase_GetByArtistParams_Internal(t *testing.T) {
@@ -306,7 +288,7 @@ func TestArtistUsecase_GetByArtistParams_Internal(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	dbErr := errors.New("Some db error")
 	count, from := uint64(1), uint64(0)
@@ -316,28 +298,12 @@ func TestArtistUsecase_GetByArtistParams_Internal(t *testing.T) {
 		SelectByParams(gomock.Eq(count), gomock.Eq(from), uint64(0)).
 		Return(nil, dbErr)
 
-	tracks, err := mockUsecase.GetByParams(count, from, uint64(0))
-	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
-	assert.Equal(t, tracks, nil)
-}
-
-func TestArtistUsecase_GetByArtistParams_Failed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
-
-	count, from := uint64(1), uint64(0)
-
-	mockRepo.
-		EXPECT().
-		SelectByParams(gomock.Eq(count), gomock.Eq(from), uint64(0)).
-		Return(nil, sql.ErrNoRows)
-
-	tracks, err := mockUsecase.GetByParams(count, from, uint64(0))
-	assert.Equal(t, err, nil)
-	assert.Equal(t, tracks, nil)
+	_, err := mockGRPC.GetByParams(context.Background(), &proto_track.GetByParamsMessage{
+		Count:  count,
+		From:   from,
+		UserID: uint64(0),
+	})
+	assert.Equal(t, err, dbErr)
 }
 
 func TestTrackUsecase_UpdateTrack(t *testing.T) {
@@ -345,24 +311,17 @@ func TestTrackUsecase_UpdateTrack(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	id := uint64(42)
-	index := uint8(50)
 	track := &models.Track{ID: id}
-	newTrack := &models.Track{ID: id, Index: index}
 
 	mockRepo.
 		EXPECT().
 		Update(gomock.Eq(track)).
 		Return(nil)
 
-	mockRepo.
-		EXPECT().
-		SelectByID(id).
-		Return(newTrack, nil)
-
-	err := mockUsecase.UpdateTrack(track)
+	_, err := mockGRPC.UpdateTrack(context.Background(), grpc_track.TrackToTrackGRPC(track))
 	assert.Equal(t, err, nil)
 }
 
@@ -371,24 +330,17 @@ func TestTrackUsecase_UpdateTrackAudio(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	id := uint64(42)
-	index := uint8(50)
 	track := &models.Track{ID: id}
-	newTrack := &models.Track{ID: id, Index: index}
 
 	mockRepo.
 		EXPECT().
 		UpdateAudio(gomock.Eq(track)).
 		Return(nil)
 
-	mockRepo.
-		EXPECT().
-		SelectByID(id).
-		Return(newTrack, nil)
-
-	err := mockUsecase.UpdateTrackAudio(track)
+	_, err := mockGRPC.UpdateTrackAudio(context.Background(), grpc_track.TrackToTrackGRPC(track))
 	assert.Equal(t, err, nil)
 }
 
@@ -397,7 +349,7 @@ func TestArtistUsecase_GetByAlbumID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	albumID := uint64(42)
 	expectedTrack := &models.Track{
@@ -411,9 +363,10 @@ func TestArtistUsecase_GetByAlbumID(t *testing.T) {
 		SelectByAlbumID(albumID).
 		Return(expectedTracks, nil)
 
-	tracks, err := mockUsecase.GetByAlbumID(albumID)
+	_, err := mockGRPC.GetByAlbumID(context.Background(), &proto_track.AlbumID{
+		ID: albumID,
+	})
 	assert.Equal(t, err, nil)
-	assert.Equal(t, tracks, expectedTracks)
 }
 
 func TestArtistUsecase_GetFavoritesByUserID(t *testing.T) {
@@ -421,7 +374,7 @@ func TestArtistUsecase_GetFavoritesByUserID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	userID := uint64(42)
 	expectedTrack := &models.Track{
@@ -435,9 +388,10 @@ func TestArtistUsecase_GetFavoritesByUserID(t *testing.T) {
 		SelectFavoritesByUserID(userID).
 		Return(expectedTracks, nil)
 
-	tracks, err := mockUsecase.GetFavoritesByUserID(userID)
+	_, err := mockGRPC.GetFavoritesByUserID(context.Background(), &proto_track.UserID{
+		ID: userID,
+	})
 	assert.Equal(t, err, nil)
-	assert.Equal(t, tracks, expectedTracks)
 }
 
 func TestArtistUsecase_AddToFavorites(t *testing.T) {
@@ -445,22 +399,20 @@ func TestArtistUsecase_AddToFavorites(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	userID := uint64(42)
 	trackID := uint64(7)
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(trackID)).
-		Return(nil, nil)
-
-	mockRepo.
-		EXPECT().
 		InsertTrackToUser(gomock.Eq(userID), gomock.Eq(trackID)).
 		Return(nil)
 
-	err := mockUsecase.AddToFavourites(userID, trackID)
+	_, err := mockGRPC.AddToFavourites(context.Background(), &proto_track.Favorites{
+		UserID:  userID,
+		TrackID: trackID,
+	})
 	assert.Equal(t, err, nil)
 }
 
@@ -469,21 +421,19 @@ func TestArtistUsecase_DeleteFromFavourites(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_track.NewMockTrackRep(ctrl)
-	mockUsecase := usecase.NewTrackUsecase(mockRepo)
+	mockGRPC := grpc_track.NewTrackGRPCUsecase(mockRepo)
 
 	userID := uint64(42)
 	trackID := uint64(7)
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(trackID)).
-		Return(nil, nil)
-
-	mockRepo.
-		EXPECT().
 		DeleteTrackFromUsersTracks(gomock.Eq(userID), gomock.Eq(trackID)).
 		Return(nil)
 
-	err := mockUsecase.DeleteFromFavourites(userID, trackID)
+	_, err := mockGRPC.DeleteFromFavourites(context.Background(), &proto_track.Favorites{
+		UserID:  userID,
+		TrackID: trackID,
+	})
 	assert.Equal(t, err, nil)
 }

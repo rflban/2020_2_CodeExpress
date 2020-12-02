@@ -1,13 +1,18 @@
-package usecase_test
+package grpc_session_test
 
 import (
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/mock_session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/usecase"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"context"
 	"testing"
 	"time"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/grpc_session"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/mock_session"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSessionUsecase_GetByID_Passed(t *testing.T) {
@@ -15,12 +20,12 @@ func TestSessionUsecase_GetByID_Passed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_session.NewMockSessionRep(ctrl)
-	mockUsecase := usecase.NewSessionUsecase(mockRepo)
+	mockGRPC := grpc_session.NewSessionGRPCUsecase(mockRepo)
 
 	id := "some id"
 
 	expectedSession := &models.Session{
-		ID: id,
+		ID:     id,
 		UserID: 1,
 		Expire: time.Now(),
 	}
@@ -30,9 +35,10 @@ func TestSessionUsecase_GetByID_Passed(t *testing.T) {
 		SelectById(id).
 		Return(expectedSession, nil)
 
-	session, err := mockUsecase.GetByID(id)
+	_, err := mockGRPC.GetByID(context.Background(), &proto_session.SessionID{
+		ID: id,
+	})
 	assert.Nil(t, err)
-	assert.Equal(t, expectedSession, session)
 }
 
 func TestSessionUsecase_CreateSession_Passed(t *testing.T) {
@@ -40,14 +46,14 @@ func TestSessionUsecase_CreateSession_Passed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_session.NewMockSessionRep(ctrl)
-	mockUsecase := usecase.NewSessionUsecase(mockRepo)
+
+	mockGRPC := grpc_session.NewSessionGRPCUsecase(mockRepo)
 
 	id := "some id"
 
 	session := &models.Session{
-		ID: id,
+		ID:     id,
 		UserID: 1,
-		Expire: time.Now(),
 	}
 
 	mockRepo.
@@ -55,7 +61,7 @@ func TestSessionUsecase_CreateSession_Passed(t *testing.T) {
 		Insert(session).
 		Return(nil)
 
-	err := mockUsecase.CreateSession(session)
+	_, err := mockGRPC.CreateSession(context.Background(), grpc_session.SessionToGRPCSession(session))
 	assert.Nil(t, err)
 }
 
@@ -64,14 +70,14 @@ func TestSessionUsecase_DeleteSession_Passed(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mock_session.NewMockSessionRep(ctrl)
-	mockUsecase := usecase.NewSessionUsecase(mockRepo)
+
+	mockGRPC := grpc_session.NewSessionGRPCUsecase(mockRepo)
 
 	id := "some id"
 
 	session := &models.Session{
-		ID: id,
+		ID:     id,
 		UserID: 1,
-		Expire: time.Now(),
 	}
 
 	mockRepo.
@@ -79,6 +85,6 @@ func TestSessionUsecase_DeleteSession_Passed(t *testing.T) {
 		Delete(session).
 		Return(nil)
 
-	err := mockUsecase.DeleteSession(session)
+	_, err := mockGRPC.DeleteSession(context.Background(), grpc_session.SessionToGRPCSession(session))
 	assert.Nil(t, err)
 }
