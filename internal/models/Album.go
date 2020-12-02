@@ -8,3 +8,6 @@ type Album struct {
 	Poster     string   `json:"poster"`
 	Tracks     []*Track `json:"tracks"`
 }
+
+//easyjson:json
+type Albums []*Album

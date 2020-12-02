@@ -50,7 +50,16 @@ func (ah *ArtistHandler) HandlerArtistByID() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, artist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := artist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -73,7 +82,16 @@ func (ah *ArtistHandler) HandlerArtistsByParams() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, artists)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := models.Artists(artists).MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -103,7 +121,16 @@ func (ah *ArtistHandler) HandlerCreateArtist() echo.HandlerFunc {
 			return RespondWithError(err, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, artist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := artist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -146,7 +173,16 @@ func (ah *ArtistHandler) HandlerUpdateArtist() echo.HandlerFunc {
 			return RespondWithError(err, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, artist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := artist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -214,6 +250,15 @@ func (ah *ArtistHandler) HandlerUploadArtistPhoto() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, artist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := artist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }

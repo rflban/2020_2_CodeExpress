@@ -12,6 +12,7 @@ require (
 	github.com/jinzhu/copier v0.0.0-20201025035756-632e723a6687
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/lib/pq v1.8.0
+	github.com/mailru/easyjson v0.7.6
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pion/webrtc/v3 v3.0.0-beta.14

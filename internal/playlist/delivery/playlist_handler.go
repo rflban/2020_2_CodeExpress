@@ -70,7 +70,16 @@ func (ph *PlaylistHandler) HandlerCreatePlaylist() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, playlist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := playlist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -108,7 +117,16 @@ func (ph *PlaylistHandler) HandlerUpdatePlaylist() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, playlist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := playlist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -150,7 +168,16 @@ func (ph *PlaylistHandler) HandlerConcretePlaylist() echo.HandlerFunc {
 
 		playlist.Tracks = tracks
 
-		return ctx.JSON(http.StatusOK, playlist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := playlist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -164,7 +191,16 @@ func (ph *PlaylistHandler) HandlerUserPlaylists() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, playlists)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := models.Playlists(playlists).MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -196,7 +232,16 @@ func (ph *PlaylistHandler) HandlerUploadPlaylistPhoto() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, playlist)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := playlist.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 

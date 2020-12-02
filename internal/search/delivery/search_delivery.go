@@ -47,6 +47,15 @@ func (sh *SearchHandler) HandlerSearch() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, search)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := search.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }

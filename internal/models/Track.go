@@ -12,3 +12,6 @@ type Track struct {
 	ArtistID    uint64 `json:"artist_id"`
 	IsFavorite  bool   `json:"is_favorite"`
 }
+
+//easyjson:json
+type Tracks []*Track

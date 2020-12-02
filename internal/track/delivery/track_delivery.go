@@ -95,7 +95,16 @@ func (ah *TrackHandler) HandlerFavouritesByUser() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, tracks)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := models.Tracks(tracks).MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -118,7 +127,16 @@ func (ah *TrackHandler) HandlerTracksByArtistID() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, tracks)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := models.Tracks(tracks).MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -146,7 +164,16 @@ func (ah *TrackHandler) HandlerTracksByParams() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, tracks)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := models.Tracks(tracks).MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -176,7 +203,16 @@ func (ah *TrackHandler) HandlerCreateTrack() echo.HandlerFunc {
 			return RespondWithError(err, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, track)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := track.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -215,7 +251,16 @@ func (ah *TrackHandler) HandlerUpdateTrack() echo.HandlerFunc {
 			return RespondWithError(err, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, track)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := track.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
@@ -270,7 +315,16 @@ func (ah *TrackHandler) HandlerUploadTrackAudio() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		return ctx.JSON(http.StatusOK, track)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := track.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 
