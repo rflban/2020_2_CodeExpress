@@ -74,7 +74,16 @@ func (sh *SessionHandler) HandlerLogin() echo.HandlerFunc {
 		cookie := builder.BuildCookie(session)
 		ctx.SetCookie(cookie)
 
-		return ctx.JSON(http.StatusOK, user)
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := user.MarshalJSON()
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
 	}
 }
 

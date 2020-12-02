@@ -7,3 +7,6 @@ type Playlist struct {
 	Poster string   `json:"poster"`
 	Tracks []*Track `json:"tracks"`
 }
+
+//easyjson:json
+type Playlists []*Playlist

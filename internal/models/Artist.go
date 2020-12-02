@@ -7,3 +7,6 @@ type Artist struct {
 	Avatar      string `json:"avatar"`
 	Description string `json:"description"`
 }
+
+//easyjson:json
+type Artists []*Artist
