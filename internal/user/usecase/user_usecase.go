@@ -123,3 +123,17 @@ func (uUc *UserUsecase) UpdateAvatar(id uint64, avatar string) (*models.User, *E
 	}
 	return user, nil
 }
+
+func (uUc *UserUsecase) CheckAdmin(id uint64) (bool, *ErrorResponse) {
+	isAdmin, err := uUc.userRep.SelectIfAdmin(id)
+
+	if err == sql.ErrNoRows {
+		return false, NewErrorResponse(ErrNotAuthorized, err)
+	}
+
+	if err != nil {
+		return false, NewErrorResponse(ErrInternal, err)
+	}
+
+	return isAdmin, nil
+}

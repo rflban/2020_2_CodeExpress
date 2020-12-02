@@ -1,7 +1,12 @@
 package usecase
 
 import (
+	"context"
 	"database/sql"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/admin/grpc_admin"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/admin/proto_admin"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
@@ -11,11 +16,13 @@ import (
 
 type ArtistUsecase struct {
 	artistRep artist.ArtistRep
+	adminGRPC proto_admin.AdminServiceClient
 }
 
-func NewArtistUsecase(artistRep artist.ArtistRep) *ArtistUsecase {
+func NewArtistUsecase(artistRep artist.ArtistRep, adminGRPC proto_admin.AdminServiceClient) *ArtistUsecase {
 	return &ArtistUsecase{
 		artistRep: artistRep,
+		adminGRPC: adminGRPC,
 	}
 }
 
@@ -29,9 +36,13 @@ func (aUc *ArtistUsecase) CreateArtist(artist *models.Artist) *ErrorResponse {
 		return NewErrorResponse(ErrNameAlreadyExist, nil)
 	}
 
-	if err := aUc.artistRep.Insert(artist); err != nil {
+	grpcArtist, err := aUc.adminGRPC.CreateArtist(context.Background(), grpc_admin.ArtistToGRPCArtist(artist))
+
+	if err != nil {
 		return NewErrorResponse(ErrInternal, err)
 	}
+
+	artist.ID = grpcArtist.ID
 
 	return nil
 }

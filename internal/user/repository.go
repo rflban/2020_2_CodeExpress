@@ -8,4 +8,5 @@ type UserRep interface {
 	SelectById(id uint64) (*models.User, error)
 	SelectByLogin(login string) (*models.User, error)
 	SelectByNameOrEmail(name string, email string) ([]*models.User, error)
+	SelectIfAdmin(userID uint64) (bool, error)
 }

@@ -30,10 +30,10 @@ func NewArtistHandler(artistUsecase artist.ArtistUsecase) *ArtistHandler {
 func (ah *ArtistHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/artists/:id", ah.HandlerArtistByID())
 	e.GET("/api/v1/artists", ah.HandlerArtistsByParams())
-	e.POST("api/v1/artists", ah.HandlerCreateArtist(), mm.CheckCSRF)
-	e.PUT("/api/v1/artists/:id", ah.HandlerUpdateArtist(), mm.CheckCSRF)
-	e.DELETE("/api/v1/artists/:id", ah.HandlerDeleteArtist(), mm.CheckCSRF)
-	e.POST("/api/v1/artists/:id/photo", ah.HandlerUploadArtistPhoto(), middleware.BodyLimit("10M"), mm.CheckCSRF)
+	e.POST("api/v1/artists", ah.HandlerCreateArtist(), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
+	e.PUT("/api/v1/artists/:id", ah.HandlerUpdateArtist(), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
+	e.DELETE("/api/v1/artists/:id", ah.HandlerDeleteArtist(), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
+	e.POST("/api/v1/artists/:id/photo", ah.HandlerUploadArtistPhoto(), middleware.BodyLimit("10M"), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
 }
 
 func (ah *ArtistHandler) HandlerArtistByID() echo.HandlerFunc {

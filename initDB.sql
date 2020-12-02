@@ -85,3 +85,5 @@ CREATE INDEX IF NOT EXISTS albums_title_index ON albums (title);
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO meuser;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO meuser;
+
+ALTER TABLE users add column is_admin bool default false;

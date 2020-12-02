@@ -118,3 +118,16 @@ func (ur *UserRep) SelectByNameOrEmail(name string, email string) ([]*models.Use
 	}
 	return users, nil
 }
+
+func (ur *UserRep) SelectIfAdmin(userID uint64) (bool, error) {
+	query := "SELECT is_admin FROM users WHERE id = $1"
+
+	isAdmin := false
+	err := ur.dbConn.QueryRow(query, userID).Scan(&isAdmin)
+
+	if err != nil {
+		return isAdmin, err
+	}
+
+	return isAdmin, nil
+}

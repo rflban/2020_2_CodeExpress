@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/admin/proto_admin"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/proto_session"
@@ -87,10 +89,17 @@ func main() {
 	searchRep := searchRepository.NewSearchRep(dbConn)
 
 	userUsecase := userUsecase.NewUserUsecase(userRep)
-	artistUsecase := artistUsecase.NewArtistUsecase(artistRep)
 	albumUsecase := albumUsecase.NewAlbumUsecase(albumRep)
 	playlistUsecase := playlistUsecase.NewPlaylistUsecase(playlistRep)
 	searchUsecase := searchUsecase.NewSearchUsecase(searchRep)
+
+	adminGRPCConn, err := grpc.Dial(conf.GetAdminMicroserviceConnString(), grpc.WithInsecure())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer adminGRPCConn.Close()
+	adminGRPC := proto_admin.NewAdminServiceClient(adminGRPCConn)
+	artistUsecase := artistUsecase.NewArtistUsecase(artistRep, adminGRPC)
 
 	sessionGRPCConn, err := grpc.Dial(conf.GetSessionMicroserviceConnString(), grpc.WithInsecure())
 	if err != nil {

@@ -126,3 +126,21 @@ func (mm *MiddlewareManager) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(ctx)
 	}
 }
+
+func (mm *MiddlewareManager) CheckAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		userID := ctx.Get(ConstAuthedUserParam).(uint64)
+
+		isAdmin, errResp := mm.userUsecase.CheckAdmin(userID)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		if !isAdmin {
+			return RespondWithError(NewErrorResponse(ErrNotAdmin, nil), ctx)
+		}
+
+		return next(ctx)
+	}
+}

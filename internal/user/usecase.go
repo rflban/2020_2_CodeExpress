@@ -12,4 +12,5 @@ type UserUsecase interface {
 	UpdateProfile(uint64, string, string) (*models.User, *ErrorResponse)
 	UpdatePassword(uint64, string, string) *ErrorResponse
 	UpdateAvatar(uint64, string) (*models.User, *ErrorResponse)
+	CheckAdmin(id uint64) (bool, *ErrorResponse)
 }

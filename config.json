@@ -17,5 +17,9 @@
     "track_microservice": {
       "host": "127.0.0.1",
       "port": 8082
+    },
+    "admin_microservice": {
+      "host": "127.0.0.1",
+      "port": 8083
     }
 }

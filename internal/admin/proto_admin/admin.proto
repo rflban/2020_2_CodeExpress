@@ -1,0 +1,15 @@
+syntax="proto3";
+
+package proto_admin;
+
+message Artist {
+    uint64 ID = 1;
+    string Name = 2;
+    string Poster = 3;
+    string Avatar = 4;
+    string Description = 5;
+} 
+
+service AdminService {
+    rpc CreateArtist(Artist) returns (Artist);
+}
