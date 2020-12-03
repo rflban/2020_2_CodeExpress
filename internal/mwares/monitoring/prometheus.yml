@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: "prometheus_metrics"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "node_exporter_metrics"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["node-exporter:9100", "prometheus-target-1:9100", "prometheus-target-2:9100"]
+
+  - job_name: "musicexpress"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["localhost:8080"]
+    tls_config: {
+      insecure_skip_verify: true
+    }
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - "alerts.yml"
