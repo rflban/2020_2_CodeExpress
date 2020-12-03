@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
 	"log"
 	"os"
 
@@ -126,7 +127,8 @@ func main() {
 	searchHandler := searchDelivery.NewSearchHandler(searchUsecase)
 
 	e := echo.New()
-	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase)
+	monitoring := monitoring.NewMonitoring(e)
+	mm := mwares.NewMiddlewareManager(sessionUsecase, userUsecase, monitoring)
 
 	e.Use(mm.AccessLog, mm.PanicRecovering, mm.CORS(), mm.XSS())
 	e.Static("/avatars", "avatars")
