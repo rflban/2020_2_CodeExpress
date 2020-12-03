@@ -79,8 +79,7 @@ func TestAlbumDelivery_HandlerCreatePlaylist(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedPlaylist)
+	assert.Equal(t, resBody, jsonExpectedPlaylist)
 }
 
 func TestAlbumDelivery_HandlerUpdatePlaylist(t *testing.T) {
@@ -142,8 +141,7 @@ func TestAlbumDelivery_HandlerUpdatePlaylist(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedPlaylist)
+	assert.Equal(t, resBody, jsonExpectedPlaylist)
 }
 
 func TestAlbumDelivery_HandlerDeletePlaylist(t *testing.T) {
@@ -213,8 +211,7 @@ func TestAlbumDelivery_HandlerUserPlaylists(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedPlaylists)
+	assert.Equal(t, resBody, jsonExpectedPlaylists)
 }
 
 func TestAlbumDelivery_HandlerAddTrack(t *testing.T) {
@@ -346,6 +343,5 @@ func TestAlbumDelivery_HandlerConcretePlaylist(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedPlaylists)
+	assert.Equal(t, resBody, jsonExpectedPlaylists)
 }

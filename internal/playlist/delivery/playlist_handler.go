@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -73,7 +74,7 @@ func (ph *PlaylistHandler) HandlerCreatePlaylist() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := playlist.MarshalJSON()
+		resp, e := json.Marshal(playlist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -120,7 +121,7 @@ func (ph *PlaylistHandler) HandlerUpdatePlaylist() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := playlist.MarshalJSON()
+		resp, e := json.Marshal(playlist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -171,7 +172,7 @@ func (ph *PlaylistHandler) HandlerConcretePlaylist() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := playlist.MarshalJSON()
+		resp, e := json.Marshal(playlist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -194,7 +195,7 @@ func (ph *PlaylistHandler) HandlerUserPlaylists() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := models.Playlists(playlists).MarshalJSON()
+		resp, e := json.Marshal(models.Playlists(playlists))
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -235,7 +236,7 @@ func (ph *PlaylistHandler) HandlerUploadPlaylistPhoto() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := playlist.MarshalJSON()
+		resp, e := json.Marshal(playlist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

@@ -2,6 +2,9 @@ package delivery_test
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/mock_session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/builder"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/mock_user"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +13,7 @@ import (
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/delivery"
 
+	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/mock_track"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
@@ -18,7 +22,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func TestAlbumDelivery_HandlerCreateTrack(t *testing.T) {
+func TestTrackDelivery_HandlerCreateTrack(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
@@ -82,11 +86,10 @@ func TestAlbumDelivery_HandlerCreateTrack(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedAlbum)
+	assert.Equal(t, resBody, jsonExpectedAlbum)
 }
 
-func TestAlbumDelivery_HandlerUpdateTrack(t *testing.T) {
+func TestTrackDelivery_HandlerUpdateTrack(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
@@ -141,7 +144,7 @@ func TestAlbumDelivery_HandlerUpdateTrack(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resWriter.Code)
 }
 
-func TestAlbumDelivery_HandlerDeleteTrack(t *testing.T) {
+func TestTrackDelivery_HandlerDeleteTrack(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
@@ -171,7 +174,7 @@ func TestAlbumDelivery_HandlerDeleteTrack(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resWriter.Code)
 }
 
-func TestAlbumDelivery_HandlerTracksByParams(t *testing.T) {
+func TestTrackDelivery_HandlerTracksByParams(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
@@ -208,7 +211,7 @@ func TestAlbumDelivery_HandlerTracksByParams(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resWriter.Code)
 }
 
-func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
+func TestTrackDelivery_HandlerTracksByArtistID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
@@ -241,6 +244,136 @@ func TestAlbumDelivery_HandlerTracksByArtistID(t *testing.T) {
 	ctx.SetParamValues("42")
 
 	handler := albumHandler.HandlerTracksByArtistID()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestTrackDelivery_HandlerFavouritesByUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	id := uint64(1)
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: id,
+		Name:   ConstSessionName,
+	}
+
+	expectedTracks := []*models.Track{
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
+	}
+
+	trackMockUsecase.
+		EXPECT().
+		GetFavoritesByUserID(uint64(1)).
+		Return(expectedTracks, nil)
+
+	trackHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
+	e := echo.New()
+	trackHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/favorite/tracks", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
+
+	handler := trackHandler.HandlerFavouritesByUser()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestTrackDelivery_HandlerAddToUsersFavourites(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	id := uint64(1)
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: id,
+		Name:   ConstSessionName,
+	}
+
+	trackMockUsecase.
+		EXPECT().
+		AddToFavourites(uint64(1), uint64(1)).
+		Return(nil)
+
+	trackHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
+	e := echo.New()
+	trackHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/favorite/tracks", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
+	ctx.SetParamNames("id")
+	ctx.SetParamValues("1")
+
+	handler := trackHandler.HandlerAddToUsersFavourites()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestTrackDelivery_HandlerDeleteFromUsersFavourites(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	id := uint64(1)
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: id,
+		Name:   ConstSessionName,
+	}
+
+	trackMockUsecase.
+		EXPECT().
+		DeleteFromFavourites(uint64(1), uint64(1)).
+		Return(nil)
+
+	trackHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
+	e := echo.New()
+	trackHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/favorite/tracks", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
+	ctx.SetParamNames("id")
+	ctx.SetParamValues("1")
+
+	handler := trackHandler.HandlerDeleteFromUsersFavourites()
 
 	err := handler(ctx)
 	assert.Equal(t, err, nil)

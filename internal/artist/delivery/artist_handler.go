@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -53,7 +54,7 @@ func (ah *ArtistHandler) HandlerArtistByID() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := artist.MarshalJSON()
+		resp, e := json.Marshal(artist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -85,7 +86,8 @@ func (ah *ArtistHandler) HandlerArtistsByParams() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := models.Artists(artists).MarshalJSON()
+		resp, e := json.Marshal(models.Artists(artists))
+
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -124,7 +126,7 @@ func (ah *ArtistHandler) HandlerCreateArtist() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := artist.MarshalJSON()
+		resp, e := json.Marshal(artist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -176,7 +178,7 @@ func (ah *ArtistHandler) HandlerUpdateArtist() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := artist.MarshalJSON()
+		resp, e := json.Marshal(artist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -253,7 +255,7 @@ func (ah *ArtistHandler) HandlerUploadArtistPhoto() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := artist.MarshalJSON()
+		resp, e := json.Marshal(artist)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

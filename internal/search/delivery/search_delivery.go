@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
@@ -50,7 +51,7 @@ func (sh *SearchHandler) HandlerSearch() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := search.MarshalJSON()
+		resp, e := json.Marshal(search)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

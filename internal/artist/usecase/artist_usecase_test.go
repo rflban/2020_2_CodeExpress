@@ -240,3 +240,47 @@ func TestArtistUsecase_GetByParams_Failed(t *testing.T) {
 	assert.Equal(t, err, nil)
 	assert.Equal(t, artists, nil)
 }
+
+func TestArtistUsecase_GetByName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_artist.NewMockArtistRep(ctrl)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
+
+	expectedArtist := &models.Artist{
+		ID:   1,
+		Name: "Imagine Dragons",
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectByName(gomock.Eq(expectedArtist.Name)).
+		Return(expectedArtist, nil)
+
+	artist, err := mockUsecase.GetByName(expectedArtist.Name)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, expectedArtist, artist)
+}
+
+func TestArtistUsecase_checkNameExists(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_artist.NewMockArtistRep(ctrl)
+	mockUsecase := usecase.NewArtistUsecase(mockRepo, nil)
+
+	expectedArtist := &models.Artist{
+		ID:   1,
+		Name: "Imagine Dragons",
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectByName(gomock.Eq(expectedArtist.Name)).
+		Return(expectedArtist, nil)
+
+	artist, err := mockUsecase.CheckNameExists(expectedArtist.Name)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, true, artist)
+}

@@ -27,7 +27,7 @@ func NewArtistUsecase(artistRep artist.ArtistRep, adminGRPC proto_admin.AdminSer
 }
 
 func (aUc *ArtistUsecase) CreateArtist(artist *models.Artist) *ErrorResponse {
-	exists, err := aUc.checkNameExists(artist.Name)
+	exists, err := aUc.CheckNameExists(artist.Name)
 
 	if err != nil {
 		return NewErrorResponse(ErrInternal, err)
@@ -117,7 +117,7 @@ func (aUc *ArtistUsecase) GetByName(name string) (*models.Artist, *ErrorResponse
 	return artist, nil
 }
 
-func (aUc *ArtistUsecase) checkNameExists(name string) (bool, error) {
+func (aUc *ArtistUsecase) CheckNameExists(name string) (bool, error) {
 	_, err := aUc.artistRep.SelectByName(name)
 	if err == sql.ErrNoRows {
 		return false, nil
