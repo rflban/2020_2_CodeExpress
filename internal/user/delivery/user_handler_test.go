@@ -84,8 +84,7 @@ func TestUserDelivery_HandlerRegisterUser(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedUser)
+	assert.Equal(t, resBody, jsonExpectedUser)
 }
 
 func TestUserDelivery_HandlerRegisterUserFailed(t *testing.T) {
@@ -203,8 +202,7 @@ func TestUserDelivery_HandlerCurrentUserInfo(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedUser)
+	assert.Equal(t, resBody, jsonExpectedUser)
 }
 
 func TestUserDelivery_HandlerUpdateProfile(t *testing.T) {
@@ -274,8 +272,7 @@ func TestUserDelivery_HandlerUpdateProfile(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedUser)
+	assert.Equal(t, resBody, jsonExpectedUser)
 }
 
 func TestUserDelivery_HandlerUpdateProfileFailed(t *testing.T) {

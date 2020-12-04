@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -115,7 +116,7 @@ func (ah *AlbumHandler) HandlerCreateAlbum() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := album.MarshalJSON()
+		resp, e := json.Marshal(album)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -168,7 +169,7 @@ func (ah *AlbumHandler) HandlerUpdateAlbum() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := album.MarshalJSON()
+		resp, e := json.Marshal(album)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -227,7 +228,7 @@ func (ah *AlbumHandler) HandlerUploadAlbumPhoto() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := album.MarshalJSON()
+		resp, e := json.Marshal(album)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -259,7 +260,7 @@ func (ah *AlbumHandler) HandlerAlbumsByParams() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := models.Albums(albums).MarshalJSON()
+		resp, e := json.Marshal(models.Albums(albums))
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -294,7 +295,7 @@ func (ah *AlbumHandler) HandlerAlbumTracks() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := album.MarshalJSON()
+		resp, e := json.Marshal(album)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

@@ -96,7 +96,7 @@ func TestSearchDelivery_HandlerSearch_Passed(t *testing.T) {
 
 	responseBody, err := ioutil.ReadAll(responseWriter.Body)
 	assert.Nil(t, err)
-	assert.Equal(t, responseBody[:len(responseBody)-1], jsonExpectedSearch)
+	assert.Equal(t, responseBody, jsonExpectedSearch)
 }
 
 func TestSearchDelivery_HandlerSearch_Failed(t *testing.T) {

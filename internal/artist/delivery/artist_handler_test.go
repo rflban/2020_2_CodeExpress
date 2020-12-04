@@ -65,8 +65,7 @@ func TestHandlerCreateArtist(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedArtist)
+	assert.Equal(t, resBody, jsonExpectedArtist)
 }
 
 func TestHandlerUpdateArtist(t *testing.T) {
@@ -119,8 +118,7 @@ func TestHandlerUpdateArtist(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedArtist)
+	assert.Equal(t, resBody, jsonExpectedArtist)
 }
 
 func TestHandlerDeleteArtist(t *testing.T) {
@@ -205,8 +203,7 @@ func TestHandlerArtistByID(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedArtist)
+	assert.Equal(t, resBody, jsonExpectedArtist)
 }
 
 func TestHandlerArtistByParam(t *testing.T) {
@@ -254,6 +251,5 @@ func TestHandlerArtistByParam(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedArtists)
+	assert.Equal(t, resBody, jsonExpectedArtists)
 }

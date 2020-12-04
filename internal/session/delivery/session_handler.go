@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
@@ -77,7 +78,7 @@ func (sh *SessionHandler) HandlerLogin() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := user.MarshalJSON()
+		resp, e := json.Marshal(user)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

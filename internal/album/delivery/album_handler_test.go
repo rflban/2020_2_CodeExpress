@@ -98,8 +98,7 @@ func TestAlbumDelivery_HandlerCreateAlbum(t *testing.T) {
 
 	resBody, err := ioutil.ReadAll(resWriter.Body)
 	assert.Equal(t, err, nil)
-	clearBody := resBody[:len(resBody)-1]
-	assert.Equal(t, clearBody, jsonExpectedAlbum)
+	assert.Equal(t, resBody, jsonExpectedAlbum)
 }
 
 func TestAlbumDelivery_HandlerCreateAlbum_Failed(t *testing.T) {

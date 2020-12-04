@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -98,7 +99,7 @@ func (ah *TrackHandler) HandlerFavouritesByUser() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := models.Tracks(tracks).MarshalJSON()
+		resp, e := json.Marshal(models.Tracks(tracks))
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -130,7 +131,7 @@ func (ah *TrackHandler) HandlerTracksByArtistID() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := models.Tracks(tracks).MarshalJSON()
+		resp, e := json.Marshal(models.Tracks(tracks))
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -167,7 +168,7 @@ func (ah *TrackHandler) HandlerTracksByParams() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := models.Tracks(tracks).MarshalJSON()
+		resp, e := json.Marshal(models.Tracks(tracks))
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -206,7 +207,7 @@ func (ah *TrackHandler) HandlerCreateTrack() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := track.MarshalJSON()
+		resp, e := json.Marshal(track)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -254,7 +255,7 @@ func (ah *TrackHandler) HandlerUpdateTrack() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := track.MarshalJSON()
+		resp, e := json.Marshal(track)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
@@ -318,7 +319,7 @@ func (ah *TrackHandler) HandlerUploadTrackAudio() echo.HandlerFunc {
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := track.MarshalJSON()
+		resp, e := json.Marshal(track)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

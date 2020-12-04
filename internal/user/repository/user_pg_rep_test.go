@@ -210,3 +210,33 @@ func TestSelectByNameOrEmail(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestSelectIfAdmin(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewUserRep(db)
+
+	id := uint64(1)
+
+	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
+
+	mock.
+		ExpectQuery(`SELECT`).
+		WithArgs(id).
+		WillReturnRows(rows)
+
+	_, err = repo.SelectIfAdmin(id)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
