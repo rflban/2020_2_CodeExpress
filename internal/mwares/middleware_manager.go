@@ -2,11 +2,12 @@ package mwares
 
 import (
 	"errors"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
@@ -78,8 +79,13 @@ func (mm *MiddlewareManager) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 
 		path := ctx.Request().URL.Path
 		path = strings.Split(path, "?")[0]
+
 		for _, paramName := range ctx.ParamNames() {
-			path = strings.ReplaceAll(path, "/"+ctx.Param(paramName)+"/", "/:"+paramName+"/")
+			path = strings.ReplaceAll(path, "/"+ctx.Param(paramName), "/"+paramName)
+		}
+
+		if !strings.Contains(ctx.Path(), "/api/v1/") {
+			path = "/" + strings.Split(path, "/")[1]
 		}
 
 		method := ctx.Request().Method
@@ -87,7 +93,7 @@ func (mm *MiddlewareManager) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 		mm.monitoring.Hits.WithLabelValues(status, path, method).Inc()
 		mm.monitoring.Duration.WithLabelValues(status, path, method).Observe(workTime.Seconds())
 
-		logrus.Info("Status: ", ctx.Response().Status, " Work time: ", workTime) //end.Sub(start)
+		logrus.Info("Status: ", ctx.Response().Status, " Work time: ", workTime)
 
 		logrus.Println()
 
