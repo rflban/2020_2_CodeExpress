@@ -90,19 +90,33 @@ func (mr *MockTrackRepMockRecorder) InsertTrackToUser(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertTrackToUser", reflect.TypeOf((*MockTrackRep)(nil).InsertTrackToUser), arg0, arg1)
 }
 
-// SelectByAlbumID mocks base method
-func (m *MockTrackRep) SelectByAlbumID(arg0 uint64) ([]*models.Track, error) {
+// LikeOrDislikeTrack mocks base method
+func (m *MockTrackRep) LikeOrDislikeTrack(arg0, arg1 uint64, arg2 bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectByAlbumID", arg0)
+	ret := m.ctrl.Call(m, "LikeOrDislikeTrack", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// LikeOrDislikeTrack indicates an expected call of LikeOrDislikeTrack
+func (mr *MockTrackRepMockRecorder) LikeOrDislikeTrack(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LikeOrDislikeTrack", reflect.TypeOf((*MockTrackRep)(nil).LikeOrDislikeTrack), arg0, arg1, arg2)
+}
+
+// SelectByAlbumID mocks base method
+func (m *MockTrackRep) SelectByAlbumID(arg0, arg1 uint64) ([]*models.Track, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectByAlbumID", arg0, arg1)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectByAlbumID indicates an expected call of SelectByAlbumID
-func (mr *MockTrackRepMockRecorder) SelectByAlbumID(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackRepMockRecorder) SelectByAlbumID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByAlbumID", reflect.TypeOf((*MockTrackRep)(nil).SelectByAlbumID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByAlbumID", reflect.TypeOf((*MockTrackRep)(nil).SelectByAlbumID), arg0, arg1)
 }
 
 // SelectByArtistId mocks base method
@@ -121,18 +135,18 @@ func (mr *MockTrackRepMockRecorder) SelectByArtistId(arg0, arg1 interface{}) *go
 }
 
 // SelectByID mocks base method
-func (m *MockTrackRep) SelectByID(arg0 uint64) (*models.Track, error) {
+func (m *MockTrackRep) SelectByID(arg0, arg1 uint64) (*models.Track, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectByID", arg0)
+	ret := m.ctrl.Call(m, "SelectByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.Track)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectByID indicates an expected call of SelectByID
-func (mr *MockTrackRepMockRecorder) SelectByID(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackRepMockRecorder) SelectByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByID", reflect.TypeOf((*MockTrackRep)(nil).SelectByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByID", reflect.TypeOf((*MockTrackRep)(nil).SelectByID), arg0, arg1)
 }
 
 // SelectByParams mocks base method
@@ -151,18 +165,18 @@ func (mr *MockTrackRepMockRecorder) SelectByParams(arg0, arg1, arg2 interface{})
 }
 
 // SelectByPlaylistID mocks base method
-func (m *MockTrackRep) SelectByPlaylistID(arg0 uint64) ([]*models.Track, error) {
+func (m *MockTrackRep) SelectByPlaylistID(arg0, arg1 uint64) ([]*models.Track, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectByPlaylistID", arg0)
+	ret := m.ctrl.Call(m, "SelectByPlaylistID", arg0, arg1)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectByPlaylistID indicates an expected call of SelectByPlaylistID
-func (mr *MockTrackRepMockRecorder) SelectByPlaylistID(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackRepMockRecorder) SelectByPlaylistID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByPlaylistID", reflect.TypeOf((*MockTrackRep)(nil).SelectByPlaylistID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByPlaylistID", reflect.TypeOf((*MockTrackRep)(nil).SelectByPlaylistID), arg0, arg1)
 }
 
 // SelectFavoritesByUserID mocks base method
@@ -246,17 +260,17 @@ func (mr *MockTrackUsecaseMockRecorder) AddToFavourites(arg0, arg1 interface{}) 
 }
 
 // CreateTrack mocks base method
-func (m *MockTrackUsecase) CreateTrack(arg0 *models.Track) *error_response.ErrorResponse {
+func (m *MockTrackUsecase) CreateTrack(arg0 *models.Track, arg1 uint64) *error_response.ErrorResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTrack", arg0)
+	ret := m.ctrl.Call(m, "CreateTrack", arg0, arg1)
 	ret0, _ := ret[0].(*error_response.ErrorResponse)
 	return ret0
 }
 
 // CreateTrack indicates an expected call of CreateTrack
-func (mr *MockTrackUsecaseMockRecorder) CreateTrack(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) CreateTrack(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrack", reflect.TypeOf((*MockTrackUsecase)(nil).CreateTrack), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrack", reflect.TypeOf((*MockTrackUsecase)(nil).CreateTrack), arg0, arg1)
 }
 
 // DeleteFromFavourites mocks base method
@@ -287,19 +301,33 @@ func (mr *MockTrackUsecaseMockRecorder) DeleteTrack(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrack", reflect.TypeOf((*MockTrackUsecase)(nil).DeleteTrack), arg0)
 }
 
-// GetByAlbumID mocks base method
-func (m *MockTrackUsecase) GetByAlbumID(arg0 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+// DislikeTrack mocks base method
+func (m *MockTrackUsecase) DislikeTrack(arg0, arg1 uint64) *error_response.ErrorResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAlbumID", arg0)
+	ret := m.ctrl.Call(m, "DislikeTrack", arg0, arg1)
+	ret0, _ := ret[0].(*error_response.ErrorResponse)
+	return ret0
+}
+
+// DislikeTrack indicates an expected call of DislikeTrack
+func (mr *MockTrackUsecaseMockRecorder) DislikeTrack(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DislikeTrack", reflect.TypeOf((*MockTrackUsecase)(nil).DislikeTrack), arg0, arg1)
+}
+
+// GetByAlbumID mocks base method
+func (m *MockTrackUsecase) GetByAlbumID(arg0, arg1 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByAlbumID", arg0, arg1)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(*error_response.ErrorResponse)
 	return ret0, ret1
 }
 
 // GetByAlbumID indicates an expected call of GetByAlbumID
-func (mr *MockTrackUsecaseMockRecorder) GetByAlbumID(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) GetByAlbumID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlbumID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByAlbumID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlbumID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByAlbumID), arg0, arg1)
 }
 
 // GetByArtistId mocks base method
@@ -318,18 +346,18 @@ func (mr *MockTrackUsecaseMockRecorder) GetByArtistId(arg0, arg1 interface{}) *g
 }
 
 // GetByID mocks base method
-func (m *MockTrackUsecase) GetByID(arg0 uint64) (*models.Track, *error_response.ErrorResponse) {
+func (m *MockTrackUsecase) GetByID(arg0, arg1 uint64) (*models.Track, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", arg0)
+	ret := m.ctrl.Call(m, "GetByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.Track)
 	ret1, _ := ret[1].(*error_response.ErrorResponse)
 	return ret0, ret1
 }
 
 // GetByID indicates an expected call of GetByID
-func (mr *MockTrackUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) GetByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByID), arg0, arg1)
 }
 
 // GetByParams mocks base method
@@ -348,18 +376,18 @@ func (mr *MockTrackUsecaseMockRecorder) GetByParams(arg0, arg1, arg2 interface{}
 }
 
 // GetByPlaylistID mocks base method
-func (m *MockTrackUsecase) GetByPlaylistID(arg0 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+func (m *MockTrackUsecase) GetByPlaylistID(arg0, arg1 uint64) ([]*models.Track, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByPlaylistID", arg0)
+	ret := m.ctrl.Call(m, "GetByPlaylistID", arg0, arg1)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(*error_response.ErrorResponse)
 	return ret0, ret1
 }
 
 // GetByPlaylistID indicates an expected call of GetByPlaylistID
-func (mr *MockTrackUsecaseMockRecorder) GetByPlaylistID(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) GetByPlaylistID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPlaylistID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByPlaylistID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPlaylistID", reflect.TypeOf((*MockTrackUsecase)(nil).GetByPlaylistID), arg0, arg1)
 }
 
 // GetFavoritesByUserID mocks base method
@@ -377,30 +405,44 @@ func (mr *MockTrackUsecaseMockRecorder) GetFavoritesByUserID(arg0 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesByUserID", reflect.TypeOf((*MockTrackUsecase)(nil).GetFavoritesByUserID), arg0)
 }
 
-// UpdateTrack mocks base method
-func (m *MockTrackUsecase) UpdateTrack(arg0 *models.Track) *error_response.ErrorResponse {
+// LikeTrack mocks base method
+func (m *MockTrackUsecase) LikeTrack(arg0, arg1 uint64) *error_response.ErrorResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTrack", arg0)
+	ret := m.ctrl.Call(m, "LikeTrack", arg0, arg1)
+	ret0, _ := ret[0].(*error_response.ErrorResponse)
+	return ret0
+}
+
+// LikeTrack indicates an expected call of LikeTrack
+func (mr *MockTrackUsecaseMockRecorder) LikeTrack(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LikeTrack", reflect.TypeOf((*MockTrackUsecase)(nil).LikeTrack), arg0, arg1)
+}
+
+// UpdateTrack mocks base method
+func (m *MockTrackUsecase) UpdateTrack(arg0 *models.Track, arg1 uint64) *error_response.ErrorResponse {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTrack", arg0, arg1)
 	ret0, _ := ret[0].(*error_response.ErrorResponse)
 	return ret0
 }
 
 // UpdateTrack indicates an expected call of UpdateTrack
-func (mr *MockTrackUsecaseMockRecorder) UpdateTrack(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) UpdateTrack(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTrack", reflect.TypeOf((*MockTrackUsecase)(nil).UpdateTrack), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTrack", reflect.TypeOf((*MockTrackUsecase)(nil).UpdateTrack), arg0, arg1)
 }
 
 // UpdateTrackAudio mocks base method
-func (m *MockTrackUsecase) UpdateTrackAudio(arg0 *models.Track) *error_response.ErrorResponse {
+func (m *MockTrackUsecase) UpdateTrackAudio(arg0 *models.Track, arg1 uint64) *error_response.ErrorResponse {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTrackAudio", arg0)
+	ret := m.ctrl.Call(m, "UpdateTrackAudio", arg0, arg1)
 	ret0, _ := ret[0].(*error_response.ErrorResponse)
 	return ret0
 }
 
 // UpdateTrackAudio indicates an expected call of UpdateTrackAudio
-func (mr *MockTrackUsecaseMockRecorder) UpdateTrackAudio(arg0 interface{}) *gomock.Call {
+func (mr *MockTrackUsecaseMockRecorder) UpdateTrackAudio(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTrackAudio", reflect.TypeOf((*MockTrackUsecase)(nil).UpdateTrackAudio), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTrackAudio", reflect.TypeOf((*MockTrackUsecase)(nil).UpdateTrackAudio), arg0, arg1)
 }

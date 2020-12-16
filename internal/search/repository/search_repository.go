@@ -17,7 +17,17 @@ func NewSearchRep(dbConn *sql.DB) search.SearchRep {
 }
 
 func (sr *SearchRep) SelectAlbums(query string, offset uint64, limit uint64) ([]*models.Album, error) {
-	rows, err := sr.dbConn.Query("SELECT albums.id, albums.title, albums.artist_id, artists.name, albums.poster FROM albums JOIN artists ON albums.artist_id = artists.id WHERE albums.title ILIKE '%' || $1 || '%' COLLATE \"C\" ORDER BY albums.title, artists.name LIMIT $2 OFFSET $3;",
+	rows, err := sr.dbConn.Query(`SELECT 
+    	albums.id, 
+       	albums.title, 
+       	albums.artist_id, 
+       	artists.name, 
+       	albums.poster FROM albums 
+       	    JOIN artists ON albums.artist_id = artists.id 
+		WHERE albums.title ILIKE '%' || $1 || '%' COLLATE "C" 
+		ORDER BY albums.title, artists.name 
+		LIMIT $2 
+		OFFSET $3;`,
 		query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -37,7 +47,16 @@ func (sr *SearchRep) SelectAlbums(query string, offset uint64, limit uint64) ([]
 }
 
 func (sr *SearchRep) SelectArtists(query string, offset uint64, limit uint64) ([]*models.Artist, error) {
-	rows, err := sr.dbConn.Query("SELECT artists.id, artists.name, artists.description, artists.poster, artists.avatar FROM artists WHERE artists.name ILIKE '%' || $1 || '%' COLLATE \"C\" ORDER BY artists.name LIMIT $2 OFFSET $3;",
+	rows, err := sr.dbConn.Query(`SELECT 
+       	artists.id, 
+       	artists.name, 
+      	artists.description, 
+       	artists.poster, 
+       	artists.avatar FROM artists 
+		WHERE artists.name ILIKE '%' || $1 || '%' COLLATE "C" 
+		ORDER BY artists.name 
+		LIMIT $2 
+		OFFSET $3;`,
 		query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -56,9 +75,26 @@ func (sr *SearchRep) SelectArtists(query string, offset uint64, limit uint64) ([
 	return artists, nil
 }
 
-func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64) ([]*models.Track, error) {
-	rows, err := sr.dbConn.Query("SELECT tracks.id, tracks.album_id, albums.poster, albums.artist_id, artists.name, tracks.title, tracks.duration, tracks.index, tracks.audio FROM tracks JOIN albums ON tracks.album_id = albums.id JOIN artists ON albums.artist_id = artists.id WHERE tracks.title ILIKE '%' || $1 || '%' COLLATE \"C\" ORDER BY tracks.title LIMIT $2 OFFSET $3;",
-		query, limit, offset)
+func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64, userId uint64) ([]*models.Track, error) {
+	rows, err := sr.dbConn.Query(`SELECT 
+       	tracks.id, 
+       	tracks.album_id, 
+       	albums.poster, 
+        albums.artist_id, 
+        artists.name, 
+        tracks.title, 
+        tracks.duration, 
+        tracks.index, 
+        tracks.audio,
+       	user_track_like.is_like FROM tracks 
+            JOIN albums ON tracks.album_id = albums.id 
+            JOIN artists ON albums.artist_id = artists.id 
+			LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $4 
+		WHERE tracks.title ILIKE '%' || $1 || '%' COLLATE "C" 
+		ORDER BY tracks.title 
+		LIMIT $2 
+		OFFSET $3;`,
+		query, limit, offset, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -66,9 +102,14 @@ func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64) ([]
 	var tracks []*models.Track
 	for rows.Next() {
 		track := &models.Track{}
+		var isLiked sql.NullBool
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.AlbumPoster, &track.ArtistID, &track.Artist, &track.Title,
-			&track.Duration, &track.Index, &track.Audio); err != nil {
+			&track.Duration, &track.Index, &track.Audio, &isLiked); err != nil {
 			return nil, err
+		}
+
+		if isLiked.Valid {
+			track.IsLiked = isLiked.Bool
 		}
 
 		tracks = append(tracks, track)

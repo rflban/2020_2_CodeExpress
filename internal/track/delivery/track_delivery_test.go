@@ -56,7 +56,7 @@ func TestTrackDelivery_HandlerCreateTrack(t *testing.T) {
 
 	trackMockUsecase.
 		EXPECT().
-		CreateTrack(gomock.Eq(track)).
+		CreateTrack(gomock.Eq(track), uint64(0)).
 		DoAndReturn(func(track *models.Track) error {
 			track.ID = id
 			track.Index = index
@@ -120,7 +120,7 @@ func TestTrackDelivery_HandlerUpdateTrack(t *testing.T) {
 
 	trackMockUsecase.
 		EXPECT().
-		UpdateTrack(gomock.Eq(expectedTrack)).
+		UpdateTrack(gomock.Eq(expectedTrack), uint64(0)).
 		Return(nil)
 
 	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)

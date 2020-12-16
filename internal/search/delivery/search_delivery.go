@@ -3,9 +3,12 @@ package delivery
 import (
 	"encoding/json"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/search"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/error_response"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/responser"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -13,12 +16,17 @@ import (
 )
 
 type SearchHandler struct {
-	searchUsecase search.SearchUsecase
+	searchUsecase  search.SearchUsecase
+	sessionUsecase session.SessionUsecase
+	userUsecase    user.UserUsecase
 }
 
-func NewSearchHandler(searchUsecase search.SearchUsecase) *SearchHandler {
+func NewSearchHandler(searchUsecase search.SearchUsecase, sessionUsecase session.SessionUsecase,
+	userUsecase user.UserUsecase) *SearchHandler {
 	return &SearchHandler{
-		searchUsecase: searchUsecase,
+		searchUsecase:  searchUsecase,
+		sessionUsecase: sessionUsecase,
+		userUsecase:    userUsecase,
 	}
 }
 
@@ -43,7 +51,13 @@ func (sh *SearchHandler) HandlerSearch() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		search, errResp := sh.searchUsecase.Search(query, offset, limit)
+		var search *models.Search
+		var errResp *ErrorResponse
+		if user := sh.tryGetUser(ctx); user != nil {
+			search, errResp = sh.searchUsecase.Search(query, offset, limit, user.ID)
+		} else {
+			search, errResp = sh.searchUsecase.Search(query, offset, limit, 0)
+		}
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -59,4 +73,23 @@ func (sh *SearchHandler) HandlerSearch() echo.HandlerFunc {
 		_, e = ctx.Response().Write(resp)
 		return e
 	}
+}
+
+func (sh *SearchHandler) tryGetUser(ctx echo.Context) *models.User {
+	cookie, err := ctx.Cookie(ConstSessionName)
+	if err != nil {
+		return nil
+	}
+
+	userSession, errResp := sh.sessionUsecase.GetByID(cookie.Value)
+	if errResp != nil {
+		return nil
+	}
+
+	user, errNoUser := sh.userUsecase.GetById(userSession.UserID)
+	if errNoUser != nil {
+		return nil
+	}
+
+	return user
 }

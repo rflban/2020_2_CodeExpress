@@ -122,7 +122,7 @@ func easyjson2f147938DecodeGithubComGoParkMailRu20202CodeExpressInternalModels(i
 						if v3 == nil {
 							v3 = new(Track)
 						}
-						easyjson2f147938DecodeGithubComGoParkMailRu20202CodeExpressInternalModels1(in, v3)
+						(*v3).UnmarshalEasyJSON(in)
 					}
 					out.Tracks = append(out.Tracks, v3)
 					in.WantComma()
@@ -197,7 +197,7 @@ func easyjson2f147938EncodeGithubComGoParkMailRu20202CodeExpressInternalModels(o
 				if v9 == nil {
 					out.RawString("null")
 				} else {
-					easyjson2f147938EncodeGithubComGoParkMailRu20202CodeExpressInternalModels1(out, *v9)
+					(*v9).MarshalEasyJSON(out)
 				}
 			}
 			out.RawByte(']')
@@ -228,109 +228,4 @@ func (v *Search) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Search) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson2f147938DecodeGithubComGoParkMailRu20202CodeExpressInternalModels(l, v)
-}
-func easyjson2f147938DecodeGithubComGoParkMailRu20202CodeExpressInternalModels1(in *jlexer.Lexer, out *Track) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint64(in.Uint64())
-		case "title":
-			out.Title = string(in.String())
-		case "duration":
-			out.Duration = int(in.Int())
-		case "album_poster":
-			out.AlbumPoster = string(in.String())
-		case "album_id":
-			out.AlbumID = uint64(in.Uint64())
-		case "index":
-			out.Index = uint8(in.Uint8())
-		case "audio":
-			out.Audio = string(in.String())
-		case "artist":
-			out.Artist = string(in.String())
-		case "artist_id":
-			out.ArtistID = uint64(in.Uint64())
-		case "is_favorite":
-			out.IsFavorite = bool(in.Bool())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson2f147938EncodeGithubComGoParkMailRu20202CodeExpressInternalModels1(out *jwriter.Writer, in Track) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint64(uint64(in.ID))
-	}
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix)
-		out.String(string(in.Title))
-	}
-	{
-		const prefix string = ",\"duration\":"
-		out.RawString(prefix)
-		out.Int(int(in.Duration))
-	}
-	{
-		const prefix string = ",\"album_poster\":"
-		out.RawString(prefix)
-		out.String(string(in.AlbumPoster))
-	}
-	{
-		const prefix string = ",\"album_id\":"
-		out.RawString(prefix)
-		out.Uint64(uint64(in.AlbumID))
-	}
-	{
-		const prefix string = ",\"index\":"
-		out.RawString(prefix)
-		out.Uint8(uint8(in.Index))
-	}
-	{
-		const prefix string = ",\"audio\":"
-		out.RawString(prefix)
-		out.String(string(in.Audio))
-	}
-	{
-		const prefix string = ",\"artist\":"
-		out.RawString(prefix)
-		out.String(string(in.Artist))
-	}
-	{
-		const prefix string = ",\"artist_id\":"
-		out.RawString(prefix)
-		out.Uint64(uint64(in.ArtistID))
-	}
-	{
-		const prefix string = ",\"is_favorite\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsFavorite))
-	}
-	out.RawByte('}')
 }

@@ -2,6 +2,8 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
 
@@ -24,12 +26,17 @@ import (
 type PlaylistHandler struct {
 	playlistUsecase playlist.PlaylistUsecase
 	trackUsecase    track.TrackUsecase
+	sessionUsecase  session.SessionUsecase
+	userUsecase     user.UserUsecase
 }
 
-func NewPlaylistHandler(playlistUsecase playlist.PlaylistUsecase, trackUsecase track.TrackUsecase) *PlaylistHandler {
+func NewPlaylistHandler(playlistUsecase playlist.PlaylistUsecase, trackUsecase track.TrackUsecase,
+	sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *PlaylistHandler {
 	return &PlaylistHandler{
 		playlistUsecase: playlistUsecase,
 		trackUsecase:    trackUsecase,
+		sessionUsecase:  sessionUsecase,
+		userUsecase:     userUsecase,
 	}
 }
 
@@ -161,7 +168,12 @@ func (ph *PlaylistHandler) HandlerConcretePlaylist() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		tracks, errResp := ph.trackUsecase.GetByPlaylistID(playlist.ID)
+		var userId uint64
+		if user := ph.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
+
+		tracks, errResp := ph.trackUsecase.GetByPlaylistID(playlist.ID, userId)
 
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
@@ -294,4 +306,23 @@ func (ph *PlaylistHandler) HandlerDeleteTrackFromPlaylist() echo.HandlerFunc {
 
 		return ctx.JSON(http.StatusOK, OKResponse)
 	}
+}
+
+func (ph *PlaylistHandler) tryGetUser(ctx echo.Context) *models.User {
+	cookie, err := ctx.Cookie(ConstSessionName)
+	if err != nil {
+		return nil
+	}
+
+	userSession, errResp := ph.sessionUsecase.GetByID(cookie.Value)
+	if errResp != nil {
+		return nil
+	}
+
+	user, errNoUser := ph.userUsecase.GetById(userSession.UserID)
+	if errNoUser != nil {
+		return nil
+	}
+
+	return user
 }

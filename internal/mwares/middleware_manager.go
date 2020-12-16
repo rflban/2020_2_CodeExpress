@@ -2,6 +2,7 @@ package mwares
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"

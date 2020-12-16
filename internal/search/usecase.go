@@ -6,5 +6,5 @@ import (
 )
 
 type SearchUsecase interface {
-	Search(query string, offset uint64, limit uint64) (*models.Search, *ErrorResponse)
+	Search(query string, offset, limit, userId uint64) (*models.Search, *ErrorResponse)
 }

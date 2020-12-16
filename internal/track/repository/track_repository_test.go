@@ -254,15 +254,15 @@ func TestTrackRepository_SelectByID(t *testing.T) {
 		AlbumPoster: poster,
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
-	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id", "is_like"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID, nil)
 
 	mock.
 		ExpectQuery("SELECT").
-		WithArgs(id).
+		WithArgs(id, uint64(0)).
 		WillReturnRows(rows)
 
-	track, err := repo.SelectByID(id)
+	track, err := repo.SelectByID(id, 0)
 
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -311,15 +311,15 @@ func TestTrackRepository_SelectByArtistID(t *testing.T) {
 	expectedTracks := []*models.Track{expectedTrack}
 
 	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "artist_id",
-		"name", "is_favorite"})
-	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistID, artistName, nil)
+		"name", "is_favorite", "is_like"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistID, artistName, nil, nil)
 
 	mock.
 		ExpectQuery("SELECT").
 		WithArgs(artistID, uint64(0)).
 		WillReturnRows(rows)
 
-	tracks, err := repo.SelectByArtistId(artistID, uint64(0))
+	tracks, err := repo.SelectByArtistId(artistID, 0)
 
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -367,15 +367,16 @@ func TestTrackRepository_SelectByAlbumID(t *testing.T) {
 
 	expectedTracks := []*models.Track{expectedTrack}
 
-	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
-	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name",
+		"artist_id", "is_like"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID, nil)
 
 	mock.
-		ExpectQuery(`select`).
-		WithArgs(albumID).
+		ExpectQuery("SELECT").
+		WithArgs(albumID, uint64(0)).
 		WillReturnRows(rows)
 
-	tracks, err := repo.SelectByAlbumID(albumID)
+	tracks, err := repo.SelectByAlbumID(albumID, 0)
 
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -426,15 +427,15 @@ func TestTrackRepository_SelectByParam(t *testing.T) {
 	count, from := uint64(1), uint64(0)
 
 	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "artist_id",
-		"name", "is_favorite"})
-	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistID, artistName, nil)
+		"name", "is_favorite", "is_like"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistID, artistName, nil, nil)
 
 	mock.
 		ExpectQuery("SELECT").
 		WithArgs(count, from, uint64(0)).
 		WillReturnRows(rows)
 
-	tracks, err := repo.SelectByParams(count, from, uint64(0))
+	tracks, err := repo.SelectByParams(count, from, 0)
 
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -485,8 +486,9 @@ func TestTrackRepository_SelectFavoritesByUserID(t *testing.T) {
 
 	userID := uint64(1)
 
-	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "artist_id", "name"})
-	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistID, artistName)
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "artist_id",
+		"name", "is_like"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistID, artistName, nil)
 
 	mock.
 		ExpectQuery("SELECT").
@@ -543,15 +545,16 @@ func TestTrackRepository_SelectByPlaylistID(t *testing.T) {
 
 	playlistID := uint64(1)
 
-	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name", "artist_id"})
-	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID)
+	rows := sqlmock.NewRows([]string{"id", "album_id", "title", "duration", "index", "audio", "poster", "name",
+		"artist_id", "is_like"})
+	rows.AddRow(id, albumID, title, duration, index, audio, poster, artistName, artistID, nil)
 
 	mock.
-		ExpectQuery("select").
-		WithArgs(playlistID).
+		ExpectQuery("SELECT").
+		WithArgs(playlistID, uint64(0)).
 		WillReturnRows(rows)
 
-	tracks, err := repo.SelectByPlaylistID(playlistID)
+	tracks, err := repo.SelectByPlaylistID(playlistID, 0)
 
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)

@@ -17,7 +17,7 @@ func NewSearchUsecase(searchRep search.SearchRep) *SearchUsecase {
 	}
 }
 
-func (sUc *SearchUsecase) Search(query string, offset uint64, limit uint64) (*models.Search, *ErrorResponse) {
+func (sUc *SearchUsecase) Search(query string, offset uint64, limit uint64, userId uint64) (*models.Search, *ErrorResponse) {
 	search := &models.Search{}
 	var err error
 	search.Albums, err = sUc.searchRep.SelectAlbums(query, offset, limit)
@@ -30,7 +30,7 @@ func (sUc *SearchUsecase) Search(query string, offset uint64, limit uint64) (*mo
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
-	search.Tracks, err = sUc.searchRep.SelectTracks(query, offset, limit)
+	search.Tracks, err = sUc.searchRep.SelectTracks(query, offset, limit, userId)
 	if err != nil {
 		return nil, NewErrorResponse(ErrInternal, err)
 	}

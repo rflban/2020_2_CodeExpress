@@ -48,6 +48,8 @@ func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser(), mm.CheckAuth)
 	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
 	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
+	e.POST("/api/v1/tracks/:id/like", ah.HandlerLikeTrack(), mm.CheckAuth)
+	e.DELETE("/api/v1/tracks/:id/like", ah.HandlerDislikeTrack(), mm.CheckAuth)
 }
 
 func (ah *TrackHandler) HandlerDeleteFromUsersFavourites() echo.HandlerFunc {
@@ -117,13 +119,12 @@ func (ah *TrackHandler) HandlerTracksByArtistID() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		var tracks []*models.Track
-		var errResp *ErrorResponse
+		var userId uint64
 		if user := ah.tryGetUser(ctx); user != nil {
-			tracks, errResp = ah.trackUsecase.GetByArtistId(uint64(id), user.ID)
-		} else {
-			tracks, errResp = ah.trackUsecase.GetByArtistId(uint64(id), 0)
+			userId = user.ID
 		}
+
+		tracks, errResp := ah.trackUsecase.GetByArtistId(uint64(id), userId)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -154,13 +155,12 @@ func (ah *TrackHandler) HandlerTracksByParams() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		var tracks []*models.Track
-		var errResp *ErrorResponse
+		var userId uint64
 		if user := ah.tryGetUser(ctx); user != nil {
-			tracks, errResp = ah.trackUsecase.GetByParams(uint64(count), uint64(from), user.ID)
-		} else {
-			tracks, errResp = ah.trackUsecase.GetByParams(uint64(count), uint64(from), 0)
+			userId = user.ID
 		}
+
+		tracks, errResp := ah.trackUsecase.GetByParams(uint64(count), uint64(from), userId)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -200,8 +200,13 @@ func (ah *TrackHandler) HandlerCreateTrack() echo.HandlerFunc {
 			AlbumID: req.AlbumID,
 		}
 
-		if err := ah.trackUsecase.CreateTrack(track); err != nil {
-			return RespondWithError(err, ctx)
+		var userId uint64
+		if user := ah.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
+
+		if errResp := ah.trackUsecase.CreateTrack(track, userId); errResp != nil {
+			return RespondWithError(errResp, ctx)
 		}
 
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
@@ -248,8 +253,13 @@ func (ah *TrackHandler) HandlerUpdateTrack() echo.HandlerFunc {
 			Index:   req.Index,
 		}
 
-		if err := ah.trackUsecase.UpdateTrack(track); err != nil {
-			return RespondWithError(err, ctx)
+		var userId uint64
+		if user := ah.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
+
+		if errResp := ah.trackUsecase.UpdateTrack(track, userId); errResp != nil {
+			return RespondWithError(errResp, ctx)
 		}
 
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
@@ -299,8 +309,12 @@ func (ah *TrackHandler) HandlerUploadTrackAudio() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
 		}
 
-		track, errResp := ah.trackUsecase.GetByID(uint64(id))
+		var userId uint64
+		if user := ah.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
 
+		track, errResp := ah.trackUsecase.GetByID(uint64(id), userId)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -312,7 +326,7 @@ func (ah *TrackHandler) HandlerUploadTrackAudio() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
 		}
 
-		if errResp := ah.trackUsecase.UpdateTrackAudio(track); errResp != nil {
+		if errResp = ah.trackUsecase.UpdateTrackAudio(track, userId); errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
 
@@ -326,6 +340,40 @@ func (ah *TrackHandler) HandlerUploadTrackAudio() echo.HandlerFunc {
 
 		_, e = ctx.Response().Write(resp)
 		return e
+	}
+}
+
+func (ah *TrackHandler) HandlerLikeTrack() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		userId := ctx.Get(ConstAuthedUserParam)
+
+		trackId, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		if err := ah.trackUsecase.LikeTrack(userId.(uint64), uint64(trackId)); err != nil {
+			return RespondWithError(err, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, OKResponse)
+	}
+}
+
+func (ah *TrackHandler) HandlerDislikeTrack() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		userId := ctx.Get(ConstAuthedUserParam)
+
+		trackId, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		if err := ah.trackUsecase.DislikeTrack(userId.(uint64), uint64(trackId)); err != nil {
+			return RespondWithError(err, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, OKResponse)
 	}
 }
 

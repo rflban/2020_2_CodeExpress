@@ -6,16 +6,18 @@ import (
 )
 
 type TrackUsecase interface {
-	CreateTrack(track *models.Track) *ErrorResponse
+	CreateTrack(track *models.Track, userId uint64) *ErrorResponse
 	DeleteTrack(id uint64) *ErrorResponse
-	GetByArtistId(artistId uint64, userId uint64) ([]*models.Track, *ErrorResponse)
-	GetByAlbumID(albumID uint64) ([]*models.Track, *ErrorResponse)
-	GetByID(id uint64) (*models.Track, *ErrorResponse)
+	GetByArtistId(artistId, userId uint64) ([]*models.Track, *ErrorResponse)
+	GetByAlbumID(albumId, userId uint64) ([]*models.Track, *ErrorResponse)
+	GetByID(id, userId uint64) (*models.Track, *ErrorResponse)
 	GetByParams(count uint64, from uint64, userId uint64) ([]*models.Track, *ErrorResponse)
 	GetFavoritesByUserID(userID uint64) ([]*models.Track, *ErrorResponse)
-	UpdateTrack(track *models.Track) *ErrorResponse
-	UpdateTrackAudio(track *models.Track) *ErrorResponse
+	UpdateTrack(track *models.Track, userId uint64) *ErrorResponse
+	UpdateTrackAudio(track *models.Track, userId uint64) *ErrorResponse
 	AddToFavourites(userID, trackID uint64) *ErrorResponse
 	DeleteFromFavourites(userID, trackID uint64) *ErrorResponse
-	GetByPlaylistID(playlistID uint64) ([]*models.Track, *ErrorResponse)
+	GetByPlaylistID(playlistID, userId uint64) ([]*models.Track, *ErrorResponse)
+	LikeTrack(userId, trackId uint64) *ErrorResponse
+	DislikeTrack(userId, trackId uint64) *ErrorResponse
 }
