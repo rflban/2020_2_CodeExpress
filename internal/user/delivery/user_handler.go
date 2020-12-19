@@ -39,7 +39,12 @@ func (uh *UserHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/user", uh.HandlerCurrentUserInfo(), mm.CheckAuth)
 	e.PUT("/api/v1/user/profile", uh.HandlerUpdateProfile(), mm.CheckCSRF, mm.CheckAuth)
 	e.PUT("/api/v1/user/password", uh.HandlerUpdatePassword(), mm.CheckCSRF, mm.CheckAuth)
-	e.PUT("/api/v1/user/photo", uh.HandlerUpdateAvatar(), mm.CheckCSRF, mm.CheckAuth, middleware.BodyLimit("10M"))
+	e.PUT("/api/v1/user/photo", uh.HandlerUpdateAvatar(), mm.CheckCSRF, mm.CheckAuth,
+		middleware.BodyLimit("10M"))
+	e.GET("/api/v1/user/:name/profile", uh.HandlerGetProfile(), mm.CheckAuth)
+	e.POST("/api/v1/user/:name/subscription", uh.HandlerAddSubscription(), mm.CheckAuth)
+	e.DELETE("/api/v1/user/:name/subscription", uh.HandlerRemoveSubscription(), mm.CheckAuth)
+	e.GET("/api/v1/user/:name/subscriptions", uh.HandlerGetSubscriptions(), mm.CheckAuth)
 }
 
 func (uh *UserHandler) HandlerRegisterUser() echo.HandlerFunc {
@@ -208,6 +213,79 @@ func (uh *UserHandler) HandlerUpdateAvatar() echo.HandlerFunc {
 		ctx.Response().WriteHeader(http.StatusOK)
 
 		resp, e := json.Marshal(user)
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
+}
+
+func (uh *UserHandler) HandlerGetProfile() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		authUserId := ctx.Get(ConstAuthedUserParam).(uint64)
+
+		user, errResp := uh.userUsecase.GetByName(ctx.Param("name"), authUserId)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(user)
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
+}
+
+func (uh *UserHandler) HandlerAddSubscription() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		userId := ctx.Get(ConstAuthedUserParam).(uint64)
+
+		if errResp := uh.userUsecase.AddSubscription(userId, ctx.Param("name")); errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, OKResponse)
+	}
+}
+
+func (uh *UserHandler) HandlerRemoveSubscription() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		userId := ctx.Get(ConstAuthedUserParam).(uint64)
+
+		if errResp := uh.userUsecase.RemoveSubscription(userId, ctx.Param("name")); errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		return ctx.JSON(http.StatusOK, OKResponse)
+	}
+}
+
+func (uh *UserHandler) HandlerGetSubscriptions() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		authUserId := ctx.Get(ConstAuthedUserParam).(uint64)
+
+		user, errResp := uh.userUsecase.GetByName(ctx.Param("name"), authUserId)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		subscriptions, errResp := uh.userUsecase.GetSubscriptions(user.ID, authUserId)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(subscriptions)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}

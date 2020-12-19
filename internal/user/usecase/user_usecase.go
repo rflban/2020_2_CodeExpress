@@ -63,6 +63,14 @@ func (uUc *UserUsecase) GetById(id uint64) (*models.User, *ErrorResponse) {
 	return user, nil
 }
 
+func (uUc *UserUsecase) GetByName(name string, authUserId uint64) (*models.User, *ErrorResponse) {
+	user, err := uUc.userRep.SelectByName(name, authUserId)
+	if err != nil {
+		return nil, NewErrorResponse(ErrUserNotExist, err)
+	}
+	return user, nil
+}
+
 func (uUc *UserUsecase) UpdateProfile(id uint64, name string, email string) (*models.User, *ErrorResponse) {
 	user, errResp := uUc.GetById(id)
 	if errResp != nil {
@@ -136,4 +144,26 @@ func (uUc *UserUsecase) CheckAdmin(id uint64) (bool, *ErrorResponse) {
 	}
 
 	return isAdmin, nil
+}
+
+func (uUc *UserUsecase) AddSubscription(userSubscriberId uint64, userName string) *ErrorResponse {
+	if err := uUc.userRep.InsertSubscription(userSubscriberId, userName); err != nil {
+		return NewErrorResponse(ErrInternal, err)
+	}
+	return nil
+}
+
+func (uUc *UserUsecase) RemoveSubscription(userSubscriberId uint64, userName string) *ErrorResponse {
+	if err := uUc.userRep.RemoveSubscription(userSubscriberId, userName); err != nil {
+		return NewErrorResponse(ErrUserNotExist, err)
+	}
+	return nil
+}
+
+func (uUc *UserUsecase) GetSubscriptions(id, authUserId uint64) (*models.Subscriptions, *ErrorResponse) {
+	subscriptions, err := uUc.userRep.SelectSubscriptions(id, authUserId)
+	if err != nil {
+		return nil, NewErrorResponse(ErrUserNotExist, err)
+	}
+	return subscriptions, nil
 }

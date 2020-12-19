@@ -8,5 +8,9 @@ type UserRep interface {
 	SelectById(id uint64) (*models.User, error)
 	SelectByLogin(login string) (*models.User, error)
 	SelectByNameOrEmail(name string, email string) ([]*models.User, error)
+	SelectByName(name string, authUserId uint64) (*models.User, error)
 	SelectIfAdmin(userID uint64) (bool, error)
+	InsertSubscription(userSubscriberId uint64, userName string) error
+	RemoveSubscription(userSubscriberId uint64, userName string) error
+	SelectSubscriptions(id, authUserId uint64) (*models.Subscriptions, error)
 }

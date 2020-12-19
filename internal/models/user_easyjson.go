@@ -44,6 +44,8 @@ func easyjson9e1087fdDecodeGithubComGoParkMailRu20202CodeExpressInternalModels(i
 			out.Email = string(in.String())
 		case "avatar":
 			out.Avatar = string(in.String())
+		case "is_subscribed":
+			out.IsSubscribed = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -68,7 +70,7 @@ func easyjson9e1087fdEncodeGithubComGoParkMailRu20202CodeExpressInternalModels(o
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
-	{
+	if in.Email != "" {
 		const prefix string = ",\"email\":"
 		out.RawString(prefix)
 		out.String(string(in.Email))
@@ -77,6 +79,11 @@ func easyjson9e1087fdEncodeGithubComGoParkMailRu20202CodeExpressInternalModels(o
 		const prefix string = ",\"avatar\":"
 		out.RawString(prefix)
 		out.String(string(in.Avatar))
+	}
+	if in.IsSubscribed {
+		const prefix string = ",\"is_subscribed\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.IsSubscribed))
 	}
 	out.RawByte('}')
 }
