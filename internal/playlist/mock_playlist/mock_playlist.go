@@ -120,6 +120,21 @@ func (mr *MockPlaylistRepMockRecorder) SelectByUserID(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByUserID", reflect.TypeOf((*MockPlaylistRep)(nil).SelectByUserID), arg0)
 }
 
+// SelectPublicByUserID mocks base method
+func (m *MockPlaylistRep) SelectPublicByUserID(arg0 uint64) ([]*models.Playlist, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectPublicByUserID", arg0)
+	ret0, _ := ret[0].([]*models.Playlist)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectPublicByUserID indicates an expected call of SelectPublicByUserID
+func (mr *MockPlaylistRepMockRecorder) SelectPublicByUserID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectPublicByUserID", reflect.TypeOf((*MockPlaylistRep)(nil).SelectPublicByUserID), arg0)
+}
+
 // Update mocks base method
 func (m *MockPlaylistRep) Update(arg0 *models.Playlist) error {
 	m.ctrl.T.Helper()
@@ -241,6 +256,21 @@ func (m *MockPlaylistUsecase) GetByUserID(arg0 uint64) ([]*models.Playlist, *err
 func (mr *MockPlaylistUsecaseMockRecorder) GetByUserID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockPlaylistUsecase)(nil).GetByUserID), arg0)
+}
+
+// GetPublicByUserID mocks base method
+func (m *MockPlaylistUsecase) GetPublicByUserID(arg0 uint64) ([]*models.Playlist, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPublicByUserID", arg0)
+	ret0, _ := ret[0].([]*models.Playlist)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// GetPublicByUserID indicates an expected call of GetPublicByUserID
+func (mr *MockPlaylistUsecaseMockRecorder) GetPublicByUserID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicByUserID", reflect.TypeOf((*MockPlaylistUsecase)(nil).GetPublicByUserID), arg0)
 }
 
 // UpdatePlaylist mocks base method

@@ -2,10 +2,11 @@ package delivery
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track"
 
@@ -26,17 +27,17 @@ import (
 type PlaylistHandler struct {
 	playlistUsecase playlist.PlaylistUsecase
 	trackUsecase    track.TrackUsecase
-	sessionUsecase  session.SessionUsecase
 	userUsecase     user.UserUsecase
+	sessionUsecase  session.SessionUsecase
 }
 
 func NewPlaylistHandler(playlistUsecase playlist.PlaylistUsecase, trackUsecase track.TrackUsecase,
-	sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *PlaylistHandler {
+	userUsecase user.UserUsecase, sessionUsecase session.SessionUsecase) *PlaylistHandler {
 	return &PlaylistHandler{
 		playlistUsecase: playlistUsecase,
 		trackUsecase:    trackUsecase,
-		sessionUsecase:  sessionUsecase,
 		userUsecase:     userUsecase,
+		sessionUsecase:  sessionUsecase,
 	}
 }
 
@@ -49,6 +50,8 @@ func (ph *PlaylistHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager)
 	e.POST("/api/v1/playlists/:id/photo", ph.HandlerUploadPlaylistPhoto(), middleware.BodyLimit("10M"), mm.CheckAuth)
 	e.POST("/api/v1/playlists/:id/tracks", ph.HandlerAddTrackToPlaylist(), mm.CheckAuth)
 	e.DELETE("/api/v1/playlists/:id/tracks/:track_id", ph.HandlerDeleteTrackFromPlaylist(), mm.CheckAuth)
+	e.PUT("/api/v1/playlists/:id/privacy", ph.HandlerUpdatePrivacyPlaylist(), mm.CheckAuth)
+	e.GET("/api/v1/user/:id/playlists", ph.HandlerUserPublicPlaylists(), mm.CheckAuth)
 }
 
 func (ph *PlaylistHandler) HandlerCreatePlaylist() echo.HandlerFunc {
@@ -115,11 +118,17 @@ func (ph *PlaylistHandler) HandlerUpdatePlaylist() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
-		playlist := &models.Playlist{
-			ID:     uint64(id),
-			UserID: userID.(uint64),
-			Title:  req.Title,
+		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
 		}
+
+		if userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
+		playlist.Title = req.Title
 
 		if errResp := ph.playlistUsecase.UpdatePlaylist(playlist); errResp != nil {
 			return RespondWithError(errResp, ctx)
@@ -146,6 +155,16 @@ func (ph *PlaylistHandler) HandlerDeletePlaylist() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
+		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		if userID := ctx.Get(ConstAuthedUserParam); userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
 		if errResp := ph.playlistUsecase.DeletePlaylist(uint64(id)); errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -155,6 +174,14 @@ func (ph *PlaylistHandler) HandlerDeletePlaylist() echo.HandlerFunc {
 }
 
 func (ph *PlaylistHandler) HandlerConcretePlaylist() echo.HandlerFunc {
+	type Profile struct {
+		Username string `json:"username"`
+		Avatar   string `json:"avatar"`
+	}
+	type Response struct {
+		Profile  Profile         `json:"profile"`
+		Playlist models.Playlist `json:"playlist"`
+	}
 	return func(ctx echo.Context) error {
 		id, err := strconv.Atoi(ctx.Param("id"))
 
@@ -168,12 +195,28 @@ func (ph *PlaylistHandler) HandlerConcretePlaylist() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		var userId uint64
-		if user := ph.tryGetUser(ctx); user != nil {
-			userId = user.ID
+		var userID uint64 = 0
+		cookie, err := ctx.Cookie(ConstSessionName)
+
+		if err == nil {
+			session, errResp := ph.sessionUsecase.GetByID(cookie.Value)
+			if errResp != nil {
+				return RespondWithError(errResp, ctx)
+			}
+
+			user, errResp := ph.userUsecase.GetById(session.UserID)
+			if errResp != nil {
+				return RespondWithError(errResp, ctx)
+			}
+
+			userID = user.ID
 		}
 
-		tracks, errResp := ph.trackUsecase.GetByPlaylistID(playlist.ID, userId)
+		if !playlist.IsPublic && userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
+		tracks, errResp := ph.trackUsecase.GetByPlaylistID(playlist.ID, userID)
 
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
@@ -181,15 +224,36 @@ func (ph *PlaylistHandler) HandlerConcretePlaylist() echo.HandlerFunc {
 
 		playlist.Tracks = tracks
 
+		user, errResp := ph.userUsecase.GetById(playlist.UserID)
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		profile := Profile{
+			user.Name,
+			user.Avatar,
+		}
+
+		resp := Response{
+			Profile:  profile,
+			Playlist: *playlist,
+		}
+
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		ctx.Response().WriteHeader(http.StatusOK)
 
-		resp, e := json.Marshal(playlist)
+		respJson, e := json.Marshal(resp)
 		if e != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
 		}
 
-		_, e = ctx.Response().Write(resp)
+		_, e = ctx.Response().Write(respJson)
+
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
 		return e
 	}
 }
@@ -225,18 +289,22 @@ func (ph *PlaylistHandler) HandlerUploadPlaylistPhoto() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
+		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		if userID := ctx.Get(ConstAuthedUserParam); userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
 		photoUploader := &PhotoUploader{}
 
 		path, err := photoUploader.UploadPhoto(ctx, "poster", "./playlist_posters/")
 
 		if err != nil {
 			return RespondWithError(NewErrorResponse(ErrInternal, err), ctx)
-		}
-
-		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
-
-		if errResp != nil {
-			return RespondWithError(errResp, ctx)
 		}
 
 		playlist.Poster = path
@@ -270,6 +338,16 @@ func (ph *PlaylistHandler) HandlerAddTrackToPlaylist() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
+		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		if userID := ctx.Get(ConstAuthedUserParam); userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
 		req := &Request{}
 
 		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
@@ -295,6 +373,16 @@ func (ph *PlaylistHandler) HandlerDeleteTrackFromPlaylist() echo.HandlerFunc {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
 		}
 
+		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		if userID := ctx.Get(ConstAuthedUserParam); userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
 		trackID, err := strconv.Atoi(ctx.Param("track_id"))
 		if err != nil {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
@@ -308,21 +396,81 @@ func (ph *PlaylistHandler) HandlerDeleteTrackFromPlaylist() echo.HandlerFunc {
 	}
 }
 
-func (ph *PlaylistHandler) tryGetUser(ctx echo.Context) *models.User {
-	cookie, err := ctx.Cookie(ConstSessionName)
-	if err != nil {
-		return nil
+func (ph *PlaylistHandler) HandlerUpdatePrivacyPlaylist() echo.HandlerFunc {
+	type Request struct {
+		IsPublic bool `json:"is_public"`
 	}
 
-	userSession, errResp := ph.sessionUsecase.GetByID(cookie.Value)
-	if errResp != nil {
-		return nil
-	}
+	return func(ctx echo.Context) error {
+		userID := ctx.Get(ConstAuthedUserParam)
 
-	user, errNoUser := ph.userUsecase.GetById(userSession.UserID)
-	if errNoUser != nil {
-		return nil
-	}
+		req := &Request{}
 
-	return user
+		if err := validator.NewRequestValidator(ctx).Validate(req); err != nil {
+			if err.Error != nil {
+				logrus.Info(err.Error)
+				validator.GetValidationError(err)
+			}
+			return ctx.JSON(err.StatusCode, err.UserError)
+		}
+
+		id, err := strconv.Atoi(ctx.Param("id"))
+
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		playlist, errResp := ph.playlistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		if userID != playlist.UserID {
+			return RespondWithError(NewErrorResponse(ErrPermissionDenied, err), ctx)
+		}
+
+		playlist.IsPublic = req.IsPublic
+
+		if errResp := ph.playlistUsecase.UpdatePlaylist(playlist); errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(playlist)
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
+}
+
+func (ph *PlaylistHandler) HandlerUserPublicPlaylists() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		id, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		playlists, errResp := ph.playlistUsecase.GetPublicByUserID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(models.Playlists(playlists))
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
 }

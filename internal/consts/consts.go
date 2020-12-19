@@ -11,8 +11,8 @@ const (
 )
 
 var ConstAllowedOrigins = []string{
-	"http://musicexpress.sarafa2n.ru/",
-	"localhost",
+	"http://musicexpress.sarafa2n.ru",
+	"http://localhost:8090",
 }
 
 var ConstAllowedMethods = []string{

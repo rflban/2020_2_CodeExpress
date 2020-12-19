@@ -110,3 +110,17 @@ func (pu *PlaylistUsecase) DeleteTrack(trackID uint64, playlistID uint64) *Error
 
 	return nil
 }
+
+func (pu *PlaylistUsecase) GetPublicByUserID(userID uint64) ([]*models.Playlist, *ErrorResponse) {
+	playlists, err := pu.playlistRep.SelectPublicByUserID(userID)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	return playlists, nil
+}
