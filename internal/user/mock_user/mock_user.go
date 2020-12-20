@@ -49,6 +49,34 @@ func (mr *MockUserRepMockRecorder) Insert(arg0, arg1, arg2 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockUserRep)(nil).Insert), arg0, arg1, arg2)
 }
 
+// InsertSubscription mocks base method
+func (m *MockUserRep) InsertSubscription(arg0 uint64, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertSubscription", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertSubscription indicates an expected call of InsertSubscription
+func (mr *MockUserRepMockRecorder) InsertSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertSubscription", reflect.TypeOf((*MockUserRep)(nil).InsertSubscription), arg0, arg1)
+}
+
+// RemoveSubscription mocks base method
+func (m *MockUserRep) RemoveSubscription(arg0 uint64, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveSubscription", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveSubscription indicates an expected call of RemoveSubscription
+func (mr *MockUserRepMockRecorder) RemoveSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveSubscription", reflect.TypeOf((*MockUserRep)(nil).RemoveSubscription), arg0, arg1)
+}
+
 // SelectById mocks base method
 func (m *MockUserRep) SelectById(arg0 uint64) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -79,6 +107,21 @@ func (mr *MockUserRepMockRecorder) SelectByLogin(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByLogin", reflect.TypeOf((*MockUserRep)(nil).SelectByLogin), arg0)
 }
 
+// SelectByName mocks base method
+func (m *MockUserRep) SelectByName(arg0 string, arg1 uint64) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectByName", arg0, arg1)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectByName indicates an expected call of SelectByName
+func (mr *MockUserRepMockRecorder) SelectByName(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByName", reflect.TypeOf((*MockUserRep)(nil).SelectByName), arg0, arg1)
+}
+
 // SelectByNameOrEmail mocks base method
 func (m *MockUserRep) SelectByNameOrEmail(arg0, arg1 string) ([]*models.User, error) {
 	m.ctrl.T.Helper()
@@ -107,6 +150,21 @@ func (m *MockUserRep) SelectIfAdmin(arg0 uint64) (bool, error) {
 func (mr *MockUserRepMockRecorder) SelectIfAdmin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectIfAdmin", reflect.TypeOf((*MockUserRep)(nil).SelectIfAdmin), arg0)
+}
+
+// SelectSubscriptions mocks base method
+func (m *MockUserRep) SelectSubscriptions(arg0, arg1 uint64) (*models.Subscriptions, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectSubscriptions", arg0, arg1)
+	ret0, _ := ret[0].(*models.Subscriptions)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectSubscriptions indicates an expected call of SelectSubscriptions
+func (mr *MockUserRepMockRecorder) SelectSubscriptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectSubscriptions", reflect.TypeOf((*MockUserRep)(nil).SelectSubscriptions), arg0, arg1)
 }
 
 // Update mocks base method
@@ -144,6 +202,20 @@ func NewMockUserUsecase(ctrl *gomock.Controller) *MockUserUsecase {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 	return m.recorder
+}
+
+// AddSubscription mocks base method
+func (m *MockUserUsecase) AddSubscription(arg0 uint64, arg1 string) *error_response.ErrorResponse {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddSubscription", arg0, arg1)
+	ret0, _ := ret[0].(*error_response.ErrorResponse)
+	return ret0
+}
+
+// AddSubscription indicates an expected call of AddSubscription
+func (mr *MockUserUsecaseMockRecorder) AddSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSubscription", reflect.TypeOf((*MockUserUsecase)(nil).AddSubscription), arg0, arg1)
 }
 
 // CheckAdmin mocks base method
@@ -191,6 +263,36 @@ func (mr *MockUserUsecaseMockRecorder) GetById(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockUserUsecase)(nil).GetById), arg0)
 }
 
+// GetByName mocks base method
+func (m *MockUserUsecase) GetByName(arg0 string, arg1 uint64) (*models.User, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByName", arg0, arg1)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// GetByName indicates an expected call of GetByName
+func (mr *MockUserUsecaseMockRecorder) GetByName(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockUserUsecase)(nil).GetByName), arg0, arg1)
+}
+
+// GetSubscriptions mocks base method
+func (m *MockUserUsecase) GetSubscriptions(arg0, arg1 uint64) (*models.Subscriptions, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubscriptions", arg0, arg1)
+	ret0, _ := ret[0].(*models.Subscriptions)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// GetSubscriptions indicates an expected call of GetSubscriptions
+func (mr *MockUserUsecaseMockRecorder) GetSubscriptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscriptions", reflect.TypeOf((*MockUserUsecase)(nil).GetSubscriptions), arg0, arg1)
+}
+
 // GetUserByLogin mocks base method
 func (m *MockUserUsecase) GetUserByLogin(arg0, arg1 string) (*models.User, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
@@ -204,6 +306,20 @@ func (m *MockUserUsecase) GetUserByLogin(arg0, arg1 string) (*models.User, *erro
 func (mr *MockUserUsecaseMockRecorder) GetUserByLogin(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByLogin", reflect.TypeOf((*MockUserUsecase)(nil).GetUserByLogin), arg0, arg1)
+}
+
+// RemoveSubscription mocks base method
+func (m *MockUserUsecase) RemoveSubscription(arg0 uint64, arg1 string) *error_response.ErrorResponse {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveSubscription", arg0, arg1)
+	ret0, _ := ret[0].(*error_response.ErrorResponse)
+	return ret0
+}
+
+// RemoveSubscription indicates an expected call of RemoveSubscription
+func (mr *MockUserUsecaseMockRecorder) RemoveSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveSubscription", reflect.TypeOf((*MockUserUsecase)(nil).RemoveSubscription), arg0, arg1)
 }
 
 // UpdateAvatar mocks base method

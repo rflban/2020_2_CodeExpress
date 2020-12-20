@@ -11,7 +11,7 @@ CREATE TABLE artists (
 
 CREATE TABLE users (
     id serial NOT NULL PRIMARY KEY,
-    name varchar(64) NOT NULL UNIQUE,
+    name varchar(64) NOT NULL UNIQUE CHECK (length(name) > 2),
     email varchar(64) NOT NULL UNIQUE,
     password varchar(64) NOT NULL,
     avatar varchar(255) NOT NULL DEFAULT ''
@@ -73,7 +73,13 @@ CREATE TABLE track_playlist (
     FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
 );
 
-CREATE TABLE session (
+CREATE TABLE user_subscriber (
+    user_subscriber_id int NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id int NOT NULL REFERENCES users(id) ON DELETE CASCADE CHECK (user_subscriber_id != user_id),
+    PRIMARY KEY(user_subscriber_id, user_id)
+);
+
+CREATE TABLE session (--TODO: sessions
     id varchar(64) NOT NULL PRIMARY KEY,
     userID int NOT NULL REFERENCES users(id) ON DELETE CASCADE,--TODO: user_id
     expire date NOT NULL--TODO: expires
