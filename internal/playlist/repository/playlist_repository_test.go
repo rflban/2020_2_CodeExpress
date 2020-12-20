@@ -57,18 +57,21 @@ func TestPlaylistRepository_Update(t *testing.T) {
 	title := "Some title"
 	userID := uint64(0)
 	poster := "Some poster"
+	isPublic:= false
+
 	playlist := &models.Playlist{
 		ID:     id,
 		Title:  title,
 		UserID: userID,
 		Poster: poster,
+		IsPublic: isPublic,
 	}
 
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 
 	mock.
 		ExpectQuery(`update playlists`).
-		WithArgs(title, poster, id).
+		WithArgs(title, poster, isPublic, id).
 		WillReturnRows(rows)
 
 	if err := repo.Update(playlist); err != nil {
@@ -123,16 +126,18 @@ func TestPlaylistRepository_SelectByID(t *testing.T) {
 	title := "Some title"
 	userID := uint64(0)
 	poster := "Some poster"
+	isPublic := false
 
 	expectedPlaylist := &models.Playlist{
 		ID:     id,
 		Title:  title,
 		UserID: userID,
 		Poster: poster,
+		IsPublic: isPublic,
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "user_id", "title", "poster"})
-	rows.AddRow(id, userID, title, poster)
+	rows := sqlmock.NewRows([]string{"id", "user_id", "title", "poster", "is_public"})
+	rows.AddRow(id, userID, title, poster, isPublic)
 
 	mock.
 		ExpectQuery(`select`).
@@ -166,16 +171,18 @@ func TestPlaylistRepository_SelectByUserID(t *testing.T) {
 	title := "Some title"
 	userID := uint64(0)
 	poster := "Some poster"
+	isPublic := false
 
 	expectedPlaylist := &models.Playlist{
 		ID:     id,
 		Title:  title,
 		UserID: userID,
 		Poster: poster,
+		IsPublic: isPublic,
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "user_id", "title", "poster"})
-	rows.AddRow(id, userID, title, poster)
+	rows := sqlmock.NewRows([]string{"id", "user_id", "title", "poster", "is_public"})
+	rows.AddRow(id, userID, title, poster, isPublic)
 
 	mock.
 		ExpectQuery(`select`).

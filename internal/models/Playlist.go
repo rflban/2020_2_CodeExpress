@@ -6,6 +6,7 @@ type Playlist struct {
 	Title  string   `json:"title"`
 	Poster string   `json:"poster"`
 	Tracks []*Track `json:"tracks"`
+	IsPublic bool   `json:"is_public"`
 }
 
 //easyjson:json

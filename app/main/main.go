@@ -3,9 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
 	"log"
 	"os"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/admin/proto_admin"
 
@@ -123,8 +124,8 @@ func main() {
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
 	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase, sessionUsecase, userUsecase)
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase, sessionUsecase, userUsecase)
-	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase, sessionUsecase, userUsecase)
 	searchHandler := searchDelivery.NewSearchHandler(searchUsecase, sessionUsecase, userUsecase)
+	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase, userUsecase, sessionUsecase)
 
 	e := echo.New()
 	monitoring := monitoring.NewMonitoring(e)

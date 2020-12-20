@@ -25,6 +25,7 @@ const (
 	ErrPlaylistNotExist
 	ErrEmptySearchQuery
 	ErrNotAdmin
+	ErrPermissionDenied
 )
 
 var Errors = map[int]error{
@@ -47,6 +48,7 @@ var Errors = map[int]error{
 	ErrPlaylistNotExist:         errors.New("Плейлист не найден"),
 	ErrEmptySearchQuery:         errors.New("Пустой запрос на поиск"),
 	ErrNotAdmin:                 errors.New("Недостаточно прав"),
+	ErrPermissionDenied:         errors.New("В доступе отказано"),
 }
 
 var StatusCodes = map[int]int{
@@ -69,4 +71,5 @@ var StatusCodes = map[int]int{
 	ErrPlaylistNotExist:         http.StatusNotFound,
 	ErrEmptySearchQuery:         http.StatusBadRequest,
 	ErrNotAdmin:                 http.StatusUnauthorized,
+	ErrPermissionDenied:         http.StatusForbidden,
 }

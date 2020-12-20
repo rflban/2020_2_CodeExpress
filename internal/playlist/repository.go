@@ -12,4 +12,5 @@ type PlaylistRep interface {
 	SelectByUserID(userID uint64) ([]*models.Playlist, error)
 	InsertTrack(trackID uint64, playlistID uint64) error
 	DeleteTrack(trackID uint64, playlistID uint64) error
+	SelectPublicByUserID(userID uint64) ([]*models.Playlist, error)
 }

@@ -30,9 +30,9 @@ func (pr *PlaylistRep) Insert(playlist *models.Playlist) error {
 }
 
 func (pr *PlaylistRep) Update(playlist *models.Playlist) error {
-	query := "update playlists set title = $1, poster = $2 where id = $3 returning id"
+	query := "update playlists set title = $1, poster = $2, is_public = $3 where id = $4 returning id"
 
-	err := pr.dbConn.QueryRow(query, playlist.Title, playlist.Poster, playlist.ID).Scan(&playlist.ID)
+	err := pr.dbConn.QueryRow(query, playlist.Title, playlist.Poster, playlist.IsPublic, playlist.ID).Scan(&playlist.ID)
 
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (pr *PlaylistRep) Delete(id uint64) error {
 }
 
 func (pr *PlaylistRep) SelectByID(id uint64) (*models.Playlist, error) {
-	query := "select id, user_id, title, poster from playlists where id = $1"
+	query := "select id, user_id, title, poster, is_public from playlists where id = $1"
 
 	playlist := &models.Playlist{}
 
@@ -62,7 +62,8 @@ func (pr *PlaylistRep) SelectByID(id uint64) (*models.Playlist, error) {
 		Scan(&playlist.ID,
 			&playlist.UserID,
 			&playlist.Title,
-			&playlist.Poster)
+			&playlist.Poster,
+			&playlist.IsPublic)
 
 	if err != nil {
 		return nil, err
@@ -72,7 +73,7 @@ func (pr *PlaylistRep) SelectByID(id uint64) (*models.Playlist, error) {
 }
 
 func (pr *PlaylistRep) SelectByUserID(userID uint64) ([]*models.Playlist, error) {
-	query := "select id, user_id, title, poster from playlists where user_id = $1"
+	query := "select id, user_id, title, poster, is_public from playlists where user_id = $1"
 
 	playlists := []*models.Playlist{}
 
@@ -89,7 +90,8 @@ func (pr *PlaylistRep) SelectByUserID(userID uint64) ([]*models.Playlist, error)
 			&playlist.ID,
 			&playlist.UserID,
 			&playlist.Title,
-			&playlist.Poster)
+			&playlist.Poster,
+			&playlist.IsPublic)
 
 		if err != nil {
 			return nil, err
@@ -123,4 +125,35 @@ func (pr *PlaylistRep) DeleteTrack(trackID uint64, playlistID uint64) error {
 	}
 
 	return nil
+}
+
+func (pr *PlaylistRep) SelectPublicByUserID(userID uint64) ([]*models.Playlist, error) {
+	query := "select id, user_id, title, poster, is_public from playlists where user_id = $1 and is_public = true"
+
+	playlists := []*models.Playlist{}
+
+	rows, err := pr.dbConn.Query(query, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		playlist := &models.Playlist{}
+
+		err := rows.Scan(
+			&playlist.ID,
+			&playlist.UserID,
+			&playlist.Title,
+			&playlist.Poster,
+			&playlist.IsPublic)
+
+		if err != nil {
+			return nil, err
+		}
+
+		playlists = append(playlists, playlist)
+	}
+
+	return playlists, nil
 }

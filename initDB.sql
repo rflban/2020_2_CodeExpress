@@ -62,7 +62,8 @@ CREATE TABLE playlists (
     user_id int NOT NULL,
     title varchar(100) NOT NULL,
     poster varchar(100) DEFAULT '',
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    is_public bool default false
 );
 
 CREATE TABLE track_playlist (

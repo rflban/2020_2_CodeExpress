@@ -153,6 +153,8 @@ func easyjsonBa59a6baDecodeGithubComGoParkMailRu20202CodeExpressInternalModels1(
 				}
 				in.Delim(']')
 			}
+		case "is_public":
+			out.IsPublic = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -206,6 +208,11 @@ func easyjsonBa59a6baEncodeGithubComGoParkMailRu20202CodeExpressInternalModels1(
 			}
 			out.RawByte(']')
 		}
+	}
+	{
+		const prefix string = ",\"is_public\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.IsPublic))
 	}
 	out.RawByte('}')
 }

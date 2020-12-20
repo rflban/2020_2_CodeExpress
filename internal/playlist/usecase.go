@@ -13,4 +13,5 @@ type PlaylistUsecase interface {
 	GetByUserID(userID uint64) ([]*models.Playlist, *ErrorResponse)
 	AddTrack(trackID uint64, playlistID uint64) *ErrorResponse
 	DeleteTrack(trackID uint64, playlistID uint64) *ErrorResponse
+	GetPublicByUserID(userID uint64) ([]*models.Playlist, *ErrorResponse)
 }
