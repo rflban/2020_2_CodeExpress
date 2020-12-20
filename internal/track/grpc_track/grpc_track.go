@@ -31,6 +31,7 @@ func TrackGRPCToTrack(track *proto_track.Track) *models.Track {
 		Artist:      track.Artist,
 		ArtistID:    track.ArtistID,
 		IsFavorite:  track.IsFavorite,
+		IsLiked:     track.IsLiked,
 	}
 }
 
@@ -46,6 +47,7 @@ func TrackToTrackGRPC(track *models.Track) *proto_track.Track {
 		Artist:      track.Artist,
 		ArtistID:    track.ArtistID,
 		IsFavorite:  track.IsFavorite,
+		IsLiked:     track.IsLiked,
 	}
 }
 
@@ -89,8 +91,8 @@ func (tGu *TrackGRPCUsecase) GetByArtistId(ctx context.Context, mes *proto_track
 	return grpcTracks, nil
 }
 
-func (tGu *TrackGRPCUsecase) GetByAlbumID(ctx context.Context, albumID *proto_track.AlbumID) (*proto_track.Tracks, error) {
-	tracks, err := tGu.trackRep.SelectByAlbumID(albumID.ID)
+func (tGu *TrackGRPCUsecase) GetByAlbumID(ctx context.Context, mes *proto_track.GetByAlbumIdMessage) (*proto_track.Tracks, error) {
+	tracks, err := tGu.trackRep.SelectByAlbumID(mes.AlbumId, mes.UserId)
 
 	if err != nil {
 		return new(proto_track.Tracks), err
@@ -105,8 +107,8 @@ func (tGu *TrackGRPCUsecase) GetByAlbumID(ctx context.Context, albumID *proto_tr
 	return grpcTracks, nil
 }
 
-func (tGu *TrackGRPCUsecase) GetByID(ctx context.Context, trackID *proto_track.TrackID) (*proto_track.Track, error) {
-	track, err := tGu.trackRep.SelectByID(trackID.ID)
+func (tGu *TrackGRPCUsecase) GetByID(ctx context.Context, mes *proto_track.GetByIdMessage) (*proto_track.Track, error) {
+	track, err := tGu.trackRep.SelectByID(mes.TrackId, mes.UserId)
 
 	if err != nil {
 		return new(proto_track.Track), err
@@ -191,8 +193,8 @@ func (tGu *TrackGRPCUsecase) DeleteFromFavourites(ctx context.Context, mes *prot
 	return nothing, nil
 }
 
-func (tGu *TrackGRPCUsecase) GetByPlaylistID(ctx context.Context, playlistID *proto_track.PlaylistID) (*proto_track.Tracks, error) {
-	tracks, err := tGu.trackRep.SelectByPlaylistID(playlistID.ID)
+func (tGu *TrackGRPCUsecase) GetByPlaylistID(ctx context.Context, mes *proto_track.GetByPlaylistIdMessage) (*proto_track.Tracks, error) {
+	tracks, err := tGu.trackRep.SelectByPlaylistID(mes.PlaylistId, mes.UserId)
 
 	if err != nil {
 		return new(proto_track.Tracks), err
@@ -205,4 +207,22 @@ func (tGu *TrackGRPCUsecase) GetByPlaylistID(ctx context.Context, playlistID *pr
 	}
 
 	return grpcTracks, nil
+}
+
+func (tGu *TrackGRPCUsecase) LikeTrack(ctx context.Context, mes *proto_track.Likes) (*proto_track.Nothing, error) {
+	nothing := new(proto_track.Nothing)
+	if err := tGu.trackRep.LikeOrDislikeTrack(mes.UserId, mes.TrackId, true); err != nil {
+		return nothing, err
+	}
+
+	return nothing, nil
+}
+
+func (tGu *TrackGRPCUsecase) DislikeTrack(ctx context.Context, mes *proto_track.Likes) (*proto_track.Nothing, error) {
+	nothing := new(proto_track.Nothing)
+	if err := tGu.trackRep.LikeOrDislikeTrack(mes.UserId, mes.TrackId, false); err != nil {
+		return nothing, err
+	}
+
+	return nothing, nil
 }

@@ -130,11 +130,11 @@ func TestArtistUsecase_GetByID(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(expectedTrack.ID)).
+		SelectByID(gomock.Eq(expectedTrack.ID), uint64(0)).
 		Return(expectedTrack, nil)
 
-	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: expectedTrack.ID,
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: expectedTrack.ID,
 	})
 	assert.Equal(t, err, nil)
 }
@@ -152,11 +152,11 @@ func TestArtistUsecase_GetByID_Failed(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(expectedTrack.ID)).
+		SelectByID(gomock.Eq(expectedTrack.ID), gomock.Eq(uint64(0))).
 		Return(nil, sql.ErrNoRows)
 
-	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: expectedTrack.ID,
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: expectedTrack.ID,
 	})
 	assert.Equal(t, err, sql.ErrNoRows)
 }
@@ -175,11 +175,11 @@ func TestArtistUsecase_GetByID_Internal(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(expectedTrack.ID)).
+		SelectByID(gomock.Eq(expectedTrack.ID), uint64(0)).
 		Return(nil, dbErr)
 
-	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: expectedTrack.ID,
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: expectedTrack.ID,
 	})
 	assert.Equal(t, err, dbErr)
 }
@@ -223,11 +223,11 @@ func TestArtistUsecase_GetByArtistID_Failed(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(expectedTrack.ID)).
+		SelectByID(gomock.Eq(expectedTrack.ID), gomock.Eq(uint64(0))).
 		Return(nil, sql.ErrNoRows)
 
-	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: expectedTrack.ID,
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: expectedTrack.ID,
 	})
 	assert.Equal(t, err, sql.ErrNoRows)
 }
@@ -246,11 +246,11 @@ func TestArtistUsecase_GetByArtistID_Internal(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByID(gomock.Eq(expectedTrack.ID)).
+		SelectByID(gomock.Eq(expectedTrack.ID), uint64(0)).
 		Return(nil, dbErr)
 
-	_, err := mockGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: expectedTrack.ID,
+	_, err := mockGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: expectedTrack.ID,
 	})
 	assert.Equal(t, err, dbErr)
 }
@@ -360,11 +360,11 @@ func TestArtistUsecase_GetByAlbumID(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectByAlbumID(albumID).
+		SelectByAlbumID(albumID, uint64(0)).
 		Return(expectedTracks, nil)
 
-	_, err := mockGRPC.GetByAlbumID(context.Background(), &proto_track.AlbumID{
-		ID: albumID,
+	_, err := mockGRPC.GetByAlbumID(context.Background(), &proto_track.GetByAlbumIdMessage{
+		AlbumId: albumID,
 	})
 	assert.Equal(t, err, nil)
 }

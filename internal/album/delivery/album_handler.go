@@ -2,6 +2,8 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session"
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user"
 	"net/http"
 	"strconv"
 
@@ -23,16 +25,21 @@ import (
 )
 
 type AlbumHandler struct {
-	albumUsecase  album.AlbumUsecase
-	artistUsecase artist.ArtistUsecase
-	trackUsecase  track.TrackUsecase
+	albumUsecase   album.AlbumUsecase
+	artistUsecase  artist.ArtistUsecase
+	trackUsecase   track.TrackUsecase
+	sessionUsecase session.SessionUsecase
+	userUsecase    user.UserUsecase
 }
 
-func NewAlbumHandler(albumUsecase album.AlbumUsecase, artistUsecase artist.ArtistUsecase, trackUsecase track.TrackUsecase) *AlbumHandler {
+func NewAlbumHandler(albumUsecase album.AlbumUsecase, artistUsecase artist.ArtistUsecase,
+	trackUsecase track.TrackUsecase, sessionUsecase session.SessionUsecase, userUsecase user.UserUsecase) *AlbumHandler {
 	return &AlbumHandler{
-		albumUsecase:  albumUsecase,
-		artistUsecase: artistUsecase,
-		trackUsecase:  trackUsecase,
+		albumUsecase:   albumUsecase,
+		artistUsecase:  artistUsecase,
+		trackUsecase:   trackUsecase,
+		sessionUsecase: sessionUsecase,
+		userUsecase:    userUsecase,
 	}
 }
 
@@ -284,7 +291,12 @@ func (ah *AlbumHandler) HandlerAlbumTracks() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		tracks, errResp := ah.trackUsecase.GetByAlbumID(uint64(id))
+		var userId uint64
+		if user := ah.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
+
+		tracks, errResp := ah.trackUsecase.GetByAlbumID(uint64(id), userId)
 
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
@@ -303,4 +315,23 @@ func (ah *AlbumHandler) HandlerAlbumTracks() echo.HandlerFunc {
 		_, e = ctx.Response().Write(resp)
 		return e
 	}
+}
+
+func (ah *AlbumHandler) tryGetUser(ctx echo.Context) *models.User {
+	cookie, err := ctx.Cookie(ConstSessionName)
+	if err != nil {
+		return nil
+	}
+
+	userSession, errResp := ah.sessionUsecase.GetByID(cookie.Value)
+	if errResp != nil {
+		return nil
+	}
+
+	user, errNoUser := ah.userUsecase.GetById(userSession.UserID)
+	if errNoUser != nil {
+		return nil
+	}
+
+	return user
 }

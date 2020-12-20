@@ -9,10 +9,11 @@ type TrackRep interface {
 	Update(track *models.Track) error
 	UpdateAudio(track *models.Track) error
 	Delete(id uint64) error
-	SelectByArtistId(artistId uint64, userId uint64) ([]*models.Track, error)
-	SelectByID(id uint64) (*models.Track, error)
-	SelectByParams(count uint64, from uint64, userId uint64) ([]*models.Track, error)
-	SelectByAlbumID(albumID uint64) ([]*models.Track, error)
+	SelectByArtistId(artistId, userId uint64) ([]*models.Track, error)
+	SelectByID(id, userId uint64) (*models.Track, error)
+	SelectByParams(count, from, userId uint64) ([]*models.Track, error)
+	SelectByAlbumID(albumID, userId uint64) ([]*models.Track, error)
 	SelectFavoritesByUserID(userID uint64) ([]*models.Track, error)
-	SelectByPlaylistID(playlistID uint64) ([]*models.Track, error)
+	SelectByPlaylistID(playlistID, userId uint64) ([]*models.Track, error)
+	LikeOrDislikeTrack(userId, trackId uint64, like bool) error
 }

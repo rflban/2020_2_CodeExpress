@@ -134,6 +134,8 @@ func easyjson31469aafDecodeGithubComGoParkMailRu20202CodeExpressInternalModels1(
 			out.ArtistID = uint64(in.Uint64())
 		case "is_favorite":
 			out.IsFavorite = bool(in.Bool())
+		case "is_liked":
+			out.IsLiked = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -197,6 +199,11 @@ func easyjson31469aafEncodeGithubComGoParkMailRu20202CodeExpressInternalModels1(
 		const prefix string = ",\"is_favorite\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.IsFavorite))
+	}
+	{
+		const prefix string = ",\"is_liked\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.IsLiked))
 	}
 	out.RawByte('}')
 }

@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"database/sql"
-	"fmt"
-
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/grpc_track"
 
 	"golang.org/x/net/context"
@@ -26,20 +24,19 @@ func NewTrackUsecase(trackGRPC proto_track.TrackServiceClient) *TrackUsecase {
 	}
 }
 
-func (aUc *TrackUsecase) CreateTrack(track *models.Track) *ErrorResponse {
+func (aUc *TrackUsecase) CreateTrack(track *models.Track, userId uint64) *ErrorResponse {
 	grpcTrack, err := aUc.trackGRPC.CreateTrack(context.Background(), grpc_track.TrackToTrackGRPC(track))
 
 	if err != nil {
-		fmt.Println("HERE", err)
 		return NewErrorResponse(ErrInternal, err)
 	}
 
-	newTrack, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: grpcTrack.ID,
+	newTrack, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: grpcTrack.ID,
+		UserId:  userId,
 	})
 
 	if err != nil {
-		fmt.Println("HERE1", err)
 		return NewErrorResponse(ErrInternal, err)
 	}
 
@@ -64,9 +61,10 @@ func (aUc *TrackUsecase) DeleteTrack(id uint64) *ErrorResponse {
 	return nil
 }
 
-func (aUc *TrackUsecase) GetByID(id uint64) (*models.Track, *ErrorResponse) {
-	track, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: id,
+func (aUc *TrackUsecase) GetByID(id, userId uint64) (*models.Track, *ErrorResponse) {
+	track, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: id,
+		UserId:  userId,
 	})
 
 	if err == sql.ErrNoRows {
@@ -80,7 +78,7 @@ func (aUc *TrackUsecase) GetByID(id uint64) (*models.Track, *ErrorResponse) {
 	return grpc_track.TrackGRPCToTrack(track), nil
 }
 
-func (aUc *TrackUsecase) GetByArtistId(artistId uint64, userId uint64) ([]*models.Track, *ErrorResponse) {
+func (aUc *TrackUsecase) GetByArtistId(artistId, userId uint64) ([]*models.Track, *ErrorResponse) {
 	grpcTracks, err := aUc.trackGRPC.GetByArtistId(context.Background(), &proto_track.GetByArtistIdMessage{
 		ArtistID: artistId,
 		UserID:   userId,
@@ -102,7 +100,7 @@ func (aUc *TrackUsecase) GetByArtistId(artistId uint64, userId uint64) ([]*model
 	return tracks, nil
 }
 
-func (aUc *TrackUsecase) GetByParams(count uint64, from uint64, userId uint64) ([]*models.Track, *ErrorResponse) {
+func (aUc *TrackUsecase) GetByParams(count, from, userId uint64) ([]*models.Track, *ErrorResponse) {
 	grpcTracks, err := aUc.trackGRPC.GetByParams(context.Background(), &proto_track.GetByParamsMessage{
 		Count:  count,
 		From:   from,
@@ -125,7 +123,7 @@ func (aUc *TrackUsecase) GetByParams(count uint64, from uint64, userId uint64) (
 	return tracks, nil
 }
 
-func (aUc *TrackUsecase) UpdateTrack(track *models.Track) *ErrorResponse {
+func (aUc *TrackUsecase) UpdateTrack(track *models.Track, userId uint64) *ErrorResponse {
 	_, err := aUc.trackGRPC.UpdateTrack(context.Background(), grpc_track.TrackToTrackGRPC(track))
 
 	if err == sql.ErrNoRows {
@@ -136,8 +134,9 @@ func (aUc *TrackUsecase) UpdateTrack(track *models.Track) *ErrorResponse {
 		return NewErrorResponse(ErrInternal, err)
 	}
 
-	newTrack, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: track.ID,
+	newTrack, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: track.ID,
+		UserId:  userId,
 	})
 
 	if err != nil {
@@ -149,7 +148,7 @@ func (aUc *TrackUsecase) UpdateTrack(track *models.Track) *ErrorResponse {
 	return nil
 }
 
-func (aUc *TrackUsecase) UpdateTrackAudio(track *models.Track) *ErrorResponse {
+func (aUc *TrackUsecase) UpdateTrackAudio(track *models.Track, userId uint64) *ErrorResponse {
 	_, err := aUc.trackGRPC.UpdateTrackAudio(context.Background(), grpc_track.TrackToTrackGRPC(track))
 
 	if err == sql.ErrNoRows {
@@ -160,8 +159,9 @@ func (aUc *TrackUsecase) UpdateTrackAudio(track *models.Track) *ErrorResponse {
 		return NewErrorResponse(ErrInternal, err)
 	}
 
-	newTrack, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: track.ID,
+	newTrack, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: track.ID,
+		UserId:  userId,
 	})
 
 	if err != nil {
@@ -173,9 +173,10 @@ func (aUc *TrackUsecase) UpdateTrackAudio(track *models.Track) *ErrorResponse {
 	return nil
 }
 
-func (aUc *TrackUsecase) GetByAlbumID(albumID uint64) ([]*models.Track, *ErrorResponse) {
-	grpcTracks, err := aUc.trackGRPC.GetByAlbumID(context.Background(), &proto_track.AlbumID{
-		ID: albumID,
+func (aUc *TrackUsecase) GetByAlbumID(albumId, userId uint64) ([]*models.Track, *ErrorResponse) {
+	grpcTracks, err := aUc.trackGRPC.GetByAlbumID(context.Background(), &proto_track.GetByAlbumIdMessage{
+		AlbumId: albumId,
+		UserId:  userId,
 	})
 
 	if err == sql.ErrNoRows {
@@ -217,9 +218,10 @@ func (aUc *TrackUsecase) GetFavoritesByUserID(userID uint64) ([]*models.Track, *
 	return tracks, nil
 }
 
-func (aUc *TrackUsecase) AddToFavourites(userID uint64, trackID uint64) *ErrorResponse {
-	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: trackID,
+func (aUc *TrackUsecase) AddToFavourites(userId, trackId uint64) *ErrorResponse {
+	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: trackId,
+		UserId:  userId,
 	})
 
 	if err == sql.ErrNoRows {
@@ -227,8 +229,8 @@ func (aUc *TrackUsecase) AddToFavourites(userID uint64, trackID uint64) *ErrorRe
 	}
 
 	_, err = aUc.trackGRPC.AddToFavourites(context.Background(), &proto_track.Favorites{
-		UserID:  userID,
-		TrackID: trackID,
+		UserID:  userId,
+		TrackID: trackId,
 	})
 
 	if err != nil {
@@ -238,9 +240,10 @@ func (aUc *TrackUsecase) AddToFavourites(userID uint64, trackID uint64) *ErrorRe
 	return nil
 }
 
-func (aUc *TrackUsecase) DeleteFromFavourites(userID uint64, trackID uint64) *ErrorResponse {
-	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.TrackID{
-		ID: trackID,
+func (aUc *TrackUsecase) DeleteFromFavourites(userId, trackId uint64) *ErrorResponse {
+	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: trackId,
+		UserId:  userId,
 	})
 
 	if err == sql.ErrNoRows {
@@ -248,8 +251,8 @@ func (aUc *TrackUsecase) DeleteFromFavourites(userID uint64, trackID uint64) *Er
 	}
 
 	_, err = aUc.trackGRPC.DeleteFromFavourites(context.Background(), &proto_track.Favorites{
-		UserID:  userID,
-		TrackID: trackID,
+		UserID:  userId,
+		TrackID: trackId,
 	})
 
 	if err != nil {
@@ -259,9 +262,10 @@ func (aUc *TrackUsecase) DeleteFromFavourites(userID uint64, trackID uint64) *Er
 	return nil
 }
 
-func (aUc *TrackUsecase) GetByPlaylistID(playlistID uint64) ([]*models.Track, *ErrorResponse) {
-	grpcTracks, err := aUc.trackGRPC.GetByPlaylistID(context.Background(), &proto_track.PlaylistID{
-		ID: playlistID,
+func (aUc *TrackUsecase) GetByPlaylistID(playlistId, userId uint64) ([]*models.Track, *ErrorResponse) {
+	grpcTracks, err := aUc.trackGRPC.GetByPlaylistID(context.Background(), &proto_track.GetByPlaylistIdMessage{
+		PlaylistId: playlistId,
+		UserId:     userId,
 	})
 
 	if err == sql.ErrNoRows {
@@ -279,4 +283,44 @@ func (aUc *TrackUsecase) GetByPlaylistID(playlistID uint64) ([]*models.Track, *E
 	}
 
 	return tracks, nil
+}
+
+func (aUc *TrackUsecase) LikeTrack(userId uint64, trackId uint64) *ErrorResponse {
+	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: trackId,
+		UserId:  userId,
+	})
+	if err == sql.ErrNoRows {
+		return NewErrorResponse(ErrTrackNotExist, err)
+	}
+
+	_, err = aUc.trackGRPC.LikeTrack(context.Background(), &proto_track.Likes{
+		UserId:  userId,
+		TrackId: trackId,
+	})
+	if err != nil {
+		return NewErrorResponse(ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (aUc *TrackUsecase) DislikeTrack(userId uint64, trackId uint64) *ErrorResponse {
+	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
+		TrackId: trackId,
+		UserId:  userId,
+	})
+	if err == sql.ErrNoRows {
+		return NewErrorResponse(ErrTrackNotExist, err)
+	}
+
+	_, err = aUc.trackGRPC.DislikeTrack(context.Background(), &proto_track.Likes{
+		UserId:  userId,
+		TrackId: trackId,
+	})
+	if err != nil {
+		return NewErrorResponse(ErrInternal, err)
+	}
+
+	return nil
 }

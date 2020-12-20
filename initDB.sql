@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_track, playlist, track_playlist, session CASCADE;
+DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_track, playlists, track_playlist,
+    user_track_like, session CASCADE;
 
 CREATE TABLE artists (
     id serial NOT NULL PRIMARY KEY,
@@ -49,6 +50,13 @@ CREATE TABLE user_track (
     PRIMARY KEY(user_id, track_id)
 );
 
+CREATE TABLE user_track_like (
+    user_id int NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    track_id int NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    is_like bool NOT NULL DEFAULT TRUE,
+    PRIMARY KEY(user_id, track_id)
+);
+
 CREATE TABLE playlists (
     id serial NOT NULL PRIMARY KEY,
     user_id int NOT NULL,
@@ -65,16 +73,16 @@ CREATE TABLE track_playlist (
     FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
 );
 
-CREATE TABLE session (--TODO: sessions
+CREATE TABLE session (
     id varchar(64) NOT NULL PRIMARY KEY,
     userID int NOT NULL REFERENCES users(id) ON DELETE CASCADE,--TODO: user_id
     expire date NOT NULL--TODO: expires
 );
 
-CREATE OR REPLACE FUNCTION  count_index() RETURNS trigger AS $emp_stamp$
+CREATE OR REPLACE FUNCTION count_index() RETURNS TRIGGER AS $emp_stamp$
     BEGIN
-        new.index := count(*) + 1 from tracks where tracks.album_id = new.album_id;
-        Return new;
+        new.index := COUNT(*) + 1 FROM tracks WHERE tracks.album_id = new.album_id;
+        RETURN new;
     END;
 $emp_stamp$ LANGUAGE plpgsql;
 
@@ -86,4 +94,4 @@ CREATE INDEX IF NOT EXISTS albums_title_index ON albums (title);
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO meuser;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO meuser;
 
-ALTER TABLE users add column is_admin bool default false;
+ALTER TABLE users ADD COLUMN is_admin bool DEFAULT FALSE;

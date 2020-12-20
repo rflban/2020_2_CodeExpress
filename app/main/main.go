@@ -121,10 +121,10 @@ func main() {
 	userHandler := userDelivery.NewUserHandler(userUsecase, sessionUsecase)
 	sessionHandler := sessionDelivery.NewSessionHandler(sessionUsecase, userUsecase)
 	artistHandler := artistDelivery.NewArtistHandler(artistUsecase)
-	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase)
+	albumHandler := albumDelivery.NewAlbumHandler(albumUsecase, artistUsecase, trackUsecase, sessionUsecase, userUsecase)
 	trackHandler := trackDelivery.NewTrackHandler(trackUsecase, sessionUsecase, userUsecase)
-	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase)
-	searchHandler := searchDelivery.NewSearchHandler(searchUsecase)
+	playlistHandler := playlistDelivery.NewPlaylistHandler(playlistUsecase, trackUsecase, sessionUsecase, userUsecase)
+	searchHandler := searchDelivery.NewSearchHandler(searchUsecase, sessionUsecase, userUsecase)
 
 	e := echo.New()
 	monitoring := monitoring.NewMonitoring(e)

@@ -2,6 +2,8 @@ syntax="proto3";
 
 package proto_track;
 
+option go_package = ".;proto_track";
+
 message TrackID {
     uint64 ID = 1;
 }
@@ -10,9 +12,24 @@ message UserID {
     uint64 ID = 1;
 }
 
+message GetByIdMessage {
+  uint64 TrackId = 1;
+  uint64 UserId = 2;
+}
+
 message GetByArtistIdMessage {
     uint64 ArtistID = 1;
     uint64 UserID = 2;
+}
+
+message GetByAlbumIdMessage {
+  uint64 AlbumId = 1;
+  uint64 UserId = 2;
+}
+
+message GetByPlaylistIdMessage {
+  uint64 PlaylistId = 1;
+  uint64 UserId = 2;
 }
 
 message AlbumID {
@@ -34,6 +51,11 @@ message Favorites {
     uint64 TrackID = 2;
 }
 
+message Likes {
+  uint64 UserId = 1;
+  uint64 TrackId = 2;
+}
+
 message Nothing {
 }
 
@@ -48,6 +70,7 @@ message Track {
     string Artist = 8;
     uint64 ArtistID = 9;
     bool IsFavorite = 10;
+    bool IsLiked = 11;
 } 
 
 message Tracks {
@@ -58,13 +81,15 @@ service TrackService {
 	rpc CreateTrack(Track) returns (Track);
 	rpc DeleteTrack(TrackID) returns (Nothing);
 	rpc GetByArtistId(GetByArtistIdMessage) returns (Tracks);
-	rpc GetByAlbumID(AlbumID) returns (Tracks);
-	rpc GetByID(TrackID) returns (Track);
+	rpc GetByAlbumID(GetByAlbumIdMessage) returns (Tracks); //TODO
+	rpc GetByID(GetByIdMessage) returns (Track); //TODO
 	rpc GetByParams(GetByParamsMessage) returns (Tracks);
 	rpc GetFavoritesByUserID(UserID) returns (Tracks);
 	rpc UpdateTrack(Track) returns (Nothing);
 	rpc UpdateTrackAudio(Track) returns (Nothing);
 	rpc AddToFavourites(Favorites) returns (Nothing);
 	rpc DeleteFromFavourites(Favorites) returns (Nothing);
-	rpc GetByPlaylistID(PlaylistID) returns (Tracks);
+	rpc GetByPlaylistID(GetByPlaylistIdMessage) returns (Tracks); //TODO
+  rpc LikeTrack(Likes) returns (Nothing);
+  rpc DislikeTrack(Likes) returns (Nothing);
 }
