@@ -8,3 +8,6 @@ type User struct {
 	Avatar       string `json:"avatar"`
 	IsSubscribed bool   `json:"is_subscribed,omitempty"`
 }
+
+//easyjson:json
+type Users []*Track

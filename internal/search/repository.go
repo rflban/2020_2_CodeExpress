@@ -6,4 +6,5 @@ type SearchRep interface {
 	SelectAlbums(query string, offset uint64, limit uint64) ([]*models.Album, error)
 	SelectArtists(query string, offset uint64, limit uint64) ([]*models.Artist, error)
 	SelectTracks(query string, offset uint64, limit uint64, userId uint64) ([]*models.Track, error)
+	SelectUsers(query string, offset uint64, limit uint64) ([]*models.User, error)
 }

@@ -84,10 +84,10 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(0)), gomock.Eq(uint64(2))).
+		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(0)), gomock.Eq(uint64(2)), gomock.Eq(uint64(0))).
 		Return(expected.Tracks, nil)
 
-	result, err := mockUsecase.Search(query, 0, 2)
+	result, err := mockUsecase.Search(query, 0, 2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, result)
 
@@ -103,7 +103,7 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(0)), gomock.Eq(uint64(1))).
+		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(0)), gomock.Eq(uint64(1)), gomock.Eq(uint64(0))).
 		Return(expected.Tracks[:1], nil)
 
 	expected2 := &models.Search{
@@ -111,7 +111,7 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 		Artists: expected.Artists[:1],
 		Tracks:  expected.Tracks[:1],
 	}
-	result, err = mockUsecase.Search(query, 0, 1)
+	result, err = mockUsecase.Search(query, 0, 1, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, expected2, result)
 
@@ -127,7 +127,7 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(1)), gomock.Eq(uint64(2))).
+		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(1)), gomock.Eq(uint64(2)), gomock.Eq(uint64(0))).
 		Return(expected.Tracks[1:], nil)
 
 	expected3 := &models.Search{
@@ -135,7 +135,7 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 		Artists: expected.Artists[1:],
 		Tracks:  expected.Tracks[1:],
 	}
-	result, err = mockUsecase.Search(query, 1, 2)
+	result, err = mockUsecase.Search(query, 1, 2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, expected3, result)
 
@@ -153,7 +153,7 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 
 	mockRepo.
 		EXPECT().
-		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(0)), gomock.Eq(uint64(2))).
+		SelectTracks(gomock.Eq(query), gomock.Eq(uint64(0)), gomock.Eq(uint64(2)), gomock.Eq(uint64(0))).
 		Return([]*models.Track{}, nil)
 
 	expected4 := &models.Search{
@@ -161,7 +161,7 @@ func TestSearchUsecase_SearchAlbums(t *testing.T) {
 		Artists: []*models.Artist{},
 		Tracks:  []*models.Track{},
 	}
-	result, err = mockUsecase.Search(query, 0, 2)
+	result, err = mockUsecase.Search(query, 0, 2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, expected4, result)
 }

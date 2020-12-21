@@ -35,5 +35,10 @@ func (sUc *SearchUsecase) Search(query string, offset uint64, limit uint64, user
 		return nil, NewErrorResponse(ErrInternal, err)
 	}
 
+	search.Users, err = sUc.searchRep.SelectUsers(query, offset, limit)
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
 	return search, nil
 }
