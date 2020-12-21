@@ -70,7 +70,7 @@ func TestSearchDelivery_HandlerSearch_Passed(t *testing.T) {
 
 	searchMockUsecase.
 		EXPECT().
-		Search(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit)).
+		Search(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit), 0).
 		Return(expectedSearch, nil)
 
 	jsonExpectedSearch, err := json.Marshal(expectedSearch)

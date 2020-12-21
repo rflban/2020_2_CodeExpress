@@ -153,7 +153,7 @@ func TestSelectRepository_SelectTracks(t *testing.T) {
 		WithArgs(query, limit, offset).
 		WillReturnRows(rows)
 
-	result, err := repository.SelectTracks(query, offset, limit)
+	result, err := repository.SelectTracks(query, offset, limit, 0)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

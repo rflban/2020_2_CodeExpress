@@ -129,6 +129,37 @@ func easyjson2f147938DecodeGithubComGoParkMailRu20202CodeExpressInternalModels(i
 				}
 				in.Delim(']')
 			}
+		case "users":
+			if in.IsNull() {
+				in.Skip()
+				out.Users = nil
+			} else {
+				in.Delim('[')
+				if out.Users == nil {
+					if !in.IsDelim(']') {
+						out.Users = make([]*User, 0, 8)
+					} else {
+						out.Users = []*User{}
+					}
+				} else {
+					out.Users = (out.Users)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v4 *User
+					if in.IsNull() {
+						in.Skip()
+						v4 = nil
+					} else {
+						if v4 == nil {
+							v4 = new(User)
+						}
+						(*v4).UnmarshalEasyJSON(in)
+					}
+					out.Users = append(out.Users, v4)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -150,14 +181,14 @@ func easyjson2f147938EncodeGithubComGoParkMailRu20202CodeExpressInternalModels(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v4, v5 := range in.Albums {
-				if v4 > 0 {
+			for v5, v6 := range in.Albums {
+				if v5 > 0 {
 					out.RawByte(',')
 				}
-				if v5 == nil {
+				if v6 == nil {
 					out.RawString("null")
 				} else {
-					(*v5).MarshalEasyJSON(out)
+					(*v6).MarshalEasyJSON(out)
 				}
 			}
 			out.RawByte(']')
@@ -170,14 +201,14 @@ func easyjson2f147938EncodeGithubComGoParkMailRu20202CodeExpressInternalModels(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v6, v7 := range in.Artists {
-				if v6 > 0 {
+			for v7, v8 := range in.Artists {
+				if v7 > 0 {
 					out.RawByte(',')
 				}
-				if v7 == nil {
+				if v8 == nil {
 					out.RawString("null")
 				} else {
-					(*v7).MarshalEasyJSON(out)
+					(*v8).MarshalEasyJSON(out)
 				}
 			}
 			out.RawByte(']')
@@ -190,14 +221,34 @@ func easyjson2f147938EncodeGithubComGoParkMailRu20202CodeExpressInternalModels(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v8, v9 := range in.Tracks {
-				if v8 > 0 {
+			for v9, v10 := range in.Tracks {
+				if v9 > 0 {
 					out.RawByte(',')
 				}
-				if v9 == nil {
+				if v10 == nil {
 					out.RawString("null")
 				} else {
-					(*v9).MarshalEasyJSON(out)
+					(*v10).MarshalEasyJSON(out)
+				}
+			}
+			out.RawByte(']')
+		}
+	}
+	{
+		const prefix string = ",\"users\":"
+		out.RawString(prefix)
+		if in.Users == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v11, v12 := range in.Users {
+				if v11 > 0 {
+					out.RawByte(',')
+				}
+				if v12 == nil {
+					out.RawString("null")
+				} else {
+					(*v12).MarshalEasyJSON(out)
 				}
 			}
 			out.RawByte(']')

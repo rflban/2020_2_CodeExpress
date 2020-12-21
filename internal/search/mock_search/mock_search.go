@@ -65,18 +65,33 @@ func (mr *MockSearchRepMockRecorder) SelectArtists(arg0, arg1, arg2 interface{})
 }
 
 // SelectTracks mocks base method
-func (m *MockSearchRep) SelectTracks(arg0 string, arg1, arg2 uint64) ([]*models.Track, error) {
+func (m *MockSearchRep) SelectTracks(arg0 string, arg1, arg2, arg3 uint64) ([]*models.Track, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectTracks", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SelectTracks", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*models.Track)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectTracks indicates an expected call of SelectTracks
-func (mr *MockSearchRepMockRecorder) SelectTracks(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockSearchRepMockRecorder) SelectTracks(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectTracks", reflect.TypeOf((*MockSearchRep)(nil).SelectTracks), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectTracks", reflect.TypeOf((*MockSearchRep)(nil).SelectTracks), arg0, arg1, arg2, arg3)
+}
+
+// SelectUsers mocks base method
+func (m *MockSearchRep) SelectUsers(arg0 string, arg1, arg2 uint64) ([]*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectUsers", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectUsers indicates an expected call of SelectUsers
+func (mr *MockSearchRepMockRecorder) SelectUsers(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectUsers", reflect.TypeOf((*MockSearchRep)(nil).SelectUsers), arg0, arg1, arg2)
 }
 
 // MockSearchUsecase is a mock of SearchUsecase interface
@@ -103,16 +118,16 @@ func (m *MockSearchUsecase) EXPECT() *MockSearchUsecaseMockRecorder {
 }
 
 // Search mocks base method
-func (m *MockSearchUsecase) Search(arg0 string, arg1, arg2 uint64) (*models.Search, *error_response.ErrorResponse) {
+func (m *MockSearchUsecase) Search(arg0 string, arg1, arg2, arg3 uint64) (*models.Search, *error_response.ErrorResponse) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Search", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*models.Search)
 	ret1, _ := ret[1].(*error_response.ErrorResponse)
 	return ret0, ret1
 }
 
 // Search indicates an expected call of Search
-func (mr *MockSearchUsecaseMockRecorder) Search(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockSearchUsecaseMockRecorder) Search(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSearchUsecase)(nil).Search), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSearchUsecase)(nil).Search), arg0, arg1, arg2, arg3)
 }
