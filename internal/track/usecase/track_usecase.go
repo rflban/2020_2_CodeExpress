@@ -123,6 +123,29 @@ func (aUc *TrackUsecase) GetByParams(count, from, userId uint64) ([]*models.Trac
 	return tracks, nil
 }
 
+func (aUc *TrackUsecase) GetTopByParams(count, from, userId uint64) ([]*models.Track, *ErrorResponse) {
+	grpcTracks, err := aUc.trackGRPC.GetTopByParams(context.Background(), &proto_track.GetTopByParamsMessage{
+		Count:  count,
+		From:   from,
+		UserID: userId,
+	})
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	tracks := make([]*models.Track, len(grpcTracks.Tracks))
+
+	for idx, track := range grpcTracks.Tracks {
+		tracks[idx] = grpc_track.TrackGRPCToTrack(track)
+	}
+
+	return tracks, nil
+}
+
 func (aUc *TrackUsecase) UpdateTrack(track *models.Track, userId uint64) *ErrorResponse {
 	_, err := aUc.trackGRPC.UpdateTrack(context.Background(), grpc_track.TrackToTrackGRPC(track))
 

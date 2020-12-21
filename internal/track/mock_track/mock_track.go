@@ -62,6 +62,20 @@ func (mr *MockTrackRepMockRecorder) DeleteTrackFromUsersTracks(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrackFromUsersTracks", reflect.TypeOf((*MockTrackRep)(nil).DeleteTrackFromUsersTracks), arg0, arg1)
 }
 
+// DislikeTrack mocks base method
+func (m *MockTrackRep) DislikeTrack(arg0, arg1 uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DislikeTrack", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DislikeTrack indicates an expected call of DislikeTrack
+func (mr *MockTrackRepMockRecorder) DislikeTrack(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DislikeTrack", reflect.TypeOf((*MockTrackRep)(nil).DislikeTrack), arg0, arg1)
+}
+
 // Insert mocks base method
 func (m *MockTrackRep) Insert(arg0 *models.Track) error {
 	m.ctrl.T.Helper()
@@ -90,18 +104,18 @@ func (mr *MockTrackRepMockRecorder) InsertTrackToUser(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertTrackToUser", reflect.TypeOf((*MockTrackRep)(nil).InsertTrackToUser), arg0, arg1)
 }
 
-// LikeOrDislikeTrack mocks base method
-func (m *MockTrackRep) LikeOrDislikeTrack(arg0, arg1 uint64, arg2 bool) error {
+// LikeTrack mocks base method
+func (m *MockTrackRep) LikeTrack(arg0, arg1 uint64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LikeOrDislikeTrack", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "LikeTrack", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// LikeOrDislikeTrack indicates an expected call of LikeOrDislikeTrack
-func (mr *MockTrackRepMockRecorder) LikeOrDislikeTrack(arg0, arg1, arg2 interface{}) *gomock.Call {
+// LikeTrack indicates an expected call of LikeTrack
+func (mr *MockTrackRepMockRecorder) LikeTrack(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LikeOrDislikeTrack", reflect.TypeOf((*MockTrackRep)(nil).LikeOrDislikeTrack), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LikeTrack", reflect.TypeOf((*MockTrackRep)(nil).LikeTrack), arg0, arg1)
 }
 
 // SelectByAlbumID mocks base method
@@ -192,6 +206,21 @@ func (m *MockTrackRep) SelectFavoritesByUserID(arg0 uint64) ([]*models.Track, er
 func (mr *MockTrackRepMockRecorder) SelectFavoritesByUserID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectFavoritesByUserID", reflect.TypeOf((*MockTrackRep)(nil).SelectFavoritesByUserID), arg0)
+}
+
+// SelectTopByParams mocks base method
+func (m *MockTrackRep) SelectTopByParams(arg0, arg1, arg2 uint64) ([]*models.Track, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectTopByParams", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.Track)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectTopByParams indicates an expected call of SelectTopByParams
+func (mr *MockTrackRepMockRecorder) SelectTopByParams(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectTopByParams", reflect.TypeOf((*MockTrackRep)(nil).SelectTopByParams), arg0, arg1, arg2)
 }
 
 // Update mocks base method
@@ -403,6 +432,21 @@ func (m *MockTrackUsecase) GetFavoritesByUserID(arg0 uint64) ([]*models.Track, *
 func (mr *MockTrackUsecaseMockRecorder) GetFavoritesByUserID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesByUserID", reflect.TypeOf((*MockTrackUsecase)(nil).GetFavoritesByUserID), arg0)
+}
+
+// GetTopByParams mocks base method
+func (m *MockTrackUsecase) GetTopByParams(arg0, arg1, arg2 uint64) ([]*models.Track, *error_response.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTopByParams", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.Track)
+	ret1, _ := ret[1].(*error_response.ErrorResponse)
+	return ret0, ret1
+}
+
+// GetTopByParams indicates an expected call of GetTopByParams
+func (mr *MockTrackUsecaseMockRecorder) GetTopByParams(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopByParams", reflect.TypeOf((*MockTrackUsecase)(nil).GetTopByParams), arg0, arg1, arg2)
 }
 
 // LikeTrack mocks base method

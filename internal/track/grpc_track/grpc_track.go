@@ -133,6 +133,22 @@ func (tGu *TrackGRPCUsecase) GetByParams(ctx context.Context, mes *proto_track.G
 	return grpcTracks, nil
 }
 
+func (tGu *TrackGRPCUsecase) GetTopByParams(ctx context.Context, mes *proto_track.GetTopByParamsMessage) (*proto_track.Tracks, error) {
+	tracks, err := tGu.trackRep.SelectTopByParams(mes.Count, mes.From, mes.UserID)
+
+	if err != nil {
+		return new(proto_track.Tracks), err
+	}
+
+	grpcTracks := &proto_track.Tracks{}
+
+	for _, track := range tracks {
+		grpcTracks.Tracks = append(grpcTracks.Tracks, TrackToTrackGRPC(track))
+	}
+
+	return grpcTracks, nil
+}
+
 func (tGu *TrackGRPCUsecase) GetFavoritesByUserID(ctx context.Context, userID *proto_track.UserID) (*proto_track.Tracks, error) {
 	tracks, err := tGu.trackRep.SelectFavoritesByUserID(userID.ID)
 
@@ -211,7 +227,7 @@ func (tGu *TrackGRPCUsecase) GetByPlaylistID(ctx context.Context, mes *proto_tra
 
 func (tGu *TrackGRPCUsecase) LikeTrack(ctx context.Context, mes *proto_track.Likes) (*proto_track.Nothing, error) {
 	nothing := new(proto_track.Nothing)
-	if err := tGu.trackRep.LikeOrDislikeTrack(mes.UserId, mes.TrackId, true); err != nil {
+	if err := tGu.trackRep.LikeTrack(mes.UserId, mes.TrackId); err != nil {
 		return nothing, err
 	}
 
@@ -220,7 +236,7 @@ func (tGu *TrackGRPCUsecase) LikeTrack(ctx context.Context, mes *proto_track.Lik
 
 func (tGu *TrackGRPCUsecase) DislikeTrack(ctx context.Context, mes *proto_track.Likes) (*proto_track.Nothing, error) {
 	nothing := new(proto_track.Nothing)
-	if err := tGu.trackRep.LikeOrDislikeTrack(mes.UserId, mes.TrackId, false); err != nil {
+	if err := tGu.trackRep.DislikeTrack(mes.UserId, mes.TrackId); err != nil {
 		return nothing, err
 	}
 

@@ -51,7 +51,7 @@ func (ar *TrackRep) Delete(id uint64) error {
 
 func (ar *TrackRep) SelectByID(id, userId uint64) (*models.Track, error) {
 	track := &models.Track{}
-	var isLiked sql.NullBool
+	var isLiked sql.NullInt32
 	if err := ar.dbConn.QueryRow(`SELECT 
 	tracks.id, 
 	tracks.album_id, 
@@ -62,7 +62,7 @@ func (ar *TrackRep) SelectByID(id, userId uint64) (*models.Track, error) {
 	albums.poster, 
 	artists.name, 
 	artists.id, 
-    user_track_like.is_like FROM tracks
+    user_track_like.track_id FROM tracks
 	    JOIN albums ON tracks.album_id = albums.id
 	    JOIN artists ON albums.artist_id = artists.id
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2
@@ -72,7 +72,7 @@ func (ar *TrackRep) SelectByID(id, userId uint64) (*models.Track, error) {
 	}
 
 	if isLiked.Valid {
-		track.IsLiked = isLiked.Bool
+		track.IsLiked = true
 	}
 
 	return track, nil
@@ -90,7 +90,7 @@ func (ar *TrackRep) SelectByArtistId(artistId, userId uint64) ([]*models.Track, 
 	artists.id, 
 	artists.name, 
 	user_track.user_id, 
-	user_track_like.is_like FROM tracks 
+	user_track_like.track_id FROM tracks 
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $2 
@@ -104,7 +104,7 @@ func (ar *TrackRep) SelectByArtistId(artistId, userId uint64) ([]*models.Track, 
 	for rows.Next() {
 		track := &models.Track{}
 		var userFavouriteId sql.NullInt64
-		var isLiked sql.NullBool
+		var isLiked sql.NullInt64
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
 			&track.AlbumPoster, &track.ArtistID, &track.Artist, &userFavouriteId, &isLiked); err != nil {
 			return nil, err
@@ -114,7 +114,7 @@ func (ar *TrackRep) SelectByArtistId(artistId, userId uint64) ([]*models.Track, 
 			track.IsFavorite = true
 		}
 		if isLiked.Valid {
-			track.IsLiked = isLiked.Bool
+			track.IsLiked = true
 		}
 
 		tracks = append(tracks, track)
@@ -134,7 +134,7 @@ func (ar *TrackRep) SelectByAlbumID(albumID, userId uint64) ([]*models.Track, er
 	albums.poster, 
 	artists.name, 
 	albums.artist_id, 
-    user_track_like.is_like FROM tracks 
+    user_track_like.track_id FROM tracks 
 	    JOIN albums ON tracks.album_id = albums.id 
 	    JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2 
@@ -146,14 +146,14 @@ func (ar *TrackRep) SelectByAlbumID(albumID, userId uint64) ([]*models.Track, er
 	tracks := []*models.Track{}
 	for rows.Next() {
 		track := &models.Track{}
-		var isLiked sql.NullBool
+		var isLiked sql.NullInt64
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
 			&track.AlbumPoster, &track.Artist, &track.ArtistID, &isLiked); err != nil {
 			return nil, err
 		}
 
 		if isLiked.Valid {
-			track.IsLiked = isLiked.Bool
+			track.IsLiked = true
 		}
 
 		tracks = append(tracks, track)
@@ -174,7 +174,7 @@ func (ar *TrackRep) SelectByParams(count, from, userId uint64) ([]*models.Track,
 	artists.id, 
 	artists.name, 
 	user_track.user_id, 
-    user_track_like.is_like FROM tracks 
+    user_track_like.track_id FROM tracks 
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3
@@ -189,7 +189,7 @@ func (ar *TrackRep) SelectByParams(count, from, userId uint64) ([]*models.Track,
 	for rows.Next() {
 		track := &models.Track{}
 		var userFavouriteId sql.NullInt64
-		var isLiked sql.NullBool
+		var isLiked sql.NullInt64
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
 			&track.AlbumPoster, &track.ArtistID, &track.Artist, &userFavouriteId, &isLiked); err != nil {
 			return nil, err
@@ -199,7 +199,55 @@ func (ar *TrackRep) SelectByParams(count, from, userId uint64) ([]*models.Track,
 			track.IsFavorite = true
 		}
 		if isLiked.Valid {
-			track.IsLiked = isLiked.Bool
+			track.IsLiked = true
+		}
+
+		tracks = append(tracks, track)
+	}
+
+	return tracks, nil
+}
+
+func (ar *TrackRep) SelectTopByParams(count, from, userId uint64) ([]*models.Track, error) {
+	rows, err := ar.dbConn.Query(`SELECT 
+	tracks.id, 
+	tracks.album_id, 
+	tracks.title, 
+	tracks.duration, 
+	tracks.index, 
+	tracks.audio, 
+	albums.poster, 
+	artists.id, 
+	artists.name, 
+	user_track.user_id, 
+    user_track_like1.track_id FROM tracks 
+		JOIN albums ON tracks.album_id = albums.id 
+		JOIN artists ON albums.artist_id = artists.id 
+		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3
+		LEFT JOIN user_track_like AS user_track_like1 ON tracks.id = user_track_like1.track_id AND user_track_like1.user_id = $3
+		LEFT JOIN user_track_like AS user_track_like2 ON tracks.id = user_track_like2.track_id
+	GROUP BY tracks.id, tracks.album_id, tracks.title, tracks.duration, tracks.index, tracks.audio, albums.poster, artists.id, artists.name, user_track.user_id, user_track_like1.track_id
+	ORDER BY COUNT(user_track_like2.*) DESC, tracks.title LIMIT $1 OFFSET $2`,
+		count, from, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	tracks := []*models.Track{}
+	for rows.Next() {
+		track := &models.Track{}
+		var userFavouriteId sql.NullInt64
+		var isLiked sql.NullInt64
+		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
+			&track.AlbumPoster, &track.ArtistID, &track.Artist, &userFavouriteId, &isLiked); err != nil {
+			return nil, err
+		}
+
+		if userFavouriteId.Valid {
+			track.IsFavorite = true
+		}
+		if isLiked.Valid {
+			track.IsLiked = true
 		}
 
 		tracks = append(tracks, track)
@@ -219,7 +267,7 @@ func (ar *TrackRep) SelectFavoritesByUserID(userID uint64) ([]*models.Track, err
 	albums.poster, 
 	artists.id, 
 	artists.name, 
-    user_track_like.is_like FROM user_track 
+    user_track_like.track_id FROM user_track 
 		JOIN tracks ON user_track.track_id = tracks.id 
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
@@ -232,7 +280,7 @@ func (ar *TrackRep) SelectFavoritesByUserID(userID uint64) ([]*models.Track, err
 	tracks := []*models.Track{}
 	for rows.Next() {
 		track := &models.Track{}
-		var isLiked sql.NullBool
+		var isLiked sql.NullInt64
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
 			&track.AlbumPoster, &track.ArtistID, &track.Artist, &isLiked); err != nil {
 			return nil, err
@@ -240,7 +288,7 @@ func (ar *TrackRep) SelectFavoritesByUserID(userID uint64) ([]*models.Track, err
 
 		track.IsFavorite = true
 		if isLiked.Valid {
-			track.IsLiked = isLiked.Bool
+			track.IsLiked = true
 		}
 
 		tracks = append(tracks, track)
@@ -276,7 +324,7 @@ func (ar *TrackRep) SelectByPlaylistID(playlistID, userId uint64) ([]*models.Tra
 	albums.poster, 
 	artists.name, 
 	albums.artist_id, 
-    user_track_like.is_like FROM track_playlist 
+    user_track_like.track_id FROM track_playlist 
 		JOIN tracks ON track_playlist.track_id = tracks.id 
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
@@ -289,14 +337,14 @@ func (ar *TrackRep) SelectByPlaylistID(playlistID, userId uint64) ([]*models.Tra
 	tracks := []*models.Track{}
 	for rows.Next() {
 		track := &models.Track{}
-		var isLiked sql.NullBool
+		var isLiked sql.NullInt64
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
 			&track.AlbumPoster, &track.Artist, &track.ArtistID, &isLiked); err != nil {
 			return nil, err
 		}
 
 		if isLiked.Valid {
-			track.IsLiked = isLiked.Bool
+			track.IsLiked = true
 		}
 
 		tracks = append(tracks, track)
@@ -305,11 +353,17 @@ func (ar *TrackRep) SelectByPlaylistID(playlistID, userId uint64) ([]*models.Tra
 	return tracks, nil
 }
 
-func (ar *TrackRep) LikeOrDislikeTrack(userId, trackId uint64, like bool) error {
-	if _, err := ar.dbConn.Exec(`INSERT INTO user_track_like (user_id, track_id, is_like)
-	VALUES ($1, $2, $3)
-	ON CONFLICT (user_id, track_id) DO UPDATE SET is_like = excluded.is_like;`,
-		userId, trackId, like); err != nil {
+func (ar *TrackRep) LikeTrack(userId, trackId uint64) error {
+	if _, err := ar.dbConn.Exec("INSERT INTO user_track_like (user_id, track_id) VALUES ($1, $2);",
+		userId, trackId); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ar *TrackRep) DislikeTrack(userId, trackId uint64) error {
+	if _, err := ar.dbConn.Exec("DELETE FROM user_track_like WHERE user_id = $1 AND track_id = $2;",
+		userId, trackId); err != nil {
 		return err
 	}
 	return nil

@@ -41,6 +41,7 @@ func NewTrackHandler(trackUsecase track.TrackUsecase, sessionUsecase session.Ses
 func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/tracks", ah.HandlerTracksByParams())
 	e.POST("/api/v1/tracks", ah.HandlerCreateTrack(), mm.CheckCSRF)
+	e.GET("/api/v1/tracks/top", ah.HandlerTopTracksByParams())
 	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack(), mm.CheckCSRF)
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
 	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"), mm.CheckCSRF)
@@ -161,6 +162,42 @@ func (ah *TrackHandler) HandlerTracksByParams() echo.HandlerFunc {
 		}
 
 		tracks, errResp := ah.trackUsecase.GetByParams(uint64(count), uint64(from), userId)
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(models.Tracks(tracks))
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
+}
+
+func (ah *TrackHandler) HandlerTopTracksByParams() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		params := ctx.QueryParams()
+		count, err := strconv.Atoi(params.Get("count"))
+		if err != nil || count < 0 {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		from, err := strconv.Atoi(params.Get("from"))
+		if err != nil || from < 0 {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		var userId uint64
+		if user := ah.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
+
+		tracks, errResp := ah.trackUsecase.GetTopByParams(uint64(count), uint64(from), userId)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
