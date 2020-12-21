@@ -53,7 +53,6 @@ CREATE TABLE user_track (
 CREATE TABLE user_track_like (
     user_id int NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     track_id int NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    is_like bool NOT NULL DEFAULT TRUE,
     PRIMARY KEY(user_id, track_id)
 );
 

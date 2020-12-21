@@ -12,8 +12,10 @@ type TrackRep interface {
 	SelectByArtistId(artistId, userId uint64) ([]*models.Track, error)
 	SelectByID(id, userId uint64) (*models.Track, error)
 	SelectByParams(count, from, userId uint64) ([]*models.Track, error)
+	SelectTopByParams(count, from, userId uint64) ([]*models.Track, error)
 	SelectByAlbumID(albumID, userId uint64) ([]*models.Track, error)
 	SelectFavoritesByUserID(userID uint64) ([]*models.Track, error)
 	SelectByPlaylistID(playlistID, userId uint64) ([]*models.Track, error)
-	LikeOrDislikeTrack(userId, trackId uint64, like bool) error
+	LikeTrack(userId, trackId uint64) error
+	DislikeTrack(userId, trackId uint64) error
 }
