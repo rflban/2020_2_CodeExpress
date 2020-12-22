@@ -98,7 +98,8 @@ func (ar *AlbumRep) SelectByArtistID(artistID uint64) ([]*models.Album, error) {
 	al.title, 
 	al.poster, 
 	a.name 
-	from albums al join artists a on al.artist_id = a.id where al.artist_id = $1`
+	from albums al join artists a on al.artist_id = a.id where al.artist_id = $1
+	ORDER BY al.title`
 
 	albums := []*models.Album{}
 
@@ -134,7 +135,9 @@ func (ar *AlbumRep) SelectByParam(count uint64, from uint64) ([]*models.Album, e
 	al.title, 
 	al.poster, 
 	a.name 
-	from albums al join artists a on al.artist_id = a.id limit $1 offset $2`
+	from albums al join artists a on al.artist_id = a.id
+	ORDER BY a.name, al.title
+	limit $1 offset $2`
 
 	albums := []*models.Album{}
 
