@@ -1,26 +1,59 @@
 version: "3"
 
+volumes:
+    postgres:
+
 services:
-  consul:
-    image: consul
+  db:
+    image: postgres:10
+    expose:
+      - "5444"
     ports:
-      - "8500:8500"
-
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
+      - 5444:5432
     volumes:
-      - ./internal/mwares/monitoring/prometheus.yml:/etc/prometheus.yml
-    command:
-      - "--config.file=/etc/prometheus.yml"
+      - /root/pg:/var/lib/postgresql/data
+      - ./postgres/initDB.sql:/docker-entrypoint-initdb.d/1-init.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=musicexpress
+      - POSTGRES_PASSWORD=postgres
 
-  node-exporter:
-    image: prom/node-exporter
+  main_service:
+    image: kudesnjk/musicexpress_deploy:latest
     ports:
-      - "9100:9100"
+      - 8085:8085
+    command: ./main_service config.json
+    volumes:
+      - /root/2020_2_CodeExpress/album_posters:/project/album_posters
+      - /root/2020_2_CodeExpress/artist_avatars:/project/artist_avatars
+      - /root/2020_2_CodeExpress/artist_posters:/project/artist_posters
+      - /root/2020_2_CodeExpress/playlist_posters:/project/playlist_posters
+      - /root/2020_2_CodeExpress/track_audio:/project/track_audio
+      - /root/2020_2_CodeExpress/avatars:/project/avatars
+    links:
+      - session_service
+      - track_service
+    depends_on:
+      - session_service
+      - track_service
+      - db
 
-  grafana:
-    image: grafana/grafana
+  session_service:
+    image: kudesnjk/musicexpress_deploy:latest
     ports:
-      - "3000:3000"
+      - 8086:8086
+    command: ./session_service config.json
+    links:
+      - db
+    depends_on:
+      - db
+
+  track_service:
+    image: kudesnjk/musicexpress_deploy:latest
+    ports:
+      - 8087:8087
+    command: ./track_service config.json
+    links:
+      - db
+    depends_on:
+      - db
