@@ -19,8 +19,8 @@ func TestTrackUsecase_CreateTrack(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
@@ -30,16 +30,19 @@ func TestTrackUsecase_CreateTrack(t *testing.T) {
 		Return(grpc_track.TrackToTrackGRPC(&track), nil)
 
 	argTrack := models.Track{
-		Title: "title",
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	mockClient.
 		EXPECT().
-		GetByID(context.Background(), &proto_track.TrackID{ ID: track.ID}).
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  0,
+		}).
 		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
-	err := mockUsecase.CreateTrack(&track)
+	err := mockUsecase.CreateTrack(&track, 0)
 	assert.Equal(t, err, nil)
 }
 
@@ -51,8 +54,8 @@ func TestTrackUsecase_DeleteTrack(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
@@ -60,7 +63,7 @@ func TestTrackUsecase_DeleteTrack(t *testing.T) {
 
 	mockClient.
 		EXPECT().
-		DeleteTrack(context.Background(), &proto_track.TrackID{ ID: track.ID}).
+		DeleteTrack(context.Background(), &proto_track.TrackID{ID: track.ID}).
 		Return(nothing, nil)
 
 	err := mockUsecase.DeleteTrack(track.ID)
@@ -75,23 +78,26 @@ func TestTrackUsecase_GetByID(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	argTrack := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	mockClient.
 		EXPECT().
-		GetByID(context.Background(), &proto_track.TrackID{ ID: argTrack.ID}).
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: argTrack.ID,
+			UserId:  0,
+		}).
 		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
-	newTrack, err := mockUsecase.GetByID(argTrack.ID)
+	newTrack, err := mockUsecase.GetByID(argTrack.ID, 0)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, newTrack, track)
 }
@@ -104,9 +110,9 @@ func TestTrackUsecase_GetByArtistId(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
-		AlbumID: 1,
+		ID:       1,
+		Title:    "title",
+		AlbumID:  1,
 		ArtistID: 1,
 	}
 
@@ -118,9 +124,9 @@ func TestTrackUsecase_GetByArtistId(t *testing.T) {
 	mockClient.
 		EXPECT().
 		GetByArtistId(context.Background(), &proto_track.GetByArtistIdMessage{
-		ArtistID: track.ArtistID,
-		UserID:   userId,
-	}).
+			ArtistID: track.ArtistID,
+			UserID:   userId,
+		}).
 		Return(grpcTracks, nil)
 
 	_, err := mockUsecase.GetByArtistId(track.ArtistID, userId)
@@ -135,9 +141,9 @@ func TestTrackUsecase_GetByParams(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
-		AlbumID: 1,
+		ID:       1,
+		Title:    "title",
+		AlbumID:  1,
 		ArtistID: 1,
 	}
 
@@ -151,13 +157,47 @@ func TestTrackUsecase_GetByParams(t *testing.T) {
 	mockClient.
 		EXPECT().
 		GetByParams(context.Background(), &proto_track.GetByParamsMessage{
-		Count:  count,
-		From:   from,
-		UserID: userId,
-	}).
+			Count:  count,
+			From:   from,
+			UserID: userId,
+		}).
 		Return(grpcTracks, nil)
 
 	_, err := mockUsecase.GetByParams(count, from, userId)
+	assert.Equal(t, err, nil)
+}
+
+func TestTrackUsecase_GetTopByParams(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := mock_track.NewMockTrackServiceClient(ctrl)
+	mockUsecase := NewTrackUsecase(mockClient)
+
+	track := models.Track{
+		ID:       1,
+		Title:    "title",
+		AlbumID:  1,
+		ArtistID: 1,
+	}
+
+	count := uint64(5)
+	from := uint64(1)
+	userId := uint64(1)
+
+	grpcTracks := &proto_track.Tracks{}
+	grpcTracks.Tracks = append(grpcTracks.Tracks, grpc_track.TrackToTrackGRPC(&track))
+
+	mockClient.
+		EXPECT().
+		GetTopByParams(context.Background(), &proto_track.GetTopByParamsMessage{
+			Count:  count,
+			From:   from,
+			UserID: userId,
+		}).
+		Return(grpcTracks, nil)
+
+	_, err := mockUsecase.GetTopByParams(count, from, userId)
 	assert.Equal(t, err, nil)
 }
 
@@ -169,8 +209,8 @@ func TestTrackUsecase_UpdateTrack(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
@@ -182,16 +222,19 @@ func TestTrackUsecase_UpdateTrack(t *testing.T) {
 		Return(nothing, nil)
 
 	argTrack := models.Track{
-		Title: "title",
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	mockClient.
 		EXPECT().
-		GetByID(context.Background(), &proto_track.TrackID{ ID: track.ID}).
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  0,
+		}).
 		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
-	err := mockUsecase.UpdateTrack(&track)
+	err := mockUsecase.UpdateTrack(&track, 0)
 	assert.Equal(t, err, nil)
 }
 
@@ -203,8 +246,8 @@ func TestTrackUsecase_UpdateTrackAudio(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
@@ -216,16 +259,19 @@ func TestTrackUsecase_UpdateTrackAudio(t *testing.T) {
 		Return(nothing, nil)
 
 	argTrack := models.Track{
-		Title: "title",
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	mockClient.
 		EXPECT().
-		GetByID(context.Background(), &proto_track.TrackID{ ID: track.ID}).
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  0,
+		}).
 		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
-	err := mockUsecase.UpdateTrackAudio(&track)
+	err := mockUsecase.UpdateTrackAudio(&track, 0)
 	assert.Equal(t, err, nil)
 }
 
@@ -237,9 +283,9 @@ func TestTrackUsecase_GetByAlbumID(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
-		AlbumID: 1,
+		ID:       1,
+		Title:    "title",
+		AlbumID:  1,
 		ArtistID: 1,
 	}
 
@@ -250,12 +296,13 @@ func TestTrackUsecase_GetByAlbumID(t *testing.T) {
 
 	mockClient.
 		EXPECT().
-		GetByAlbumID(context.Background(), &proto_track.AlbumID{
-		ID: albumId,
+		GetByAlbumID(context.Background(), &proto_track.GetByAlbumIdMessage{
+			AlbumId: albumId,
+			UserId:  0,
 		}).
 		Return(grpcTracks, nil)
 
-	_, err := mockUsecase.GetByAlbumID(albumId)
+	_, err := mockUsecase.GetByAlbumID(albumId, 0)
 	assert.Equal(t, err, nil)
 }
 
@@ -267,9 +314,9 @@ func TestTrackUsecase_GetFavoritesByUserID(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
-		AlbumID: 1,
+		ID:       1,
+		Title:    "title",
+		AlbumID:  1,
 		ArtistID: 1,
 	}
 
@@ -281,7 +328,7 @@ func TestTrackUsecase_GetFavoritesByUserID(t *testing.T) {
 	mockClient.
 		EXPECT().
 		GetFavoritesByUserID(context.Background(), &proto_track.UserID{
-		ID: userID,
+			ID: userID,
 		}).
 		Return(grpcTracks, nil)
 
@@ -297,13 +344,13 @@ func TestTrackUsecase_AddToFavourites(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	argTrack := models.Track{
-		Title: "title",
+		Title:   "title",
 		AlbumID: 1,
 	}
 
@@ -313,7 +360,10 @@ func TestTrackUsecase_AddToFavourites(t *testing.T) {
 
 	mockClient.
 		EXPECT().
-		GetByID(context.Background(), &proto_track.TrackID{ ID: track.ID}).
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  userID,
+		}).
 		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
 	mockClient.
@@ -336,13 +386,13 @@ func TestTrackUsecase_DeleteFromFavourites(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
+		ID:      1,
+		Title:   "title",
 		AlbumID: 1,
 	}
 
 	argTrack := models.Track{
-		Title: "title",
+		Title:   "title",
 		AlbumID: 1,
 	}
 
@@ -352,7 +402,10 @@ func TestTrackUsecase_DeleteFromFavourites(t *testing.T) {
 
 	mockClient.
 		EXPECT().
-		GetByID(context.Background(), &proto_track.TrackID{ ID: track.ID}).
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  userID,
+		}).
 		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
 	mockClient.
@@ -375,9 +428,9 @@ func TestTrackUsecase_GetByPlaylistID(t *testing.T) {
 	mockUsecase := NewTrackUsecase(mockClient)
 
 	track := models.Track{
-		ID: 1,
-		Title: "title",
-		AlbumID: 1,
+		ID:       1,
+		Title:    "title",
+		AlbumID:  1,
 		ArtistID: 1,
 	}
 
@@ -388,11 +441,96 @@ func TestTrackUsecase_GetByPlaylistID(t *testing.T) {
 
 	mockClient.
 		EXPECT().
-		GetByPlaylistID(context.Background(), &proto_track.PlaylistID{
-		ID: playlistID,
-	}).
+		GetByPlaylistID(context.Background(), &proto_track.GetByPlaylistIdMessage{
+			PlaylistId: playlistID,
+			UserId:     0,
+		}).
 		Return(grpcTracks, nil)
 
-	_, err := mockUsecase.GetByPlaylistID(playlistID)
+	_, err := mockUsecase.GetByPlaylistID(playlistID, 0)
+	assert.Equal(t, err, nil)
+}
+
+func TestTrackUsecase_LikeTrack(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := mock_track.NewMockTrackServiceClient(ctrl)
+	mockUsecase := NewTrackUsecase(mockClient)
+
+	track := models.Track{
+		ID:      1,
+		Title:   "title",
+		AlbumID: 1,
+	}
+
+	argTrack := models.Track{
+		Title:   "title",
+		AlbumID: 1,
+	}
+
+	userID := uint64(1)
+
+	nothing := new(proto_track.Nothing)
+
+	mockClient.
+		EXPECT().
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  userID,
+		}).
+		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
+
+	mockClient.
+		EXPECT().
+		LikeTrack(context.Background(), &proto_track.Likes{
+			UserId:  userID,
+			TrackId: track.ID,
+		}).
+		Return(nothing, nil)
+
+	err := mockUsecase.LikeTrack(userID, track.ID)
+	assert.Equal(t, err, nil)
+}
+
+func TestTrackUsecase_DislikeTrack(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := mock_track.NewMockTrackServiceClient(ctrl)
+	mockUsecase := NewTrackUsecase(mockClient)
+
+	track := models.Track{
+		ID:      1,
+		Title:   "title",
+		AlbumID: 1,
+	}
+
+	argTrack := models.Track{
+		Title:   "title",
+		AlbumID: 1,
+	}
+
+	userID := uint64(1)
+
+	nothing := new(proto_track.Nothing)
+
+	mockClient.
+		EXPECT().
+		GetByID(context.Background(), &proto_track.GetByIdMessage{
+			TrackId: track.ID,
+			UserId:  userID,
+		}).
+		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
+
+	mockClient.
+		EXPECT().
+		DislikeTrack(context.Background(), &proto_track.Likes{
+			UserId:  userID,
+			TrackId: track.ID,
+		}).
+		Return(nothing, nil)
+
+	err := mockUsecase.DislikeTrack(userID, track.ID)
 	assert.Equal(t, err, nil)
 }

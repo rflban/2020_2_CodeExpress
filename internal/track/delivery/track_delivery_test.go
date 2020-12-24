@@ -5,7 +5,6 @@ import (
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/session/mock_session"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/builder"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/user/mock_user"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -32,45 +31,24 @@ func TestTrackDelivery_HandlerCreateTrack(t *testing.T) {
 		AlbumID uint64 `json:"album_id" validate:"required"`
 	}
 
-	id := uint64(42)
-	index := uint8(32)
-	title := "Some title"
-	albumID := uint64(3)
-
-	request := &Request{
-		Title:   title,
-		AlbumID: albumID,
-	}
-
 	track := &models.Track{
-		Title:   title,
-		AlbumID: albumID,
-	}
-
-	expectedTrack := &models.Track{
-		ID:      id,
-		Title:   title,
-		AlbumID: albumID,
-		Index:   index,
+		Title:   "Some title",
+		AlbumID: 1,
 	}
 
 	trackMockUsecase.
 		EXPECT().
-		CreateTrack(gomock.Eq(track), uint64(0)).
-		DoAndReturn(func(track *models.Track) error {
-			track.ID = id
-			track.Index = index
-			return nil
-		})
+		CreateTrack(gomock.Eq(track), gomock.Eq(uint64(0))).
+		Return(nil)
 
-	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	trackHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
 	e := echo.New()
-	albumHandler.Configure(e, nil)
+	trackHandler.Configure(e, nil)
 
-	jsonRequest, err := json.Marshal(request)
-	assert.Equal(t, err, nil)
-
-	jsonExpectedAlbum, err := json.Marshal(expectedTrack)
+	jsonRequest, err := json.Marshal(&Request{
+		Title:   track.Title,
+		AlbumID: track.AlbumID,
+	})
 	assert.Equal(t, err, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/tracks", strings.NewReader(string(jsonRequest)))
@@ -78,15 +56,11 @@ func TestTrackDelivery_HandlerCreateTrack(t *testing.T) {
 	resWriter := httptest.NewRecorder()
 	ctx := e.NewContext(req, resWriter)
 
-	handler := albumHandler.HandlerCreateTrack()
+	handler := trackHandler.HandlerCreateTrack()
 
 	err = handler(ctx)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusOK, resWriter.Code)
-
-	resBody, err := ioutil.ReadAll(resWriter.Body)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, resBody, jsonExpectedAlbum)
 }
 
 func TestTrackDelivery_HandlerUpdateTrack(t *testing.T) {
@@ -205,6 +179,43 @@ func TestTrackDelivery_HandlerTracksByParams(t *testing.T) {
 	ctx := e.NewContext(req, resWriter)
 
 	handler := albumHandler.HandlerTracksByParams()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestTrackDelivery_HandlerTopTracksByParams(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
+
+	count, from := uint64(1), uint64(0)
+
+	expectedTracks := []*models.Track{
+		{
+			ID: 0,
+		},
+		{
+			ID: 1,
+		},
+	}
+
+	trackMockUsecase.
+		EXPECT().
+		GetTopByParams(gomock.Eq(count), gomock.Eq(from), uint64(0)).
+		Return(expectedTracks, nil)
+
+	albumHandler := delivery.NewTrackHandler(trackMockUsecase, nil, nil)
+	e := echo.New()
+	albumHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/tracks/top?count=1&from=0", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+
+	handler := albumHandler.HandlerTopTracksByParams()
 
 	err := handler(ctx)
 	assert.Equal(t, err, nil)
@@ -374,6 +385,88 @@ func TestTrackDelivery_HandlerDeleteFromUsersFavourites(t *testing.T) {
 	ctx.SetParamValues("1")
 
 	handler := trackHandler.HandlerDeleteFromUsersFavourites()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestTrackDelivery_HandlerLikeTrack(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	id := uint64(1)
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: id,
+		Name:   ConstSessionName,
+	}
+
+	trackMockUsecase.
+		EXPECT().
+		LikeTrack(uint64(1), uint64(1)).
+		Return(nil)
+
+	trackHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
+	e := echo.New()
+	trackHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/tracks/1/like", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
+	ctx.SetParamNames("id")
+	ctx.SetParamValues("1")
+
+	handler := trackHandler.HandlerLikeTrack()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestTrackDelivery_HandlerDislikeTrack(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	trackMockUsecase := mock_track.NewMockTrackUsecase(ctrl)
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	id := uint64(1)
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: id,
+		Name:   ConstSessionName,
+	}
+
+	trackMockUsecase.
+		EXPECT().
+		DislikeTrack(uint64(1), uint64(1)).
+		Return(nil)
+
+	trackHandler := delivery.NewTrackHandler(trackMockUsecase, sessionMockUsecase, userMockUsecase)
+	e := echo.New()
+	trackHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/tracks/1/like", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, uint64(1))
+	ctx.SetParamNames("id")
+	ctx.SetParamValues("1")
+
+	handler := trackHandler.HandlerDislikeTrack()
 
 	err := handler(ctx)
 	assert.Equal(t, err, nil)

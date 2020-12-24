@@ -146,6 +146,45 @@ func TestUserUsecase_GetById_Failed(t *testing.T) {
 	assert.Nil(t, user)
 }
 
+func TestUserUsecase_GetByName_Passed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	expectedUser := &models.User{
+		ID:   1,
+		Name: "nick",
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectByName(gomock.Eq(expectedUser.Name), gomock.Eq(uint64(0))).
+		Return(expectedUser, nil)
+
+	user, err := mockUsecase.GetByName(expectedUser.Name, 0)
+	assert.Nil(t, err)
+	assert.Equal(t, user, expectedUser)
+}
+
+func TestUserUsecase_GetByName_Failed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	mockRepo.
+		EXPECT().
+		SelectByName(gomock.Eq("xxx"), gomock.Eq(uint64(0))).
+		Return(nil, sql.ErrNoRows)
+
+	user, err := mockUsecase.GetByName("xxx", 0)
+	assert.Equal(t, err, NewErrorResponse(ErrUserNotExist, sql.ErrNoRows))
+	assert.Nil(t, user)
+}
+
 func TestUserUsecase_LoginUser_Passed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -170,7 +209,7 @@ func TestUserUsecase_LoginUser_Passed(t *testing.T) {
 		SelectByLogin(gomock.Eq(expectedUser.Email)).
 		Return(expectedUser, nil)
 
-	user, err := mockUsecase.GetUserByLogin(expectedUser.Name, "qwertyuiop123") //TODO: копипаст кода? Сделать TestCase?
+	user, err := mockUsecase.GetUserByLogin(expectedUser.Name, "qwertyuiop123")
 	assert.Nil(t, err)
 	assert.Equal(t, user, expectedUser)
 
@@ -351,7 +390,6 @@ func TestUserUsecase_UpdatePassword_Passed(t *testing.T) {
 
 	err := mockUsecase.UpdatePassword(updatedUser.ID, user.Password, updatedUser.Password)
 	assert.Nil(t, err)
-	//assert.Equal(t, resultUser, updatedUser)
 }
 
 func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
@@ -381,4 +419,73 @@ func TestUserUsecase_UpdatePassword_Failed(t *testing.T) {
 
 	err = mockUsecase.UpdatePassword(user.ID, "qwertyuiop123", user.Password)
 	assert.Equal(t, err, NewErrorResponse(ErrWrongOldPassword, nil))
+}
+
+func TestUserUsecase_AddSubscription(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	userSubscriberId := uint64(1)
+	userName := "nick2"
+
+	mockRepo.
+		EXPECT().
+		InsertSubscription(gomock.Eq(userSubscriberId), gomock.Eq(userName)).
+		Return(nil)
+
+	err := mockUsecase.AddSubscription(userSubscriberId, userName)
+	assert.Nil(t, err)
+}
+
+func TestUserUsecase_RemoveSubscription(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	userSubscriberId := uint64(1)
+	userName := "nick2"
+
+	mockRepo.
+		EXPECT().
+		RemoveSubscription(gomock.Eq(userSubscriberId), gomock.Eq(userName)).
+		Return(nil)
+
+	err := mockUsecase.RemoveSubscription(userSubscriberId, userName)
+	assert.Nil(t, err)
+}
+
+func TestUserUsecase_GetSubscriptions(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_user.NewMockUserRep(ctrl)
+	mockUsecase := usecase.NewUserUsecase(mockRepo)
+
+	userId := uint64(2)
+	authUserId := uint64(1)
+
+	expectedSubscriptions := &models.Subscriptions{
+		Subscriptions: []*models.User{{
+			ID:   3,
+			Name: "nick3",
+		}},
+		Subscribers: []*models.User{{
+			ID:   4,
+			Name: "nick4",
+		}},
+	}
+
+	mockRepo.
+		EXPECT().
+		SelectSubscriptions(gomock.Eq(userId), gomock.Eq(authUserId)).
+		Return(expectedSubscriptions, nil)
+
+	subscriptions, err := mockUsecase.GetSubscriptions(userId, authUserId)
+	assert.Nil(t, err)
+	assert.Equal(t, subscriptions, expectedSubscriptions)
 }
