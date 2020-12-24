@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"database/sql"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/grpc_track"
 
 	"golang.org/x/net/context"
@@ -165,7 +166,7 @@ func (aUc *TrackUsecase) UpdateTrack(track *models.Track, userId uint64) *ErrorR
 	if err != nil {
 		return NewErrorResponse(ErrInternal, err)
 	}
-
+	//nolint:staticcheck
 	track = grpc_track.TrackGRPCToTrack(newTrack)
 
 	return nil
@@ -190,7 +191,7 @@ func (aUc *TrackUsecase) UpdateTrackAudio(track *models.Track, userId uint64) *E
 	if err != nil {
 		return NewErrorResponse(ErrInternal, err)
 	}
-
+	//nolint:staticcheck
 	track = grpc_track.TrackGRPCToTrack(newTrack)
 
 	return nil

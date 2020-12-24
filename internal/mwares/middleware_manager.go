@@ -44,7 +44,7 @@ func (mm *MiddlewareManager) PanicRecovering(next echo.HandlerFunc) echo.Handler
 				logrus.Warn(err)
 			}
 		}()
-
+		//nolint:errcheck
 		defer func() error {
 			if err := recover(); err != nil {
 				status := strconv.Itoa(ctx.Response().Status)

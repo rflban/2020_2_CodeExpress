@@ -192,7 +192,7 @@ func (uh *UserHandler) HandlerUpdateAvatar() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userId := ctx.Get(ConstAuthedUserParam)
 
-		user, errResp := uh.userUsecase.GetById(userId.(uint64))
+		_, errResp := uh.userUsecase.GetById(userId.(uint64))
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
@@ -204,7 +204,7 @@ func (uh *UserHandler) HandlerUpdateAvatar() echo.HandlerFunc {
 			return RespondWithError(errResp, ctx)
 		}
 
-		user, errResp = uh.userUsecase.UpdateAvatar(userId.(uint64), avatarPath)
+		user, errResp := uh.userUsecase.UpdateAvatar(userId.(uint64), avatarPath)
 		if errResp != nil {
 			return RespondWithError(errResp, ctx)
 		}
