@@ -91,7 +91,7 @@ func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64, use
             JOIN artists ON albums.artist_id = artists.id 
 			LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $4 
 		WHERE tracks.title ILIKE '%' || $1 || '%' COLLATE "C" 
-		ORDER BY tracks.title 
+		ORDER BY tracks.title, artists.name 
 		LIMIT $2 
 		OFFSET $3;`,
 		query, limit, offset, userId)

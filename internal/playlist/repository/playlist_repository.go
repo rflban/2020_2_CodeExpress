@@ -73,7 +73,7 @@ func (pr *PlaylistRep) SelectByID(id uint64) (*models.Playlist, error) {
 }
 
 func (pr *PlaylistRep) SelectByUserID(userID uint64) ([]*models.Playlist, error) {
-	query := "select id, user_id, title, poster, is_public from playlists where user_id = $1"
+	query := "select id, user_id, title, poster, is_public from playlists where user_id = $1 ORDER BY playlists.title"
 
 	playlists := []*models.Playlist{}
 
@@ -128,7 +128,7 @@ func (pr *PlaylistRep) DeleteTrack(trackID uint64, playlistID uint64) error {
 }
 
 func (pr *PlaylistRep) SelectPublicByUserID(userID uint64) ([]*models.Playlist, error) {
-	query := "select id, user_id, title, poster, is_public from playlists where user_id = $1 and is_public = true"
+	query := "select id, user_id, title, poster, is_public from playlists where user_id = $1 and is_public = true ORDER BY playlists.title"
 
 	playlists := []*models.Playlist{}
 

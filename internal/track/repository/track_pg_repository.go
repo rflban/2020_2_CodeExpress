@@ -95,7 +95,8 @@ func (ar *TrackRep) SelectByArtistId(artistId, userId uint64) ([]*models.Track, 
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $2 
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2 
-	WHERE artists.id = $1`, artistId, userId)
+	WHERE artists.id = $1
+	ORDER BY tracks.title`, artistId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +139,8 @@ func (ar *TrackRep) SelectByAlbumID(albumID, userId uint64) ([]*models.Track, er
 	    JOIN albums ON tracks.album_id = albums.id 
 	    JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2 
-	WHERE albums.id = $1`, albumID, userId)
+	WHERE albums.id = $1
+	ORDER BY tracks.index`, albumID, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +181,9 @@ func (ar *TrackRep) SelectByParams(count, from, userId uint64) ([]*models.Track,
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $3
-	ORDER BY tracks.title LIMIT $1 OFFSET $2`,
+	ORDER BY artists.name, tracks.title
+	LIMIT $1
+	OFFSET $2`,
 		count, from, userId)
 	if err != nil {
 		return nil, err
@@ -220,14 +224,14 @@ func (ar *TrackRep) SelectTopByParams(count, from, userId uint64) ([]*models.Tra
 	artists.id, 
 	artists.name, 
 	user_track.user_id, 
-    user_track_like1.track_id FROM tracks 
+    user_track_like.track_id FROM tracks 
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3
-		LEFT JOIN user_track_like AS user_track_like1 ON tracks.id = user_track_like1.track_id AND user_track_like1.user_id = $3
-		LEFT JOIN user_track_like AS user_track_like2 ON tracks.id = user_track_like2.track_id
-	GROUP BY tracks.id, tracks.album_id, tracks.title, tracks.duration, tracks.index, tracks.audio, albums.poster, artists.id, artists.name, user_track.user_id, user_track_like1.track_id
-	ORDER BY COUNT(user_track_like2.*) DESC, tracks.title LIMIT $1 OFFSET $2`,
+		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $3
+	ORDER BY tracks.likes_count DESC, artists.name, tracks.title
+	LIMIT $1
+	OFFSET $2`,
 		count, from, userId)
 	if err != nil {
 		return nil, err
@@ -272,7 +276,8 @@ func (ar *TrackRep) SelectFavoritesByUserID(userID uint64) ([]*models.Track, err
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $1 
-	WHERE user_track.user_id = $1`, userID)
+	WHERE user_track.user_id = $1
+	ORDER BY artists.name, tracks.title`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +334,8 @@ func (ar *TrackRep) SelectByPlaylistID(playlistID, userId uint64) ([]*models.Tra
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2
-	WHERE track_playlist.playlist_id = $1`, playlistID, userId)
+	WHERE track_playlist.playlist_id = $1
+	ORDER BY artists.name, tracks.title`, playlistID, userId)
 	if err != nil {
 		return nil, err
 	}
