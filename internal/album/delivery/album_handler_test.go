@@ -75,7 +75,7 @@ func TestAlbumDelivery_HandlerCreateAlbum(t *testing.T) {
 			return nil
 		})
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -125,7 +125,7 @@ func TestAlbumDelivery_HandlerCreateAlbum_Failed(t *testing.T) {
 		GetByID(gomock.Eq(artistID)).
 		Return(nil, NewErrorResponse(ErrArtistNotExist, sql.ErrNoRows))
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -186,7 +186,7 @@ func TestAlbumDelivery_HandlerUpdateAlbum(t *testing.T) {
 		UpdateAlbum(gomock.Eq(album)).
 		Return(nil)
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -217,7 +217,7 @@ func TestAlbumDelivery_HandlerDeleteAlbum(t *testing.T) {
 		DeleteAlbum(gomock.Eq(uint64(3))).
 		Return(nil)
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, nil)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, nil, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -279,7 +279,7 @@ func TestAlbumDelivery_HandlerAlbumsByArtist(t *testing.T) {
 		GetByArtistID(gomock.Eq(artistID)).
 		Return(albums, nil)
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, artistMockUsecase, nil, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -330,7 +330,7 @@ func TestAlbumDelivery_HandlerAlbumsByParams(t *testing.T) {
 		GetByParams(gomock.Eq(uint64(2)), gomock.Eq(uint64(0))).
 		Return(albums, nil)
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, nil)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, nil, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 
@@ -382,10 +382,10 @@ func TestAlbumDelivery_HandlerAlbumTracks(t *testing.T) {
 
 	trackMockUsecase.
 		EXPECT().
-		GetByAlbumID(gomock.Eq(albumID)).
+		GetByAlbumID(gomock.Eq(albumID), gomock.Eq(uint64(0))).
 		Return(tracks, nil)
 
-	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, trackMockUsecase)
+	albumHandler := delivery.NewAlbumHandler(albumMockUsecase, nil, trackMockUsecase, nil, nil)
 	e := echo.New()
 	albumHandler.Configure(e, nil)
 

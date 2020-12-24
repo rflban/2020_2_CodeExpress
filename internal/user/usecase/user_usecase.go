@@ -160,8 +160,8 @@ func (uUc *UserUsecase) RemoveSubscription(userSubscriberId uint64, userName str
 	return nil
 }
 
-func (uUc *UserUsecase) GetSubscriptions(id, authUserId uint64) (*models.Subscriptions, *ErrorResponse) {
-	subscriptions, err := uUc.userRep.SelectSubscriptions(id, authUserId)
+func (uUc *UserUsecase) GetSubscriptions(userId, authUserId uint64) (*models.Subscriptions, *ErrorResponse) {
+	subscriptions, err := uUc.userRep.SelectSubscriptions(userId, authUserId)
 	if err != nil {
 		return nil, NewErrorResponse(ErrUserNotExist, err)
 	}

@@ -376,3 +376,77 @@ func TestPlaylistUsecase_DeleteTrack(t *testing.T) {
 	err := mockUsecase.DeleteTrack(trackID, playlistID)
 	assert.Equal(t, err, nil)
 }
+
+func TestPlaylistUsecase_GetPublicByUserID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_playlist.NewMockPlaylistRep(ctrl)
+	mockUsecase := usecase.NewPlaylistUsecase(mockRepo)
+
+	user_id := uint64(0)
+
+	expectedPlaylist1 := &models.Playlist{
+		ID:     1,
+		Title:  "Some title",
+		UserID: 0,
+		Poster: "Some poster",
+	}
+
+	expectedPlaylist2 := &models.Playlist{
+		ID:     2,
+		Title:  "Some title",
+		UserID: 0,
+		Poster: "Some poster",
+	}
+
+	expectedPlaylists := []*models.Playlist{expectedPlaylist1, expectedPlaylist2}
+
+	mockRepo.
+		EXPECT().
+		SelectPublicByUserID(gomock.Eq(user_id)).
+		Return(expectedPlaylists, nil)
+
+	playlists, err := mockUsecase.GetPublicByUserID(user_id)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, playlists, expectedPlaylists)
+}
+
+func TestPlaylistUsecase_GetPublicByUserID_Failed(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_playlist.NewMockPlaylistRep(ctrl)
+	mockUsecase := usecase.NewPlaylistUsecase(mockRepo)
+
+	user_id := uint64(5)
+
+	mockRepo.
+		EXPECT().
+		SelectPublicByUserID(gomock.Eq(user_id)).
+		Return(nil, sql.ErrNoRows)
+
+	playlist, err := mockUsecase.GetPublicByUserID(user_id)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, playlist, nil)
+}
+
+func TestPlaylistUsecase_GetPublicByUserID_Failed_Internal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_playlist.NewMockPlaylistRep(ctrl)
+	mockUsecase := usecase.NewPlaylistUsecase(mockRepo)
+
+	user_id := uint64(5)
+	dbErr := errors.New("Some database err")
+
+	mockRepo.
+		EXPECT().
+		SelectPublicByUserID(gomock.Eq(user_id)).
+		Return(nil, dbErr)
+
+	playlists, err := mockUsecase.GetPublicByUserID(user_id)
+	assert.Equal(t, err, NewErrorResponse(ErrInternal, dbErr))
+	assert.Equal(t, playlists, nil)
+}

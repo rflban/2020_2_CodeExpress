@@ -38,18 +38,18 @@ func TestUserDelivery_HandlerRegisterUser(t *testing.T) {
 	avatar := ""
 
 	request := &Request{
-		Name:   name,
-		Email: email,
-		Password:   password,
-		RepeatedPassword:   password,
+		Name:             name,
+		Email:            email,
+		Password:         password,
+		RepeatedPassword: password,
 	}
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
-		Avatar: avatar,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		Avatar:   avatar,
 	}
 
 	userMockUsecase.
@@ -105,10 +105,10 @@ func TestUserDelivery_HandlerRegisterUserFailed(t *testing.T) {
 	password := "short"
 
 	request := &Request{
-		Name:   name,
-		Email: email,
-		Password:   password,
-		RepeatedPassword:   password,
+		Name:             name,
+		Email:            email,
+		Password:         password,
+		RepeatedPassword: password,
 	}
 
 	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
@@ -153,18 +153,18 @@ func TestUserDelivery_HandlerCurrentUserInfo(t *testing.T) {
 	cookieValue := "Some cookie value"
 
 	request := &Request{
-		Name:   name,
-		Email: email,
-		Password:   password,
-		RepeatedPassword:   password,
+		Name:             name,
+		Email:            email,
+		Password:         password,
+		RepeatedPassword: password,
 	}
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
-		Avatar: avatar,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		Avatar:   avatar,
 	}
 
 	session := &models.Session{
@@ -205,6 +205,57 @@ func TestUserDelivery_HandlerCurrentUserInfo(t *testing.T) {
 	assert.Equal(t, resBody, jsonExpectedUser)
 }
 
+func TestUserDelivery_HandlerGetProfile(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	cookieValue := "Some cookie value"
+
+	expectedUser := &models.User{
+		ID:   1,
+		Name: "nick",
+	}
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: 2,
+		Name:   ConstSessionName,
+	}
+
+	userMockUsecase.
+		EXPECT().
+		GetByName(gomock.Eq(expectedUser.Name), gomock.Eq(session.UserID)).
+		Return(expectedUser, nil)
+
+	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
+	e := echo.New()
+	userHandler.Configure(e, nil)
+
+	jsonExpectedUser, err := json.Marshal(expectedUser)
+	assert.Equal(t, err, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/user/nick/profile", strings.NewReader(string("")))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, session.UserID)
+	ctx.SetParamNames("name")
+	ctx.SetParamValues("nick")
+
+	handler := userHandler.HandlerGetProfile()
+
+	err = handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+
+	resBody, err := ioutil.ReadAll(resWriter.Body)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, resBody, jsonExpectedUser)
+}
+
 func TestUserDelivery_HandlerUpdateProfile(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -225,16 +276,16 @@ func TestUserDelivery_HandlerUpdateProfile(t *testing.T) {
 	cookieValue := "Some cookie value"
 
 	request := &Request{
-		Name:   name,
+		Name:  name,
 		Email: email,
 	}
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
-		Avatar: avatar,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		Avatar:   avatar,
 	}
 
 	session := &models.Session{
@@ -293,7 +344,7 @@ func TestUserDelivery_HandlerUpdateProfileFailed(t *testing.T) {
 	cookieValue := "Some cookie value"
 
 	request := &Request{
-		Name:   name,
+		Name:  name,
 		Email: email,
 	}
 
@@ -309,7 +360,6 @@ func TestUserDelivery_HandlerUpdateProfileFailed(t *testing.T) {
 
 	jsonRequest, err := json.Marshal(request)
 	assert.Equal(t, err, nil)
-
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/user/profile", strings.NewReader(string(jsonRequest)))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -455,11 +505,11 @@ func TestUserDelivery_HandlerUpdateAvatar(t *testing.T) {
 	}
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
-		Avatar: avatar,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		Avatar:   avatar,
 	}
 
 	session := &models.Session{
@@ -491,4 +541,149 @@ func TestUserDelivery_HandlerUpdateAvatar(t *testing.T) {
 	err = handler(ctx)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusBadRequest, resWriter.Code)
+}
+
+func TestUserDelivery_HandlerAddSubscription(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: 2,
+		Name:   ConstSessionName,
+	}
+
+	userMockUsecase.
+		EXPECT().
+		AddSubscription(gomock.Eq(session.UserID), gomock.Eq("nick2")).
+		Return(nil)
+
+	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
+	e := echo.New()
+	userHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/user/nick/subscription", strings.NewReader(string("")))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, session.UserID)
+	ctx.SetParamNames("name")
+	ctx.SetParamValues("nick2")
+
+	handler := userHandler.HandlerAddSubscription()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestUserDelivery_HandlerRemoveSubscription(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: 2,
+		Name:   ConstSessionName,
+	}
+
+	userMockUsecase.
+		EXPECT().
+		RemoveSubscription(gomock.Eq(session.UserID), gomock.Eq("nick2")).
+		Return(nil)
+
+	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
+	e := echo.New()
+	userHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/user/nick/subscription", strings.NewReader(string("")))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, session.UserID)
+	ctx.SetParamNames("name")
+	ctx.SetParamValues("nick2")
+
+	handler := userHandler.HandlerRemoveSubscription()
+
+	err := handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+}
+
+func TestUserDelivery_HandlerGetSubscriptions(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userMockUsecase := mock_user.NewMockUserUsecase(ctrl)
+	sessionMockUsecase := mock_session.NewMockSessionUsecase(ctrl)
+
+	cookieValue := "Some cookie value"
+
+	session := &models.Session{
+		ID:     cookieValue,
+		UserID: 2,
+		Name:   ConstSessionName,
+	}
+
+	expectedUser := &models.User{
+		ID:   2,
+		Name: "nick2",
+	}
+
+	subscriptions := &models.Subscriptions{
+		Subscriptions: []*models.User{{
+			ID:   3,
+			Name: "nick3",
+		}},
+		Subscribers: []*models.User{{
+			ID:   4,
+			Name: "nick4",
+		}},
+	}
+
+	userMockUsecase.
+		EXPECT().
+		GetByName(gomock.Eq(expectedUser.Name), gomock.Eq(session.UserID)).
+		Return(expectedUser, nil)
+
+	userMockUsecase.
+		EXPECT().
+		GetSubscriptions(gomock.Eq(expectedUser.ID), gomock.Eq(session.UserID)).
+		Return(subscriptions, nil)
+
+	jsonExpected, err := json.Marshal(subscriptions)
+	assert.Equal(t, err, nil)
+
+	userHandler := delivery.NewUserHandler(userMockUsecase, sessionMockUsecase)
+	e := echo.New()
+	userHandler.Configure(e, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/user/nick/subscriptions", strings.NewReader(string("")))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.AddCookie(builder.BuildCookie(session))
+	resWriter := httptest.NewRecorder()
+	ctx := e.NewContext(req, resWriter)
+	ctx.Set(ConstAuthedUserParam, session.UserID)
+	ctx.SetParamNames("name")
+	ctx.SetParamValues("nick2")
+
+	handler := userHandler.HandlerGetSubscriptions()
+
+	err = handler(ctx)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, resWriter.Code)
+
+	resBody, err := ioutil.ReadAll(resWriter.Body)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, resBody, jsonExpected)
 }

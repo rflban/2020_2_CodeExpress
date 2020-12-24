@@ -340,8 +340,8 @@ func TestPlaylistDelivery_HandlerConcretePlaylist(t *testing.T) {
 	username := "John"
 
 	user := &models.User{
-		ID:      userID,
-		Name:    username,
+		ID:   userID,
+		Name: username,
 	}
 
 	tracks := make([]*models.Track, 0)
@@ -350,9 +350,9 @@ func TestPlaylistDelivery_HandlerConcretePlaylist(t *testing.T) {
 	})
 
 	playlist := &models.Playlist{
-		ID:     playlistID,
-		UserID: userID,
-		Tracks: tracks,
+		ID:       playlistID,
+		UserID:   userID,
+		Tracks:   tracks,
 		IsPublic: true,
 	}
 
@@ -368,7 +368,7 @@ func TestPlaylistDelivery_HandlerConcretePlaylist(t *testing.T) {
 
 	trackUsecase.
 		EXPECT().
-		GetByPlaylistID(playlistID).
+		GetByPlaylistID(playlistID, gomock.Eq(uint64(0))).
 		Return(tracks, nil)
 
 	playlistHandler := delivery.NewPlaylistHandler(playlistUsecase, trackUsecase, userUsecase, sessionUsecase)
@@ -394,7 +394,7 @@ func TestPlaylistDelivery_HandlerConcretePlaylist(t *testing.T) {
 		Avatar   string `json:"avatar"`
 	}
 	type Response struct {
-		Profile Profile `json:"profile"`
+		Profile  Profile         `json:"profile"`
 		Playlist models.Playlist `json:"playlist"`
 	}
 
@@ -404,7 +404,7 @@ func TestPlaylistDelivery_HandlerConcretePlaylist(t *testing.T) {
 	}
 
 	expected := Response{
-		Profile: profile,
+		Profile:  profile,
 		Playlist: *playlist,
 	}
 

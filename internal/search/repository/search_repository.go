@@ -85,10 +85,12 @@ func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64, use
         tracks.title, 
         tracks.duration, 
         tracks.index, 
-        tracks.audio,
+        tracks.audio, 
+		user_track.user_id, 
        	user_track_like.track_id FROM tracks 
             JOIN albums ON tracks.album_id = albums.id 
             JOIN artists ON albums.artist_id = artists.id 
+			LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $4 
 			LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $4 
 		WHERE tracks.title ILIKE '%' || $1 || '%' COLLATE "C" 
 		ORDER BY tracks.title, artists.name 
@@ -102,12 +104,15 @@ func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64, use
 	var tracks []*models.Track
 	for rows.Next() {
 		track := &models.Track{}
-		var isLiked sql.NullInt64
+		var userFavouriteId, isLiked sql.NullInt64
 		if err := rows.Scan(&track.ID, &track.AlbumID, &track.AlbumPoster, &track.ArtistID, &track.Artist, &track.Title,
-			&track.Duration, &track.Index, &track.Audio, &isLiked); err != nil {
+			&track.Duration, &track.Index, &track.Audio, &userFavouriteId, &isLiked); err != nil {
 			return nil, err
 		}
 
+		if userFavouriteId.Valid {
+			track.IsFavorite = true
+		}
 		if isLiked.Valid {
 			track.IsLiked = true
 		}

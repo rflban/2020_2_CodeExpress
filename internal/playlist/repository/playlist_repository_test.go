@@ -57,13 +57,13 @@ func TestPlaylistRepository_Update(t *testing.T) {
 	title := "Some title"
 	userID := uint64(0)
 	poster := "Some poster"
-	isPublic:= false
+	isPublic := false
 
 	playlist := &models.Playlist{
-		ID:     id,
-		Title:  title,
-		UserID: userID,
-		Poster: poster,
+		ID:       id,
+		Title:    title,
+		UserID:   userID,
+		Poster:   poster,
 		IsPublic: isPublic,
 	}
 
@@ -129,10 +129,10 @@ func TestPlaylistRepository_SelectByID(t *testing.T) {
 	isPublic := false
 
 	expectedPlaylist := &models.Playlist{
-		ID:     id,
-		Title:  title,
-		UserID: userID,
-		Poster: poster,
+		ID:       id,
+		Title:    title,
+		UserID:   userID,
+		Poster:   poster,
 		IsPublic: isPublic,
 	}
 
@@ -174,10 +174,10 @@ func TestPlaylistRepository_SelectByUserID(t *testing.T) {
 	isPublic := false
 
 	expectedPlaylist := &models.Playlist{
-		ID:     id,
-		Title:  title,
-		UserID: userID,
-		Poster: poster,
+		ID:       id,
+		Title:    title,
+		UserID:   userID,
+		Poster:   poster,
 		IsPublic: isPublic,
 	}
 
@@ -256,6 +256,51 @@ func TestPlaylistRepository_DeleteTrack(t *testing.T) {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestPlaylistRepository_SelectPublicByUserID(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewPlaylistRep(db)
+
+	id := uint64(0)
+	title := "Some title"
+	userID := uint64(0)
+	poster := "Some poster"
+	isPublic := false
+
+	expectedPlaylist := &models.Playlist{
+		ID:       id,
+		Title:    title,
+		UserID:   userID,
+		Poster:   poster,
+		IsPublic: isPublic,
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "user_id", "title", "poster", "is_public"})
+	rows.AddRow(id, userID, title, poster, isPublic)
+
+	mock.
+		ExpectQuery(`select`).
+		WithArgs(userID).
+		WillReturnRows(rows)
+
+	playlist, err := repo.SelectPublicByUserID(userID)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, playlist[0], expectedPlaylist)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

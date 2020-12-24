@@ -56,10 +56,10 @@ func TestUpdate(t *testing.T) {
 	avatar := ""
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "name", "email", "password", "avatar"}).AddRow(1, name, email, password, avatar)
@@ -96,10 +96,10 @@ func TestSelectById(t *testing.T) {
 	avatar := ""
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "name", "email", "password", "avatar"}).AddRow(1, name, email, password, avatar)
@@ -139,10 +139,10 @@ func TestSelectByLogin(t *testing.T) {
 	avatar := ""
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "name", "email", "password", "avatar"}).AddRow(1, name, email, password, avatar)
@@ -182,11 +182,11 @@ func TestSelectByNameOrEmail(t *testing.T) {
 	avatar := ""
 
 	expectedUser := &models.User{
-		ID:      id,
-		Name:   name,
-		Email: email,
-		Password:   password,
-		Avatar: avatar,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		Avatar:   avatar,
 	}
 
 	expectedUsers := []*models.User{expectedUser}
@@ -205,6 +205,42 @@ func TestSelectByNameOrEmail(t *testing.T) {
 	}
 
 	assert.Equal(t, users, expectedUsers)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSelectByName(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewUserRep(db)
+
+	expectedUser := &models.User{
+		ID:   1,
+		Name: "nick",
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "name", "avatar", "user_id"}).AddRow(expectedUser.ID, expectedUser.Name,
+		expectedUser.Avatar, nil)
+
+	mock.
+		ExpectQuery(`SELECT`).
+		WithArgs(expectedUser.Name, 0).
+		WillReturnRows(rows)
+
+	user, err := repo.SelectByName(expectedUser.Name, 0)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, user, expectedUser)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
@@ -232,6 +268,68 @@ func TestSelectIfAdmin(t *testing.T) {
 
 	_, err = repo.SelectIfAdmin(id)
 	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestInsertSubscription(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewUserRep(db)
+
+	userSubscriberId := uint64(1)
+	userId := uint64(2)
+	userName := "nick"
+
+	rows := sqlmock.NewRows([]string{"user_id"}).AddRow(userId)
+
+	mock.
+		ExpectQuery(`INSERT INTO user_subscriber`).
+		WithArgs(userSubscriberId, userName).
+		WillReturnRows(rows)
+
+	if err := repo.InsertSubscription(userSubscriberId, userName); err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestRemoveSubscription(t *testing.T) {
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewUserRep(db)
+
+	userSubscriberId := uint64(1)
+	userId := uint64(2)
+	userName := "nick"
+
+	rows := sqlmock.NewRows([]string{"user_id"}).AddRow(userId)
+
+	mock.
+		ExpectQuery(`DELETE FROM user_subscriber`).
+		WithArgs(userSubscriberId, userName).
+		WillReturnRows(rows)
+
+	if err := repo.RemoveSubscription(userSubscriberId, userName); err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}

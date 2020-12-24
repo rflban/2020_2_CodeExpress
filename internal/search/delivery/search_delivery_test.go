@@ -70,13 +70,13 @@ func TestSearchDelivery_HandlerSearch_Passed(t *testing.T) {
 
 	searchMockUsecase.
 		EXPECT().
-		Search(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit), 0).
+		Search(gomock.Eq(query), gomock.Eq(offset), gomock.Eq(limit), gomock.Eq(uint64(0))).
 		Return(expectedSearch, nil)
 
 	jsonExpectedSearch, err := json.Marshal(expectedSearch)
 	assert.Nil(t, err)
 
-	searchHandler := NewSearchHandler(searchMockUsecase)
+	searchHandler := NewSearchHandler(searchMockUsecase, nil, nil)
 	e := echo.New()
 	searchHandler.Configure(e)
 
@@ -107,7 +107,7 @@ func TestSearchDelivery_HandlerSearch_Failed(t *testing.T) {
 	query := "  "
 	var offset, limit uint64 = 0, 10
 
-	searchHandler := NewSearchHandler(searchMockUsecase)
+	searchHandler := NewSearchHandler(searchMockUsecase, nil, nil)
 	e := echo.New()
 	searchHandler.Configure(e)
 

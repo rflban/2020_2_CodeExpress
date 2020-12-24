@@ -124,6 +124,8 @@ func TestSelectRepository_SelectTracks(t *testing.T) {
 			Audio:       "",
 			Artist:      "Jean Elan",
 			ArtistID:    1,
+			IsFavorite:  true,
+			IsLiked:     true,
 		},
 		{
 			ID:          1,
@@ -135,14 +137,17 @@ func TestSelectRepository_SelectTracks(t *testing.T) {
 			Audio:       "",
 			Artist:      "Cosmo Klein",
 			ArtistID:    2,
+			IsFavorite:  true,
+			IsLiked:     true,
 		},
 	}
 
 	rows := sqlmock.NewRows([]string{"tracks.id", "tracks.album_id", "albums.poster", "albums.artist_id",
-		"artists.name", "tracks.title", "tracks.duration", "tracks.index", "tracks.audio"})
+		"artists.name", "tracks.title", "tracks.duration", "tracks.index", "tracks.audio", "user_track.user_id",
+		"user_track_like.track_id"})
 	for _, track := range expected {
 		rows.AddRow(track.ID, track.AlbumID, track.AlbumPoster, track.ArtistID, track.Artist, track.Title,
-			track.Duration, track.Index, track.Audio)
+			track.Duration, track.Index, track.Audio, 1, 1)
 	}
 
 	query := "tHiS"
@@ -150,10 +155,58 @@ func TestSelectRepository_SelectTracks(t *testing.T) {
 
 	mock.
 		ExpectQuery("SELECT").
-		WithArgs(query, limit, offset).
+		WithArgs(query, limit, offset, 0).
 		WillReturnRows(rows)
 
 	result, err := repository.SelectTracks(query, offset, limit, 0)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	assert.Equal(t, result, expected)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSelectRepository_SelectUsers(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	defer func() {
+		_ = db.Close()
+	}()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+
+	repository := NewSearchRep(db)
+
+	expected := []*models.User{
+		{
+			ID:   1,
+			Name: "nick1",
+		},
+		{
+			ID:   2,
+			Name: "nick2",
+		},
+	}
+
+	rows := sqlmock.NewRows([]string{"users.id", "users.name", "users.avatar"})
+	for _, artist := range expected {
+		rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+	}
+
+	query := "Ic"
+	var offset, limit uint64 = 0, 10
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(query, limit, offset).
+		WillReturnRows(rows)
+
+	result, err := repository.SelectUsers(query, offset, limit)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

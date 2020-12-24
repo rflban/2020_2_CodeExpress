@@ -158,10 +158,10 @@ func (ur *UserRep) InsertSubscription(userSubscriberId uint64, userName string) 
 }
 
 func (ur *UserRep) RemoveSubscription(userSubscriberId uint64, userName string) error {
-	_, err := ur.dbConn.Exec(`DELETE FROM user_subscriber
-		WHERE user_subscriber_id = $1 AND user_id = (SELECT users.id FROM users WHERE users.name = $2);`,
-		userSubscriberId, userName)
-	return err
+	var deletedUserId uint64
+	return ur.dbConn.QueryRow(`DELETE FROM user_subscriber
+		WHERE user_subscriber_id = $1 AND user_id = (SELECT users.id FROM users WHERE users.name = $2)
+		RETURNING user_id;`, userSubscriberId, userName).Scan(&deletedUserId)
 }
 
 func (ur *UserRep) SelectSubscriptions(id, authUserId uint64) (*models.Subscriptions, error) {
