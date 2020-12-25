@@ -2,13 +2,14 @@ package usecase
 
 import (
 	"context"
+	"testing"
+
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/models"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/grpc_track"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/mock_track"
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
-	"testing"
 )
 
 func TestTrackUsecase_CreateTrack(t *testing.T) {

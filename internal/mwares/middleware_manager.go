@@ -2,11 +2,12 @@ package mwares
 
 import (
 	"errors"
-	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/tools/csrf"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/mwares/monitoring"
 
@@ -43,7 +44,7 @@ func (mm *MiddlewareManager) PanicRecovering(next echo.HandlerFunc) echo.Handler
 				logrus.Warn(err)
 			}
 		}()
-
+		//nolint:errcheck
 		defer func() error {
 			if err := recover(); err != nil {
 				status := strconv.Itoa(ctx.Response().Status)
@@ -70,8 +71,6 @@ func (mm *MiddlewareManager) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 		start := time.Now()
 		err := next(ctx)
 		end := time.Now()
-
-		logrus.Info("Status: ", ctx.Response().Status, " Work time: ", end.Sub(start))
 
 		workTime := end.Sub(start)
 

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -56,7 +58,12 @@ func (c *Config) GetAdminMicroserviceConnString() string {
 
 func LoadConfig(configFileName string) (*Config, error) {
 	file, err := os.Open(configFileName)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			logrus.Info(err)
+		}
+	}()
 
 	if err != nil {
 		return nil, err

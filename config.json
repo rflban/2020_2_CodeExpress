@@ -1,25 +1,26 @@
 {
-    "database": {
-      "user": "meuser",
-      "name": "musicexpress",
-      "password": "9680nM", 
-      "host": "localhost",
-      "port": 5432
-    },
-    "server": {
-      "host": "127.0.0.1",
-      "port": 8080
-    },
-    "session_microservice": {
-      "host": "127.0.0.1",
-      "port": 8081
-    },
-    "track_microservice": {
-      "host": "127.0.0.1",
-      "port": 8082
-    },
-    "admin_microservice": {
-      "host": "127.0.0.1",
-      "port": 8083
-    }
+  "database": {
+    "user": "postgres",
+    "name": "musicexpress",
+    "password": "postgres", 
+    "host": "db",
+    "port": 5432
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8085
+  },
+  "session_microservice": {
+    "host": "session_service",
+    "port": 8086
+  },
+  "track_microservice": {
+    "host": "track_service",
+    "port": 8087
+  },
+  "admin_microservice": {
+    "host": "127.0.0.1",
+    "port": 8088
+  }
 }
+

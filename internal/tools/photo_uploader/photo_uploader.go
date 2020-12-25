@@ -3,12 +3,13 @@ package photo_uploader
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
 	"os"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/labstack/echo/v4"
 )
@@ -40,18 +41,14 @@ func (pu *PhotoUploader) UploadPhoto(ctx echo.Context, formValue string, dirPath
 	switch imageType {
 	case "image/jpg":
 		fileExtension = "jpg"
-		break
 	case "image/jpeg":
 		fileExtension = "jpeg"
-		break
 	case "image/png":
 		fileExtension = "png"
-		break
 	case "image/webp":
 		fileExtension = "webp"
-		break
 	default:
-		return "", errors.New(fmt.Sprintf("Тип картинки %s не поддерживается", imageType))
+		return "", fmt.Errorf("Тип картинки %s не поддерживается", imageType)
 	}
 
 	hash := md5.Sum([]byte(formFile.Filename))
@@ -62,7 +59,10 @@ func (pu *PhotoUploader) UploadPhoto(ctx echo.Context, formValue string, dirPath
 		return "", err
 	}
 	defer func() {
-		_ = destination.Close()
+		err := destination.Close()
+		if err != nil {
+			logrus.Info(err)
+		}
 	}()
 
 	if _, err = destination.Write(tempBuffer); err != nil {
