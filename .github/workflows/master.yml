@@ -65,4 +65,4 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
            sudo docker rm -f $(sudo docker ps -aq)
-           cd 2020_2_CodeExpress/ && docker-compose up -d --build --force-recreate
+           cd 2020_2_CodeExpress/ && docker-compose up -d --force-recreate
