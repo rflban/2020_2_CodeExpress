@@ -1,34 +1,36 @@
 DROP TABLE IF EXISTS artists, users, albums, tracks, genres, track_genre, user_track, playlists, track_playlist,
     user_track_like, session CASCADE;
 
-CREATE TABLE artists (
-    id serial NOT NULL PRIMARY KEY,
-    name varchar(100) NOT NULL UNIQUE,
-    description text NOT NULL DEFAULT '',
-    poster varchar(100) NOT NULL DEFAULT '',
-    avatar varchar(100) NOT NULL DEFAULT ''
-);
+CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE users (
     id serial NOT NULL PRIMARY KEY,
-    name varchar(64) NOT NULL UNIQUE CHECK (length(name) > 2),
+    name citext NOT NULL UNIQUE CHECK (length(name) > 2),
     email varchar(64) NOT NULL UNIQUE,
     password varchar(64) NOT NULL,
     avatar varchar(255) NOT NULL DEFAULT '',
     is_admin bool NOT NULL DEFAULT false
 );
 
+CREATE TABLE artists (
+    id serial NOT NULL PRIMARY KEY,
+    name citext NOT NULL UNIQUE,
+    description text NOT NULL DEFAULT '',
+    poster varchar(100) NOT NULL DEFAULT '',
+    avatar varchar(100) NOT NULL DEFAULT ''
+);
+
 CREATE TABLE albums (
     id serial NOT NULL PRIMARY KEY,
     artist_id int NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
-    title varchar(100) NOT NULL,
+    title citext NOT NULL,
     poster varchar(100) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE tracks (
     id serial NOT NULL PRIMARY KEY,
     album_id int NOT NULL REFERENCES albums(id) ON DELETE CASCADE,
-    title varchar(100) NOT NULL,
+    title citext NOT NULL,
     duration int NOT NULL DEFAULT 0,
     index int NOT NULL DEFAULT 0,
     audio varchar(100) NOT NULL DEFAULT '',
