@@ -9,6 +9,7 @@ type TrackUsecase interface {
 	CreateTrack(track *models.Track, userId uint64) *ErrorResponse
 	DeleteTrack(id uint64) *ErrorResponse
 	GetByArtistId(artistId, userId uint64) ([]*models.Track, *ErrorResponse)
+	GetRandomByArtistId(artistId, userId, count uint64) ([]*models.Track, *ErrorResponse)
 	GetByAlbumID(albumId, userId uint64) ([]*models.Track, *ErrorResponse)
 	GetByID(id, userId uint64) (*models.Track, *ErrorResponse)
 	GetByParams(count uint64, from uint64, userId uint64) ([]*models.Track, *ErrorResponse)

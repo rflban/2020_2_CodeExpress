@@ -165,3 +165,44 @@ func (ar *AlbumRep) SelectByParam(count uint64, from uint64) ([]*models.Album, e
 
 	return albums, nil
 }
+
+func (ar *AlbumRep) SelectTopByParam(count uint64, from uint64) ([]*models.Album, error) {
+	query := `select 
+	al.id, 
+	al.artist_id, 
+	al.title, 
+	al.poster, 
+	a.name 
+	from tracks 
+		join albums al on tracks.album_id = al.id 
+		join artists a on al.artist_id = a.id 
+	group by al.id, al.artist_id, al.title, al.poster, a.name
+	order by sum(tracks.likes_count) desc, al.title, a.name
+	limit $1 offset $2`
+
+	albums := []*models.Album{}
+
+	rows, err := ar.dbConn.Query(query, count, from)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		album := &models.Album{}
+		err := rows.
+			Scan(&album.ID,
+				&album.ArtistID,
+				&album.Title,
+				&album.Poster,
+				&album.ArtistName)
+
+		if err != nil {
+			return nil, err
+		}
+
+		albums = append(albums, album)
+	}
+
+	return albums, nil
+}

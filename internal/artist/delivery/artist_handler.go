@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/artist"
 	. "github.com/go-park-mail-ru/2020_2_CodeExpress/internal/consts"
@@ -35,6 +36,7 @@ func (ah *ArtistHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.PUT("/api/v1/artists/:id", ah.HandlerUpdateArtist(), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
 	e.DELETE("/api/v1/artists/:id", ah.HandlerDeleteArtist(), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
 	e.POST("/api/v1/artists/:id/photo", ah.HandlerUploadArtistPhoto(), middleware.BodyLimit("10M"), mm.CheckCSRF, mm.CheckAuth, mm.CheckAdmin)
+	e.GET("/api/v1/artist/day", ah.HandlerArtistOfTheDay())
 }
 
 func (ah *ArtistHandler) HandlerArtistByID() echo.HandlerFunc {
@@ -250,6 +252,29 @@ func (ah *ArtistHandler) HandlerUploadArtistPhoto() echo.HandlerFunc {
 			}
 		} else {
 			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(artist)
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
+}
+
+func (ah *ArtistHandler) HandlerArtistOfTheDay() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		id := time.Now().Weekday()
+
+		artist, errResp := ah.artistUsecase.GetByID(uint64(id))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
 		}
 
 		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)

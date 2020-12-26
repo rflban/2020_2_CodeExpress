@@ -386,3 +386,49 @@ func (ar *TrackRep) DislikeTrack(userId, trackId uint64) error {
 	}
 	return nil
 }
+
+func (ar *TrackRep) SelectRandomByArtistId(artistId, userId, count uint64) ([]*models.Track, error) {
+	rows, err := ar.dbConn.Query(`SELECT 
+	tracks.id, 
+	tracks.album_id, 
+	tracks.title, 
+	tracks.duration, 
+	tracks.index, 
+	tracks.audio, 
+	albums.poster, 
+	artists.id, 
+	artists.name, 
+	user_track.user_id, 
+	user_track_like.track_id FROM tracks 
+		JOIN albums ON tracks.album_id = albums.id 
+		JOIN artists ON albums.artist_id = artists.id 
+		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $2 
+		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2 
+	WHERE artists.id = $1 
+	ORDER BY random() 
+	LIMIT $3`, artistId, userId, count)
+	if err != nil {
+		return nil, err
+	}
+
+	tracks := []*models.Track{}
+	for rows.Next() {
+		track := &models.Track{}
+		var userFavouriteId, isLiked sql.NullInt64
+		if err := rows.Scan(&track.ID, &track.AlbumID, &track.Title, &track.Duration, &track.Index, &track.Audio,
+			&track.AlbumPoster, &track.ArtistID, &track.Artist, &userFavouriteId, &isLiked); err != nil {
+			return nil, err
+		}
+
+		if userFavouriteId.Valid {
+			track.IsFavorite = true
+		}
+		if isLiked.Valid {
+			track.IsLiked = true
+		}
+
+		tracks = append(tracks, track)
+	}
+
+	return tracks, nil
+}

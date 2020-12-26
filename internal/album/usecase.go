@@ -11,6 +11,7 @@ type AlbumUsecase interface {
 	GetByID(id uint64) (*models.Album, *ErrorResponse)
 	GetByArtistID(artistID uint64) ([]*models.Album, *ErrorResponse)
 	GetByParams(count uint64, from uint64) ([]*models.Album, *ErrorResponse)
+	GetTopByParams(count uint64, from uint64) ([]*models.Album, *ErrorResponse)
 	UpdateAlbum(album *models.Album) *ErrorResponse
 	UpdateAlbumPoster(album *models.Album) *ErrorResponse
 }
