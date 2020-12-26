@@ -341,7 +341,7 @@ func (ar *TrackRep) SelectByPlaylistID(playlistID, userId uint64) ([]*models.Tra
 		JOIN tracks ON track_playlist.track_id = tracks.id 
 		JOIN albums ON tracks.album_id = albums.id 
 		JOIN artists ON albums.artist_id = artists.id 
-		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $3 
+		LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $2 
 		LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $2
 	WHERE track_playlist.playlist_id = $1
 	ORDER BY artists.name, tracks.title`, playlistID, userId)

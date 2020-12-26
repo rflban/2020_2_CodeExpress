@@ -47,6 +47,8 @@ func (pu *PhotoUploader) UploadPhoto(ctx echo.Context, formValue string, dirPath
 		fileExtension = "png"
 	case "image/webp":
 		fileExtension = "webp"
+	case "audio/mpeg":
+		fileExtension = "mp3"
 	default:
 		return "", fmt.Errorf("Тип картинки %s не поддерживается", imageType)
 	}
