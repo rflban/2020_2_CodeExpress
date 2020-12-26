@@ -465,22 +465,9 @@ func TestTrackUsecase_LikeTrack(t *testing.T) {
 		AlbumID: 1,
 	}
 
-	argTrack := models.Track{
-		Title:   "title",
-		AlbumID: 1,
-	}
-
 	userID := uint64(1)
 
 	nothing := new(proto_track.Nothing)
-
-	mockClient.
-		EXPECT().
-		GetByID(context.Background(), &proto_track.GetByIdMessage{
-			TrackId: track.ID,
-			UserId:  userID,
-		}).
-		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
 	mockClient.
 		EXPECT().
@@ -507,22 +494,9 @@ func TestTrackUsecase_DislikeTrack(t *testing.T) {
 		AlbumID: 1,
 	}
 
-	argTrack := models.Track{
-		Title:   "title",
-		AlbumID: 1,
-	}
-
 	userID := uint64(1)
 
 	nothing := new(proto_track.Nothing)
-
-	mockClient.
-		EXPECT().
-		GetByID(context.Background(), &proto_track.GetByIdMessage{
-			TrackId: track.ID,
-			UserId:  userID,
-		}).
-		Return(grpc_track.TrackToTrackGRPC(&argTrack), nil)
 
 	mockClient.
 		EXPECT().

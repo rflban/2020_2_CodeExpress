@@ -98,7 +98,7 @@ CREATE TRIGGER emp_stamp BEFORE INSERT
 
 CREATE OR REPLACE FUNCTION track_like() RETURNS TRIGGER LANGUAGE plpgsql AS $track_like$
     BEGIN
-    UPDATE tracks SET likes_count = likes_count + 1 WHERE track_id = new.track_id;
+    UPDATE tracks SET likes_count = likes_count + 1 WHERE tracks.id = new.track_id;
     RETURN new;
     END;
 $track_like$;
@@ -110,7 +110,7 @@ CREATE TRIGGER track_like AFTER INSERT
 
 CREATE OR REPLACE FUNCTION track_dislike() RETURNS TRIGGER LANGUAGE plpgsql AS $track_dislike$
     BEGIN
-    UPDATE tracks SET likes_count = likes_count - 1 WHERE track_id = old.track_id;
+    UPDATE tracks SET likes_count = likes_count - 1 WHERE tracks.id = old.track_id;
     RETURN old;
     END;
 $track_dislike$;

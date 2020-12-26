@@ -310,15 +310,7 @@ func (aUc *TrackUsecase) GetByPlaylistID(playlistId, userId uint64) ([]*models.T
 }
 
 func (aUc *TrackUsecase) LikeTrack(userId uint64, trackId uint64) *ErrorResponse {
-	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
-		TrackId: trackId,
-		UserId:  userId,
-	})
-	if err == sql.ErrNoRows {
-		return NewErrorResponse(ErrTrackNotExist, err)
-	}
-
-	_, err = aUc.trackGRPC.LikeTrack(context.Background(), &proto_track.Likes{
+	_, err := aUc.trackGRPC.LikeTrack(context.Background(), &proto_track.Likes{
 		UserId:  userId,
 		TrackId: trackId,
 	})
@@ -330,15 +322,7 @@ func (aUc *TrackUsecase) LikeTrack(userId uint64, trackId uint64) *ErrorResponse
 }
 
 func (aUc *TrackUsecase) DislikeTrack(userId uint64, trackId uint64) *ErrorResponse {
-	_, err := aUc.trackGRPC.GetByID(context.Background(), &proto_track.GetByIdMessage{
-		TrackId: trackId,
-		UserId:  userId,
-	})
-	if err == sql.ErrNoRows {
-		return NewErrorResponse(ErrTrackNotExist, err)
-	}
-
-	_, err = aUc.trackGRPC.DislikeTrack(context.Background(), &proto_track.Likes{
+	_, err := aUc.trackGRPC.DislikeTrack(context.Background(), &proto_track.Likes{
 		UserId:  userId,
 		TrackId: trackId,
 	})
