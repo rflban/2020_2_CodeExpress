@@ -44,7 +44,7 @@ func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/tracks/top", ah.HandlerTopTracksByParams())
 	e.PUT("/api/v1/tracks/:id", ah.HandlerUpdateTrack(), mm.CheckCSRF)
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
-	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("10M"), mm.CheckCSRF)
+	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("30M"), mm.CheckCSRF)
 	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
 	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser(), mm.CheckAuth)
 	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
