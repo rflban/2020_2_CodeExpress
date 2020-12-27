@@ -24,7 +24,7 @@ func (sr *SearchRep) SelectAlbums(query string, offset uint64, limit uint64) ([]
        	artists.name, 
        	albums.poster FROM albums 
        	    JOIN artists ON albums.artist_id = artists.id 
-		WHERE albums.title ILIKE '%' || $1 || '%' COLLATE "C" 
+		WHERE albums.title LIKE '%' || $1 || '%' 
 		ORDER BY albums.title, artists.name 
 		LIMIT $2 
 		OFFSET $3;`,
@@ -53,7 +53,7 @@ func (sr *SearchRep) SelectArtists(query string, offset uint64, limit uint64) ([
       	artists.description, 
        	artists.poster, 
        	artists.avatar FROM artists 
-		WHERE artists.name ILIKE '%' || $1 || '%' COLLATE "C" 
+		WHERE artists.name LIKE '%' || $1 || '%' 
 		ORDER BY artists.name 
 		LIMIT $2 
 		OFFSET $3;`,
@@ -92,7 +92,7 @@ func (sr *SearchRep) SelectTracks(query string, offset uint64, limit uint64, use
             JOIN artists ON albums.artist_id = artists.id 
 			LEFT JOIN user_track ON tracks.id = user_track.track_id AND user_track.user_id = $4 
 			LEFT JOIN user_track_like ON tracks.id = user_track_like.track_id AND user_track_like.user_id = $4 
-		WHERE tracks.title ILIKE '%' || $1 || '%' COLLATE "C" 
+		WHERE tracks.title LIKE '%' || $1 || '%' 
 		ORDER BY tracks.title, artists.name 
 		LIMIT $2 
 		OFFSET $3;`,
@@ -128,7 +128,7 @@ func (sr *SearchRep) SelectUsers(query string, offset uint64, limit uint64) ([]*
        	users.id,
        	users.name,
        	users.avatar FROM users
-        WHERE users.name ILIKE '%' || $1 || '%' COLLATE "C" 
+        WHERE users.name LIKE '%' || $1 || '%' 
 		ORDER BY users.name 
 		LIMIT $2 
 		OFFSET $3;`,
