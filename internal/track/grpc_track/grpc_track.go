@@ -242,3 +242,19 @@ func (tGu *TrackGRPCUsecase) DislikeTrack(ctx context.Context, mes *proto_track.
 
 	return nothing, nil
 }
+
+func (tGu *TrackGRPCUsecase) GetRandomByArtistID(ctx context.Context, mes *proto_track.RandomArtist) (*proto_track.Tracks, error) {
+	tracks, err := tGu.trackRep.SelectRandomByArtistId(mes.ArtistId, mes.UserId, mes.Count)
+
+	if err != nil {
+		return new(proto_track.Tracks), err
+	}
+
+	grpcTracks := &proto_track.Tracks{}
+
+	for _, track := range tracks {
+		grpcTracks.Tracks = append(grpcTracks.Tracks, TrackToTrackGRPC(track))
+	}
+
+	return grpcTracks, nil
+}

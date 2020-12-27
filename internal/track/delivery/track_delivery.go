@@ -46,6 +46,7 @@ func (ah *TrackHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.DELETE("/api/v1/tracks/:id", ah.HandlerDeleteTrack(), mm.CheckCSRF)
 	e.POST("/api/v1/tracks/:id/audio", ah.HandlerUploadTrackAudio(), middleware.BodyLimit("30M"), mm.CheckCSRF)
 	e.GET("/api/v1/artists/:id/tracks", ah.HandlerTracksByArtistID())
+	e.GET("/api/v1/artists/:id/tracks/random", ah.HandlerTracksRandomByArtistID())
 	e.GET("/api/v1/favorite/tracks", ah.HandlerFavouritesByUser(), mm.CheckAuth)
 	e.POST("/api/v1/favorite/track/:id", ah.HandlerAddToUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
 	e.DELETE("/api/v1/favorite/track/:id", ah.HandlerDeleteFromUsersFavourites(), mm.CheckAuth, mm.CheckCSRF)
@@ -431,4 +432,43 @@ func (ah *TrackHandler) tryGetUser(ctx echo.Context) *models.User {
 	}
 
 	return user
+}
+
+func (ah *TrackHandler) HandlerTracksRandomByArtistID() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		id, err := strconv.Atoi(ctx.Param("id"))
+
+		if err != nil {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		params := ctx.QueryParams()
+
+		count, err := strconv.Atoi(params.Get("count"))
+
+		if err != nil || count < 0 {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		var userId uint64
+		if user := ah.tryGetUser(ctx); user != nil {
+			userId = user.ID
+		}
+
+		tracks, errResp := ah.trackUsecase.GetRandomByArtistId(uint64(id), userId, uint64(count))
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(models.Tracks(tracks))
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
 }

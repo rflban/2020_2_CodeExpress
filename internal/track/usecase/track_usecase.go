@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/grpc_track"
-
 	"golang.org/x/net/context"
 
 	"github.com/go-park-mail-ru/2020_2_CodeExpress/internal/track/proto_track"
@@ -331,4 +330,27 @@ func (aUc *TrackUsecase) DislikeTrack(userId uint64, trackId uint64) *ErrorRespo
 	}
 
 	return nil
+}
+
+func (aUc *TrackUsecase) GetRandomByArtistId(artistId, userId uint64, count uint64) ([]*models.Track, *ErrorResponse) {
+	grpcTracks, err := aUc.trackGRPC.GetRandomByArtistID(context.Background(), &proto_track.RandomArtist{
+		ArtistId: artistId,
+		UserId:   userId,
+		Count:    count,
+	})
+
+	if err == sql.ErrNoRows {
+		return nil, NewErrorResponse(ErrArtistNotExist, err)
+	}
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	tracks := make([]*models.Track, len(grpcTracks.Tracks))
+
+	for idx, track := range grpcTracks.Tracks {
+		tracks[idx] = grpc_track.TrackGRPCToTrack(track)
+	}
+
+	return tracks[:count], nil
 }

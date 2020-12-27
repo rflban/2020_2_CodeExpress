@@ -46,6 +46,7 @@ func NewAlbumHandler(albumUsecase album.AlbumUsecase, artistUsecase artist.Artis
 func (ah *AlbumHandler) Configure(e *echo.Echo, mm *mwares.MiddlewareManager) {
 	e.GET("/api/v1/artists/:id/albums", ah.HandlerAlbumsByArtist())
 	e.GET("/api/v1/albums", ah.HandlerAlbumsByParams())
+	e.GET("/api/v1/albums/top", ah.HandlerTopAlbumsByParams())
 	e.GET("/api/v1/albums/:id", ah.HandlerAlbumTracks())
 	e.POST("api/v1/albums", ah.HandlerCreateAlbum(), mm.CheckCSRF)
 	e.PUT("/api/v1/albums/:id", ah.HandlerUpdateAlbum(), mm.CheckCSRF)
@@ -334,4 +335,36 @@ func (ah *AlbumHandler) tryGetUser(ctx echo.Context) *models.User {
 	}
 
 	return user
+}
+
+func (ah *AlbumHandler) HandlerTopAlbumsByParams() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		params := ctx.QueryParams()
+		count, err := strconv.Atoi(params.Get("count"))
+		if err != nil || count < 0 {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		from, err := strconv.Atoi(params.Get("from"))
+		if err != nil || from < 0 {
+			return RespondWithError(NewErrorResponse(ErrBadRequest, err), ctx)
+		}
+
+		albums, errResp := ah.albumUsecase.GetTopByParams(uint64(count), uint64(from))
+
+		if errResp != nil {
+			return RespondWithError(errResp, ctx)
+		}
+
+		ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		ctx.Response().WriteHeader(http.StatusOK)
+
+		resp, e := json.Marshal(models.Albums(albums))
+		if e != nil {
+			return RespondWithError(NewErrorResponse(ErrInternal, e), ctx)
+		}
+
+		_, e = ctx.Response().Write(resp)
+		return e
+	}
 }

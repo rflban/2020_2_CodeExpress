@@ -18,4 +18,5 @@ type TrackRep interface {
 	SelectByPlaylistID(playlistID, userId uint64) ([]*models.Track, error)
 	LikeTrack(userId, trackId uint64) error
 	DislikeTrack(userId, trackId uint64) error
+	SelectRandomByArtistId(artistId, userId, count uint64) ([]*models.Track, error)
 }

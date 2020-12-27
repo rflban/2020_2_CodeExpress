@@ -83,6 +83,12 @@ message Tracks {
     repeated Track Tracks = 1;
 }
 
+message RandomArtist {
+    uint64 ArtistId = 1;
+    uint64 UserId = 2;
+    uint64 Count = 3;
+}
+
 service TrackService {
 	rpc CreateTrack(Track) returns (Track);
 	rpc DeleteTrack(TrackID) returns (Nothing);
@@ -99,4 +105,5 @@ service TrackService {
 	rpc GetByPlaylistID(GetByPlaylistIdMessage) returns (Tracks);
   rpc LikeTrack(Likes) returns (Nothing);
   rpc DislikeTrack(Likes) returns (Nothing);
+  rpc GetRandomByArtistID(RandomArtist) returns (Tracks);
 }

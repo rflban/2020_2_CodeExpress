@@ -255,6 +255,26 @@ func (mr *MockTrackServiceClientMockRecorder) GetFavoritesByUserID(arg0, arg1 in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesByUserID", reflect.TypeOf((*MockTrackServiceClient)(nil).GetFavoritesByUserID), varargs...)
 }
 
+// GetRandomByArtistID mocks base method
+func (m *MockTrackServiceClient) GetRandomByArtistID(arg0 context.Context, arg1 *proto_track.RandomArtist, arg2 ...grpc.CallOption) (*proto_track.Tracks, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetRandomByArtistID", varargs...)
+	ret0, _ := ret[0].(*proto_track.Tracks)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRandomByArtistID indicates an expected call of GetRandomByArtistID
+func (mr *MockTrackServiceClientMockRecorder) GetRandomByArtistID(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandomByArtistID", reflect.TypeOf((*MockTrackServiceClient)(nil).GetRandomByArtistID), varargs...)
+}
+
 // GetTopByParams mocks base method
 func (m *MockTrackServiceClient) GetTopByParams(arg0 context.Context, arg1 *proto_track.GetTopByParamsMessage, arg2 ...grpc.CallOption) (*proto_track.Tracks, error) {
 	m.ctrl.T.Helper()

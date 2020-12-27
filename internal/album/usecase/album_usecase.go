@@ -110,3 +110,17 @@ func (aUc *AlbumUsecase) GetByParams(count uint64, from uint64) ([]*models.Album
 
 	return albums, nil
 }
+
+func (aUc *AlbumUsecase) GetTopByParams(count uint64, from uint64) ([]*models.Album, *ErrorResponse) {
+	albums, err := aUc.albumRep.SelectTopByParam(count, from)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, NewErrorResponse(ErrInternal, err)
+	}
+
+	return albums, nil
+}
