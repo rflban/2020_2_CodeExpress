@@ -12,8 +12,8 @@ before_install:
   - cp .netrc ~/.netrc
   - chmod 600 ~/.netrc
 
-#install:
-#  - go get 
+install:
+  - go get -d go.mod
 
 
 before_script:
