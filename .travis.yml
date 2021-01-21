@@ -16,12 +16,12 @@ install:
   - go get github.com/DATA-DOG/go-sqlmock
 	- go get github.com/beorn7/perks
 	- go get github.com/gabriel-vasile/mimetype
-	- go get github.com/go-playground/assert/v2
-	- go get github.com/go-playground/validator/v10
+	- go get github.com/go-playground/assert
+	- go get github.com/go-playground/validator
 	- go get github.com/golang/mock
 	- go get github.com/golang/protobuf
 	- go get github.com/jinzhu/copier
-	- go get github.com/labstack/echo/v4
+	- go get github.com/labstack/echo
 	- go get github.com/lib/pq
 	- go get github.com/lu4p/cat
 	- go get github.com/mailru/easyjson
