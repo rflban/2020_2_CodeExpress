@@ -13,35 +13,35 @@ before_install:
   - chmod 600 ~/.netrc
 
 install:
-  - github.com/DATA-DOG/go-sqlmock
-	- github.com/beorn7/perks
-	- github.com/gabriel-vasile/mimetype
-	- github.com/go-playground/assert/v2
-	- github.com/go-playground/validator/v10
-	- github.com/golang/mock
-	- github.com/golang/protobuf
-	- github.com/jinzhu/copier
-	- github.com/labstack/echo/v4
-	- github.com/lib/pq
-	- github.com/lu4p/cat
-	- github.com/mailru/easyjson
-	- github.com/matttproud/golang_protobuf_extensions
-	- github.com/niemeyer/pretty
-	- github.com/prometheus/client_golang
-	- github.com/prometheus/common
-	- github.com/prometheus/procfs
-	- github.com/satori/go.uuid
-	- github.com/sirupsen/logrus
-	- github.com/stretchr/testify
-	- github.com/tcolgate/mp3
-	- golang.org/x/net
-	- golang.org/x/sys 
-	- golang.org/x/text
-	- golang.org/x/xerrors 
-	- google.golang.org/genproto
-	- google.golang.org/grpc
-	- google.golang.org/protobuf
-	- gopkg.in/check.v1
+  - go get github.com/DATA-DOG/go-sqlmock
+	- go get github.com/beorn7/perks
+	- go get github.com/gabriel-vasile/mimetype
+	- go get github.com/go-playground/assert/v2
+	- go get github.com/go-playground/validator/v10
+	- go get github.com/golang/mock
+	- go get github.com/golang/protobuf
+	- go get github.com/jinzhu/copier
+	- go get github.com/labstack/echo/v4
+	- go get github.com/lib/pq
+	- go get github.com/lu4p/cat
+	- go get github.com/mailru/easyjson
+	- go get github.com/matttproud/golang_protobuf_extensions
+	- go get github.com/niemeyer/pretty
+	- go get github.com/prometheus/client_golang
+	- go get github.com/prometheus/common
+	- go get github.com/prometheus/procfs
+	- go get github.com/satori/go.uuid
+	- go get github.com/sirupsen/logrus
+	- go get github.com/stretchr/testify
+	- go get github.com/tcolgate/mp3
+	- go get golang.org/x/net
+	- go get golang.org/x/sys 
+	- go get golang.org/x/text
+	- go get golang.org/x/xerrors 
+	- go get google.golang.org/genproto
+	- go get google.golang.org/grpc
+	- go get google.golang.org/protobuf
+	- go get gopkg.in/check.v1
 
 
 before_script:
