@@ -12,38 +12,6 @@ before_install:
   - cp .netrc ~/.netrc
   - chmod 600 ~/.netrc
 
-install:
-  - go get github.com/DATA-DOG/go-sqlmock
-	- go get github.com/beorn7/perks
-	- go get github.com/gabriel-vasile/mimetype
-	- go get github.com/go-playground/assert
-	- go get github.com/go-playground/validator
-	- go get github.com/golang/mock
-	- go get github.com/golang/protobuf
-	- go get github.com/jinzhu/copier
-	- go get github.com/labstack/echo
-	- go get github.com/lib/pq
-	- go get github.com/lu4p/cat
-	- go get github.com/mailru/easyjson
-	- go get github.com/matttproud/golang_protobuf_extensions
-	- go get github.com/niemeyer/pretty
-	- go get github.com/prometheus/client_golang
-	- go get github.com/prometheus/common
-	- go get github.com/prometheus/procfs
-	- go get github.com/satori/go.uuid
-	- go get github.com/sirupsen/logrus
-	- go get github.com/stretchr/testify
-	- go get github.com/tcolgate/mp3
-	- go get golang.org/x/net
-	- go get golang.org/x/sys 
-	- go get golang.org/x/text
-	- go get golang.org/x/xerrors 
-	- go get google.golang.org/genproto
-	- go get google.golang.org/grpc
-	- go get google.golang.org/protobuf
-	- go get gopkg.in/check.v1
-
-
 before_script:
   - psql -c "SELECT version();"
   - psql -c "CREATE DATABASE musicexpress" -U postgres
@@ -59,7 +27,3 @@ script:
   - make tests
 
   - psql -c "DROP DATABASE musicexpress"
-
-
-
-
