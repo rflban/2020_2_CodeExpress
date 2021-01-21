@@ -49,6 +49,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	_ "github.com/lib/pq"
+
+    "github.com/hiko1129/echo-pprof"
 )
 
 const (
@@ -146,6 +148,8 @@ func main() {
 	albumHandler.Configure(e, mm)
 	playlistHandler.Configure(e, mm)
 	searchHandler.Configure(e)
+
+    echopprof.Wrap(e)
 
 	e.Logger.Fatal(e.Start(conf.GetServerConnString()))
 }

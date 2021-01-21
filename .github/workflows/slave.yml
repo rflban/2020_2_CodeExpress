@@ -6,6 +6,15 @@ on:
 
 jobs:
   test:
+    services:
+        postgres:
+            image: postgres
+        env:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: musicexpress
+        ports:
+            5432:5432
     name: Tests
     runs-on: ubuntu-latest
     steps:
@@ -16,7 +25,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Test project
-        run: make tests
+        run: |
+            psql -U postgres -d musicexpress -f postgres/initDB.sql -h $POSTGRES_HOST
+            make tests
+    env:
+        POSTGRES_HOST: postgres
+        POSTGRES_PORT: ${{ job.services.ports[5432] }}
+        PGPASSWORD: postgres
   lint:
     name: Lint
     runs-on: ubuntu-latest
