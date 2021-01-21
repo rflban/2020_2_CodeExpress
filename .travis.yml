@@ -15,21 +15,16 @@ before_install:
   - cp .netrc ~/.netrc
   - chmod 600 ~/.netrc
 
-#install:
-#  - go get -d -v
-
 before_script:
+  # --------------------- Create test database ------------------
   - psql -c "SELECT version();"
   - psql -c "CREATE DATABASE musicexpress" -U postgres
   - psql -d musicexpress -f ./postgres/initDB.sql
   - psql -d musicexpress -c "SELECT * FROM artists"
 
 script:
-  # run tests
-  #- go run app/track_microservice/main.go config.json
-  #- go run app/session_microservice/main.go config.json
-  #- go run app/main/main.go config.json
-  
+  # ---------------------- run tests -----------------------------
   - env GO111MODULE=on make tests
+
 
   - psql -c "DROP DATABASE musicexpress"
