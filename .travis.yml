@@ -17,8 +17,7 @@ before_script:
   - psql -d musicexpress -f ./postgres/initDB.sql
 
 script:
-  - psql -c "SELECT * FROM artists" 
-
+  - psql -d musicexpress -c "SELECT * FROM artists"
   - psql -c "DROP DATABASE musicexpress"
 
 #after_success:
