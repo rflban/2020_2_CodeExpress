@@ -8,9 +8,6 @@ env:
     - PGUSER=postgres
     - PGPORT=5432
 
-#before_install:
-#  - sudo apt-get update
-
 before_script:
   - psql -c "SELECT version();"
   - psql -c "CREATE DATABASE musicexpress" -U postgres
@@ -18,9 +15,11 @@ before_script:
 
 script:
   - psql -d musicexpress -c "SELECT * FROM artists"
+
+  - make tests
+  
   - psql -c "DROP DATABASE musicexpress"
 
-#after_success:
 
 
 
