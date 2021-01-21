@@ -9,8 +9,8 @@ env:
     - PGPORT=5432
 
 before_install:
-- cp .netrc ~/.netrc
-- chmod 600 ~/.netrc
+  - cp .netrc ~/.netrc
+  - chmod 600 ~/.netrc
 
 before_script:
   - psql -c "SELECT version();"
