@@ -20,6 +20,7 @@ before_script:
 
 script:
   # run tests
+  - make build
   - make tests
   
   - psql -c "DROP DATABASE musicexpress"
