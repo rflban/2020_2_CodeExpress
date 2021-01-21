@@ -1,3 +1,5 @@
 language: go
 
-make
+test:
+  make
+  
