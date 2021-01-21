@@ -8,14 +8,18 @@ env:
     - PGUSER=postgres
     - PGPORT=5432
 
+before_install:
+- cp .netrc ~/.netrc
+- chmod 600 ~/.netrc
+
 before_script:
   - psql -c "SELECT version();"
   - psql -c "CREATE DATABASE musicexpress" -U postgres
   - psql -d musicexpress -f ./postgres/initDB.sql
-
-script:
   - psql -d musicexpress -c "SELECT * FROM artists"
 
+script:
+  # run tests
   - make tests
   
   - psql -c "DROP DATABASE musicexpress"
