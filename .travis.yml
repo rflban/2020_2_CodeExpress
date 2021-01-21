@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get update
 
 before_script:
-  - psql -c 'CREATE DATABASE musicexpress' -U postgress
+  - psql -c 'CREATE DATABASE musicexpress' -U postgres
 
 script:
   - psql -c "SELECT version();"
