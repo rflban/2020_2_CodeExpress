@@ -24,8 +24,8 @@ script:
   - go run app/session_microservice/main.go config.json
   - go run app/main/main.go config.json
   
-  #- make tests
-  
+  - make tests
+
   - psql -c "DROP DATABASE musicexpress"
 
 
