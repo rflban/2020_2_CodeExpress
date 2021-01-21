@@ -1,5 +1,23 @@
 language: go
 
+services:
+  - postgresql
+
+env:
+  global:
+    - PGUSER=postgres
+    - PGPORT=5432
+
+before_install:
+  - sudo apt-get update
+
+before_script:
+  - psql -c 'CREATE DATABASE musicexpress'; -U postgress
+
 script:
-  make
-  
+  - psql -c "SELECT version();"
+
+#after_success:
+
+
+
