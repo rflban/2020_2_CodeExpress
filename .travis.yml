@@ -17,7 +17,8 @@ before_script:
   - psql -d musicexpress -f ./postgres/initDB.sql
 
 script:
-  - psql -c "SELECT * FROM pg_catalog.pg_tables;"
+  - psql -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
+  - psql -c "DROP DATABASE musicexpress"
 
 #after_success:
 
