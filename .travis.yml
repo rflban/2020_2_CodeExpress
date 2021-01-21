@@ -12,6 +12,10 @@ before_install:
   - cp .netrc ~/.netrc
   - chmod 600 ~/.netrc
 
+#install:
+#  - go get 
+
+
 before_script:
   - psql -c "SELECT version();"
   - psql -c "CREATE DATABASE musicexpress" -U postgres
@@ -20,9 +24,9 @@ before_script:
 
 script:
   # run tests
-  - go run app/track_microservice/main.go config.json
-  - go run app/session_microservice/main.go config.json
-  - go run app/main/main.go config.json
+  #- go run app/track_microservice/main.go config.json
+  #- go run app/session_microservice/main.go config.json
+  #- go run app/main/main.go config.json
   
   - make tests
 
