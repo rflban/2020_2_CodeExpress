@@ -13,7 +13,7 @@ before_install:
   - chmod 600 ~/.netrc
 
 install:
-  - go get -d go.mod
+  - go get -d ./go.mod
 
 
 before_script:
