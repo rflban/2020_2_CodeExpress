@@ -12,6 +12,9 @@ before_install:
   - cp .netrc ~/.netrc
   - chmod 600 ~/.netrc
 
+install:
+  - go get -d -v
+
 before_script:
   - psql -c "SELECT version();"
   - psql -c "CREATE DATABASE musicexpress" -U postgres
