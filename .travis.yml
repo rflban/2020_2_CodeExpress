@@ -24,7 +24,14 @@ before_script:
 
 script:
   # ---------------------- run tests -----------------------------
+  
+  # run microservices 
+  - env GO111MODULE=on go run app/track_microservice/main.go config.json &
+  - env GO111MODULE=on go run app/session_microservice/main.go config.json &
+  - env GO111MODULE=on go run app/main/main.go config.json &
+  - env GO111MODULE=on go run app/admin_microservice/main.go config.json & 
+
   - env GO111MODULE=on make tests
 
-
+  # drop test database
   - psql -c "DROP DATABASE musicexpress"

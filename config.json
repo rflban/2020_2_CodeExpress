@@ -3,19 +3,19 @@
     "user": "postgres",
     "name": "musicexpress",
     "password": "postgres", 
-    "host": "db",
+    "host": "127.0.0.1",
     "port": 5432
   },
   "server": {
-    "host": "0.0.0.0",
+    "host": "127.0.0.1",
     "port": 8085
   },
   "session_microservice": {
-    "host": "session_service",
+    "host": "127.0.0.1",
     "port": 8086
   },
   "track_microservice": {
-    "host": "track_service",
+    "host": "127.0.0.1",
     "port": 8087
   },
   "admin_microservice": {
