@@ -20,8 +20,11 @@ before_script:
 
 script:
   # run tests
-  - make build
-  - make tests
+  - go run app/track_microservice/main.go config.json
+  - go run app/session_microservice/main.go config.json
+  - go run app/main/main.go config.json
+  
+  #- make tests
   
   - psql -c "DROP DATABASE musicexpress"
 
